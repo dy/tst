@@ -18,7 +18,7 @@ test.skip('Another test', function () {
 });
 ```
 
-Run in node: `$ node test.js` or in browser `beefy test.js`.
+Run in node: `$ node test.js` or in browser `$ beefy test.js`.
 
 
 ### Related
