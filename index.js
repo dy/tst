@@ -4,6 +4,7 @@ var isBrowser = require('is-browser');
 var tab = '   ';
 var indent = ' ';
 
+
 function test(message, testFunction) {
     if (!testFunction) {
         if (typeof message === 'string') return skip(message);

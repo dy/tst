@@ -9,8 +9,10 @@ test('Failed test', function () {
     xxx;
 });
 
-test('Async test', function () {
-
+test.skip('Async test', function (done) {
+	setTimeout(function () {
+		done();
+	});
 });
 
 test.skip('Skipped test', function () {
@@ -21,11 +23,4 @@ test('Skipped test 2');
 
 test(function testAsFunctionName () {
 
-});
-
-
-test('Nested test', function () {
-	test('Nestee', function () {
-
-	});
 });
