@@ -1,18 +1,26 @@
 # tst
 
-A CommonJS module exporting a function for running tests.
+A function for running tests.
 
-e.g.
+[![npm install tst](https://nodei.co/npm/tst.png?mini=true)](https://npmjs.org/package/tst/)
 
-    // ./test/index.js
-    var tst = require('tst'),
-        assert = require('assert');
+```js
+// ./test/index.js
+var tst = require('tst'),
+    assert = require('assert');
 
-    tst('A very simple test', function() {
-        var success = true;
-        assert.ok(success);
-    });
+tst('A very simple test', function() {
+    var success = true;
+    assert.ok(success);
+});
+```
 
-Run with:
+```sh
+$ node test.js
+```
 
-    node test
+Or
+
+```sh
+$ beefy test.js
+```
