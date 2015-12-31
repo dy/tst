@@ -3,7 +3,8 @@ A function for running tests.
 [![npm install tst](https://nodei.co/npm/tst.png?mini=true)](https://npmjs.org/package/tst/)
 
 ```js
-// ./test/index.js
+// ./test.js
+
 var test = require('tst'),
     assert = require('assert');
 
