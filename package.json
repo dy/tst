@@ -16,7 +16,10 @@
   "keywords": [
     "testing"
   ],
-  "author": "grahamlyons",
+  "author": "grahamlyons <graham@grahamlyons.com>",
+  "contributors": [
+    "Dmitry Yvanow <dfcreative@gmail.com>"
+  ],
   "license": "BSD",
   "bugs": {
     "url": "https://github.com/grahamlyons/tst/issues"
