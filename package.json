@@ -22,6 +22,7 @@
     "url": "https://github.com/grahamlyons/tst/issues"
   },
   "dependencies": {
+    "chalk": "^1.1.1",
     "is-browser": "^2.0.1"
   }
 }
