@@ -1,6 +1,4 @@
-# tst
-
-A function for running tests, [tap](https://npmjs.org/package/tap)-compatible.
+A function for running tests.
 
 [![npm install tst](https://nodei.co/npm/tst.png?mini=true)](https://npmjs.org/package/tst/)
 
