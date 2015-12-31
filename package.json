@@ -20,5 +20,8 @@
   "license": "BSD",
   "bugs": {
     "url": "https://github.com/grahamlyons/tst/issues"
+  },
+  "dependencies": {
+    "is-browser": "^2.0.1"
   }
 }
