@@ -13,4 +13,8 @@ function test(message, testFunction) {
     }
 }
 
+test.skip = function (message, testFunction) {
+    console.log('SKIPPED', message);
+}
+
 module.exports = test;
