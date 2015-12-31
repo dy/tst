@@ -6,9 +6,12 @@ var indent = '  ';
 
 function test(message, testFunction) {
     if (!testFunction) {
+        if (typeof message === 'string') return skip(message);
+
         testFunction = message;
-        message = '';
+        message = message.name;
     }
+
     try{
         testFunction.call();
         console.log(chalk.green(indent, '√', message));
@@ -26,8 +29,11 @@ function test(message, testFunction) {
     }
 }
 
-test.skip = function (message, testFunction) {
+function skip (message) {
     console.log(chalk.cyan(indent, '-', message));
 }
+
+
+test.skip = skip;
 
 module.exports = test;

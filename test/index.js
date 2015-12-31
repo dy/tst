@@ -19,6 +19,10 @@ test.skip('Skipped test', function () {
 
 test('Skipped test 2');
 
+test(function testAsFunctionName () {
+
+});
+
 
 test('Nested test', function () {
 	test('Nestee', function () {
