@@ -19,11 +19,10 @@ function test(message, testFunction) {
     } catch(e) {
         console.log(chalk.red(indent, '×', message));
 
-        //Leave formatting errors for browser
+        //Leave formatting to browser
         if (isBrowser) {
             console.error(e);
         }
-        //Node console is not that goof
         else {
             console.error(chalk.gray(tab, e.message, e.stack));
         }
