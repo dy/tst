@@ -25,7 +25,7 @@ test(function testAsFunctionName () {
 
 });
 
-test(function () {
+test(function NestedTestsContainer () {
 	test('Nested test 1');
 
 	test('Nested test 2', function () {
