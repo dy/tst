@@ -1,5 +1,6 @@
 var chalk = require('chalk');
 var isBrowser = require('is-browser');
+var now = require('performance-now');
 
 var INDENT = '  ';
 var indentCount = 0;
@@ -10,6 +11,7 @@ function test(message, testFunction) {
     testCount++;
 
     if (!testFunction) {
+        //If only message - do skip
         if (typeof message === 'string') {
             indentCount--;
 
@@ -26,17 +28,18 @@ function test(message, testFunction) {
         testFunction = message;
         message = message.name;
         if (!message) message = 'Test #' + testCount;
-
     }
 
     try{
+        var time = -now();
         testFunction.call();
+        time += now();
 
         if (isBrowser) {
-            console.log('%c√ ' + message, 'color: green');
+            console.log('%c√ ' + message + '%c' + indent(1) + time.toFixed(2) + 'ms', 'color: green', 'color:rgb(150,150,150); font-size:0.9em');
         }
         else {
-            console.log(chalk.green(indent(indentCount), '√', message));
+            console.log(chalk.green(indent(indentCount), '√', message), chalk.gray(indent(1) + time.toFixed(2) + 'ms'));
         }
     } catch(e) {
 
