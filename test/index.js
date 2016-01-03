@@ -24,3 +24,11 @@ test('Skipped test 2');
 test(function testAsFunctionName () {
 
 });
+
+test(function () {
+	test('Nested test 1');
+
+	test('Nested test 2', function () {
+
+	});
+})

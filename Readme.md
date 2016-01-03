@@ -16,6 +16,12 @@ test('A very simple test', function() {
 test.skip('Another test', function () {
 
 });
+
+test(function () {
+	test('Nested test', function () {
+
+	});
+});
 ```
 
 Run in node: `$ node test.js` or in browser `$ beefy test.js`.
