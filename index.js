@@ -15,9 +15,9 @@ function test(message, testFunction) {
 
     try{
         testFunction.call();
-        console.log(chalk.green(indent, '√', message));
+        console.log(chalk.green(indent, '%c√', message), 'color: green');
     } catch(e) {
-        console.log(chalk.red(indent, '×', message));
+        console.log(chalk.red(indent, '%c×', message), 'color: red');
 
         //Leave formatting to browser
         if (isBrowser) {
@@ -30,7 +30,7 @@ function test(message, testFunction) {
 }
 
 function skip (message) {
-    console.log(chalk.cyan(indent, '-', message));
+    console.log(chalk.cyan(indent, '%c-', message), 'color: blue');
 }
 
 
