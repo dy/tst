@@ -15,22 +15,35 @@ function test(message, testFunction) {
 
     try{
         testFunction.call();
-        console.log(chalk.green(indent, '%c√', message), 'color: green');
+
+        if (isBrowser) {
+            console.log('%c√ ' + message, 'color: green');
+        }
+        else {
+            console.log(chalk.green(indent, '√', message));
+        }
     } catch(e) {
-        console.log(chalk.red(indent, '%c×', message), 'color: red');
 
         //Leave formatting to browser
         if (isBrowser) {
+            console.group('%c× ' + message, 'color: red');
             console.error(e);
+            console.groupEnd();
         }
         else {
+            console.log(chalk.red(indent, '×', message));
             console.error(chalk.gray(tab, e.message, e.stack));
         }
     }
 }
 
 function skip (message) {
-    console.log(chalk.cyan(indent, '%c-', message), 'color: blue');
+    if (isBrowser) {
+        console.log('%c- ' + message, 'color: blue');
+    }
+    else {
+        console.log(chalk.cyan(indent, '-', message));
+    }
 }
 
 
