@@ -26,7 +26,8 @@ function test (message, testFunction) {
         id: testCount++,
         title: message,
         indent: tests.length,
-        parent: tests[tests.length - 1]
+        parent: tests[tests.length - 1],
+        status: null
     };
 
     //create nesting references
@@ -43,6 +44,7 @@ function test (message, testFunction) {
     if (!testFunction) {
         //if only message passed - do skip
         if (typeof message === 'string') {
+            testObj.status = 'skip';
             end(testObj);
             return test;
         }
@@ -64,16 +66,17 @@ function test (message, testFunction) {
         testObj.time = now() - testObj.time;
 
         //update status
-        testObj.success = true;
+        if (!testObj.status) testObj.status = 'success';
     } catch (e) {
         //set parents status to error happened in nested test
         if (tests.length) {
             for (var i = tests.length; i--;) {
-                tests[i].error = true;
+                tests[i].status = 'warning';
             }
         }
 
         //update test status
+        testObj.status = 'error';
         testObj.error = e;
     }
 
@@ -107,16 +110,16 @@ function indent (number) {
 function print (test) {
     var single = test.children && test.children.length ? false : true;
 
-    if (test.error instanceof Error) {
+    if (test.status === 'error') {
         printError(test);
     }
-    else if (test.error) {
+    else if (test.status === 'warning') {
         printWarn(test, single);
     }
-    else if (test.success) {
+    else if (test.status === 'success') {
         printSuccess(test, single);
     }
-    else {
+    else if (test.status === 'skip') {
         printSkip(test, single);
     }
 
