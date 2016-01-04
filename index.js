@@ -62,7 +62,7 @@ function test (message, testFunction) {
 
     var isAsync = testFunction.length;
 
-    //exec test
+    //exec sync test
     if (!isAsync) {
         try {
             testObj.time = now();
