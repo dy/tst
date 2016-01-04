@@ -13,8 +13,10 @@ var tests = [];
 var testCount = 0;
 
 
+
+
 /**
- * Main test function
+ * Main test executor
  */
 function test (message, testFunction) {
     //if run in exclusive mode - allow only `test.only` calls
@@ -27,10 +29,33 @@ function test (message, testFunction) {
     var testObj = {
         id: testCount++,
         title: message,
-        indent: tests.length,
-        parent: tests[tests.length - 1],
-        status: null
+        status: null,
+        fn: testFunction
     };
+
+    //handle args
+    if (!testFunction) {
+        //if only message passed - do skip
+        if (!testFunction && typeof message === 'string') {
+            testObj.status = 'skip';
+        }
+        else {
+            //detect test name
+            testObj.fn = message;
+            message = message.name;
+            if (!message) message = 'Test #' + testObj.id;
+
+            //update test title
+            testObj.title = message;
+        }
+    }
+
+
+    //----execution from here
+
+    //detect indent based on running nested tests
+    testObj.indent = tests.length;
+    testObj.parent = tests[tests.length - 1];
 
     //create nesting references
     if (testObj.parent) {
@@ -38,35 +63,22 @@ function test (message, testFunction) {
         testObj.parent.children.push(testObj);
     }
 
-    //handle args
-    if (!testFunction) {
-        //if only message passed - do skip
-        if (typeof message === 'string') {
-            testObj.status = 'skip';
-            testObj.promise = Promise.resolve();
-            printFirstLevel(testObj);
-            return test;
-        }
-
-        //detect test name
-        testFunction = message;
-        message = message.name;
-        if (!message) message = 'Test #' + testObj.id;
-
-        //update test title
-        testObj.title = message;
+    //ignore skipping test
+    if (testObj.status === 'skip') {
+        printFirstLevel(testObj);
+        return test;
     }
 
     //save test to the chain
     tests.push(testObj);
 
-    var isAsync = testFunction.length;
+    var isAsync = testObj.fn.length;
 
     //exec sync test
     if (!isAsync) {
         try {
             testObj.time = now();
-            testFunction.call(testObj);
+            testObj.fn.call(testObj);
             testObj.time = now() - testObj.time;
 
             if (!testObj.status) testObj.status = 'success';
@@ -86,10 +98,14 @@ function test (message, testFunction) {
         printFirstLevel(testObj);
 
         testObj.promise = Promise.resolve();
+    } else {
+
     }
 
     //remove test from the chain
     tests.pop();
+
+    //----up here
 
 
     return test;
