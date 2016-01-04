@@ -11,6 +11,7 @@ test('Failed test', function () {
 });
 
 test('Async test', function (done) {
+	console.log(1)
 	setTimeout(function () {
 		done();
 	}, 2000);
