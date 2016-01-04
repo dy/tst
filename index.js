@@ -30,13 +30,7 @@ function test (message, testFunction) {
     if (!testFunction) {
         //if only message passed - do skip
         if (typeof message === 'string') {
-
-            //return resolved promise
-            printSkip(testObj);
-
-            tests.pop();
-
-            return;
+            return end(testObj);
         }
 
         //detect test name
@@ -67,6 +61,18 @@ function test (message, testFunction) {
         testObj.error = e;
     }
 
+    return end(testObj);
+}
+
+
+//skipper
+test.skip = function skip (message) {
+   return test(message);
+};
+
+
+//test ender - prints logs, if needed
+function end (testObj) {
     tests.pop();
 
     //if first level finished - log resolved tests
@@ -74,11 +80,6 @@ function test (message, testFunction) {
         print(testObj);
     }
 }
-
-//skipper
-test.skip = function skip (message) {
-   return test(message);
-};
 
 //return indentation of a number
 function indent (number) {
