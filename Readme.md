@@ -1,5 +1,3 @@
-Minimalistic test runner.
-
 [![npm install tst](https://nodei.co/npm/tst.png?mini=true)](https://npmjs.org/package/tst/)
 
 ```js
