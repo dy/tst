@@ -8,13 +8,13 @@ test('Successful test', function() {
 });
 
 test('Failed test', function () {
-    xxx;
+    assert.equal(1, 2);
 });
 
-test.skip('Async test', function (done) {
+test.skip('TODO: Async test', function (done) {
 	setTimeout(function () {
 		done();
-	});
+	}, 200);
 });
 
 test.skip('Skipped test', function () {
