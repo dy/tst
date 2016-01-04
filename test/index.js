@@ -1,7 +1,6 @@
-var test = require('../index');
+var test = require('../index')//.only();
 var assert = require('assert');
 
-// test.only();
 
 test('Successful test', function() {
     assert.ok(true);

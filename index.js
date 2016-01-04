@@ -16,10 +16,10 @@ var testCount = 0;
  * Main test function
  */
 function test (message, testFunction) {
-    if (test.ONLY) return;
+    if (test.ONLY) return test;
 
     //ignore bad args
-    if (!message) return;
+    if (!message) return test;
 
     //init test object params
     var testObj = {
@@ -43,7 +43,8 @@ function test (message, testFunction) {
     if (!testFunction) {
         //if only message passed - do skip
         if (typeof message === 'string') {
-            return end(testObj);
+            end(testObj);
+            return test;
         }
 
         //detect test name
@@ -76,7 +77,9 @@ function test (message, testFunction) {
         testObj.error = e;
     }
 
-    return end(testObj);
+    end(testObj);
+
+    return test;
 }
 
 
@@ -188,6 +191,7 @@ test.only = function only (message, fn) {
     test.ONLY = false;
     test(message, fn);
     test.ONLY = true;
+    return test;
 }
 
 

@@ -1,39 +1,38 @@
-A function for running tests.
+Minimalistic test runner.
 
 [![npm install tst](https://nodei.co/npm/tst.png?mini=true)](https://npmjs.org/package/tst/)
 
 ```js
 // ./test.js
 
-var test = require('tst');
+var test = require('tst')//.only();
 var assert = require('assert');
 
-//Uncomment this to run inclusive test mode
-//test.only();
 
-test('A very simple test', function() {
+test('Test trivial things', function() {
     var success = true;
-    assert.ok(success);
+    assert.equal(success, true);
 });
 
-//Exclusive test
-test.skip('Skipped test', function () {
-
+test.skip('Do not test unwanted things', function () {
+	var $ = require('jquery');
 });
 
-test(function () {
-	test('Nested test', function () {
+test('Group tests', function () {
+	test('Nested', function () {
+
+	});
+	test('Nested', function () {
 
 	});
 });
 
-//Inclusive test
-test.only(function () {
-
+test.only('Test of interest', function () {
+	//To run exclusive test mode, add .only() in require
 });
 ```
 
-Run in node: `$ node test.js` or in browser `$ beefy test.js`.
+Run in node: `$ node ./test.js` or in browser `$ beefy ./test.js`.
 
 
 ### Related
