@@ -153,17 +153,17 @@ function printSuccess (test, single) {
         console[single ? 'log' : 'group']('%c√ ' + test.title + '%c  ' + test.time.toFixed(2) + 'ms', 'color: green; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
     }
     else {
-        console.log(chalk.green(indent(test.indent) + ' √ ' + test.title), chalk.gray(' ' + test.time.toFixed(2) + 'ms'));
+        console.log(chalk.green(indent(test.indent) + ' √ ' + test.title) + chalk.gray(' ' + test.time.toFixed(2) + 'ms'));
     }
 }
 
 //print yellow warning (not all tests passed)
 function printWarn (test, single) {
     if (isBrowser) {
-        console[single ? 'log' : 'group']('%c~ ' + test.title + '%c' + indent(1) + test.time.toFixed(2) + 'ms', 'color: orange; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
+        console[single ? 'log' : 'group']('%c~ ' + test.title + '%c  ' + test.time.toFixed(2) + 'ms', 'color: orange; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
     }
     else {
-        console.log(chalk.yellow(indent(test.indent) + ' ~ ' + test.title), chalk.dim.gray(indent(1) + test.time.toFixed(2) + 'ms'));
+        console.log(chalk.yellow(indent(test.indent) + ' ~ ' + test.title) + chalk.gray('  ' + test.time.toFixed(2) + 'ms'));
     }
 }
 
