@@ -130,11 +130,11 @@ function print (test) {
 function printError (test) {
     //browser shows errors better
     if (isBrowser) {
-        console.log('%c× ' + test.title, 'color: red');
+        console.group('%c× ' + test.title, 'color: red; font-weight: normal');
         if (test.error && test.error !== true) {
             console.error(test.error);
         }
-        // console.groupEnd();
+        console.groupEnd();
     }
     else {
         console.log(chalk.red(indent(test.indent) + ' × ' + test.title));
