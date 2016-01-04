@@ -137,7 +137,7 @@ function printError (test) {
         // console.groupEnd();
     }
     else {
-        console.log(chalk.red(indent(test.indent), '×', test.title));
+        console.log(chalk.red(indent(test.indent) + ' × ' + test.title));
 
         //NOTE: node prints e.stack along with e.message
         if (test.error.stack) {
@@ -153,7 +153,7 @@ function printSuccess (test, single) {
         console[single ? 'log' : 'group']('%c√ ' + test.title + '%c  ' + test.time.toFixed(2) + 'ms', 'color: green; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
     }
     else {
-        console.log(chalk.green(indent(test.indent), '√', test.title), chalk.gray(' ' + test.time.toFixed(2) + 'ms'));
+        console.log(chalk.green(indent(test.indent) + ' √ ' + test.title), chalk.gray(' ' + test.time.toFixed(2) + 'ms'));
     }
 }
 
@@ -163,7 +163,7 @@ function printWarn (test, single) {
         console[single ? 'log' : 'group']('%c~ ' + test.title + '%c' + indent(1) + test.time.toFixed(2) + 'ms', 'color: orange; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
     }
     else {
-        console.log(chalk.yellow(indent(test.indent), '~', test.title), chalk.gray(indent(1) + test.time.toFixed(2) + 'ms'));
+        console.log(chalk.yellow(indent(test.indent) + ' ~ ' + test.title), chalk.gray(indent(1) + test.time.toFixed(2) + 'ms'));
     }
 }
 
@@ -173,7 +173,7 @@ function printSkip (test, single) {
         console[single ? 'log' : 'group']('%c- ' + test.title, 'color: blue');
     }
     else {
-        console.log(chalk.cyan(indent(test.indent), '-', test.title));
+        console.log(chalk.cyan(indent(test.indent) + ' - ' + test.title));
     }
 }
 
