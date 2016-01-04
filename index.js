@@ -194,5 +194,8 @@ test.only = function only (message, fn) {
     return test;
 }
 
+//more obvious chain
+test.test = test;
+
 
 module.exports = test;
