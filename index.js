@@ -12,10 +12,12 @@ test.ONLY = false;
 var tests = [];
 var testCount = 0;
 
+
 /**
  * Main test function
  */
 function test (message, testFunction) {
+    //if run in exclusive mode - allow only `test.only` calls
     if (test.ONLY) return test;
 
     //ignore bad args
@@ -36,16 +38,16 @@ function test (message, testFunction) {
         testObj.parent.children.push(testObj);
     }
 
-    //append current test to the chain
-    tests.push(testObj);
-
-
     //handle args
     if (!testFunction) {
         //if only message passed - do skip
         if (typeof message === 'string') {
             testObj.status = 'skip';
-            end(testObj);
+            testObj.promise = Promise.resolve().then(function () {
+                if (!testObj.parent) {
+                    print(testObj);
+                }
+            });
             return test;
         }
 
@@ -58,43 +60,48 @@ function test (message, testFunction) {
         testObj.title = message;
     }
 
+    //save test to the chain
+    tests.push(testObj);
 
     //exec test
-    try {
+    testObj.promise = new Promise(function (resolve, reject) {
         testObj.time = now();
         testFunction.call(testObj);
         testObj.time = now() - testObj.time;
-
-        //update status
+        resolve();
+    })
+    //NOTE: this resolves not instantly
+    .then(function () {
         if (!testObj.status) testObj.status = 'success';
-    } catch (e) {
+
+        //print 1st-level output
+        if (!testObj.parent) {
+            print(testObj);
+        }
+    }, function (e) {
         //set parents status to error happened in nested test
-        if (tests.length) {
-            for (var i = tests.length; i--;) {
-                tests[i].status = 'warning';
-            }
+        var parent = testObj.parent;
+        while (parent) {
+            parent.status = 'warning';
+            parent = parent.parent;
         }
 
         //update test status
         testObj.status = 'error';
         testObj.error = e;
-    }
 
-    end(testObj);
+        //print 1st-level output
+        if (!testObj.parent) {
+            print(testObj);
+        }
+    });
+
+    //remove test from the chain
+    tests.pop();
 
     return test;
 }
 
-
-//test ender - prints logs, if needed
-function end (testObj) {
-    tests.pop();
-
-    //if first level finished - log resolved tests
-    if (!tests.length) {
-        print(testObj);
-    }
-}
 
 //return indentation of a number
 function indent (number) {
@@ -132,12 +139,13 @@ function print (test) {
     if (!single && isBrowser) console.groupEnd();
 }
 
+
 //print pure red error
 function printError (test) {
     //browser shows errors better
     if (isBrowser) {
         console.group('%c× ' + test.title, 'color: red; font-weight: normal');
-        if (test.error && test.error !== true) {
+        if (test.error) {
             console.error(test.error);
         }
         console.groupEnd();
