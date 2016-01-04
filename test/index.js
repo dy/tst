@@ -10,10 +10,10 @@ test('Failed test', function () {
     assert.equal(1, 2);
 });
 
-test.skip('TODO: Async test', function (done) {
+test('Async test', function (done) {
 	setTimeout(function () {
 		done();
-	}, 200);
+	}, 2000);
 });
 
 test.skip('Skipped test', function () {
@@ -26,21 +26,21 @@ test(function () {
 
 });
 
-test(function NestedTestsContainer () {
-	test('Nested test 1');
+// test(function NestedTestsContainer () {
+// 	test('Nested test 1');
 
-	test('Nested test 2', function () {
+// 	test('Nested test 2', function () {
 
-	});
-	test('Nested test 3', function () {
-		xxx;
-	});
-	test('Nested test 4', function () {
-		test('Double nested test', function () {
-			throw Error('xxx');
-		});
-	});
-});
+// 	});
+// 	test('Nested test 3', function () {
+// 		xxx;
+// 	});
+// 	test('Nested test 4', function () {
+// 		test('Double nested test', function () {
+// 			throw Error('xxx');
+// 		});
+// 	});
+// });
 
 test.only('Final', function () {
 

@@ -1,6 +1,9 @@
 var chalk = require('chalk');
 var isBrowser = require('is-browser');
 var now = require('performance-now');
+var elegantSpinner = require('elegant-spinner');
+var logUpdate = require('log-update');
+
 
 //default indentation
 test.INDENT = '  ';
@@ -8,17 +11,21 @@ test.INDENT = '  ';
 //whether we run the only test
 test.ONLY = false;
 
+//default timeout for async tests
+test.TIMEOUT = 2000;
+
 //chain of nested test calls
 var tests = [];
 var testCount = 0;
 
-
+//planned tests to run
+var testQueue = [];
 
 
 /**
- * Main test executor
+ * Test enqueuer
  */
-function test (message, testFunction) {
+function test (message, fn) {
     //if run in exclusive mode - allow only `test.only` calls
     if (test.ONLY) return test;
 
@@ -30,13 +37,13 @@ function test (message, testFunction) {
         id: testCount++,
         title: message,
         status: null,
-        fn: testFunction
+        fn: fn
     };
 
     //handle args
-    if (!testFunction) {
+    if (!fn) {
         //if only message passed - do skip
-        if (!testFunction && typeof message === 'string') {
+        if (!fn && typeof message === 'string') {
             testObj.status = 'skip';
         }
         else {
@@ -50,85 +57,163 @@ function test (message, testFunction) {
         }
     }
 
+    //plan running new test
+    testQueue.push(testObj);
 
-    //----execution from here
+    //run tests queue
+    run();
 
+    return test;
+}
+
+/**
+ * Tests queue runner
+ */
+var currentTest;
+function run () {
+    //ignore active run
+    if (currentTest) return;
+
+    //get the planned test
+    currentTest = testQueue.shift();
+
+    //exec it, the promise will be formed
+    exec(currentTest);
+
+    //plan running next test after the promise
+    currentTest.promise.then(function () {
+        currentTest = null;
+        run();
+    }, function () {
+        currentTest = null;
+        run();
+    });
+}
+
+
+/**
+ * Test executor
+ */
+function exec (test) {
     //detect indent based on running nested tests
-    testObj.indent = tests.length;
-    testObj.parent = tests[tests.length - 1];
+    test.indent = tests.length;
+    test.parent = tests[tests.length - 1];
 
     //create nesting references
-    if (testObj.parent) {
-        if (!testObj.parent.children) testObj.parent.children = [];
-        testObj.parent.children.push(testObj);
+    if (test.parent) {
+        if (!test.parent.children) test.parent.children = [];
+        test.parent.children.push(test);
     }
 
     //ignore skipping test
-    if (testObj.status === 'skip') {
-        printFirstLevel(testObj);
+    if (test.status === 'skip') {
+        test.promise = Promise.resolve();
+        printResult(test);
         return test;
     }
 
     //save test to the chain
-    tests.push(testObj);
+    tests.push(test);
 
-    var isAsync = testObj.fn.length;
+    printTitle(test);
+
+    var isAsync = test.fn.length;
 
     //exec sync test
     if (!isAsync) {
         try {
-            testObj.time = now();
-            testObj.fn.call(testObj);
-            testObj.time = now() - testObj.time;
+            test.time = now();
+            test.fn.call(test);
+            test.time = now() - test.time;
 
-            if (!testObj.status) testObj.status = 'success';
+            if (!test.status) test.status = 'success';
         } catch (e) {
             //set parents status to error happened in nested test
-            var parent = testObj.parent;
+            var parent = test.parent;
             while (parent) {
                 parent.status = 'warning';
                 parent = parent.parent;
             }
 
             //update test status
-            testObj.status = 'error';
-            testObj.error = e;
+            test.status = 'error';
+            test.error = e;
         }
 
-        printFirstLevel(testObj);
+        printResult(test);
 
-        testObj.promise = Promise.resolve();
-    } else {
+        test.promise = Promise.resolve();
 
+        //remove test from the chain
+        tests.pop();
     }
+    //exec async test - it should be run in promise
+    //sorry about the stacktrace, nothing I can do...
+    else {
+        if (!test.timeout) test.timeout = test.TIMEOUT;
+        test.promise = Promise.race([
+            new Promise(function (resolve, reject) {
+                test.time = now();
+                test.fn.call(test, resolve);
+            }),
+            new Promise(function (resolve, reject) {
+                // setTimeout()
+            })
+        ]).then(function () {
+            test.time = now() - test.time;
+            if (!test.status) test.status = 'success';
+            printResult(test);
 
-    //remove test from the chain
-    tests.pop();
+            tests.pop();
+        }, function (e) {
+            var parent = test.parent;
+            while (parent) {
+                parent.status = 'warning';
+                parent = parent.parent;
+            }
 
-    //----up here
+            //update test status
+            test.status = 'error';
+            test.error = e;
+            printResult(test);
+
+            tests.pop();
+        });
+    }
 
 
     return test;
 }
 
 
-//return indentation of a number
-function indent (number) {
-    var str = '';
-    for (var i = 0; i < number; i++) {
-        str += test.INDENT;
+//print title (indicator of started test)
+var titleInterval;
+function printTitle (test) {
+    if (!isBrowser) {
+        var frame = elegantSpinner();
+
+        titleInterval = setInterval(function () {
+           logUpdate(chalk.white(indent(test.indent) + ' ' + frame() + ' ' + test.title));
+        }, 50);
     }
-    return str;
 }
 
+
 //print only 1st level guys
-function printFirstLevel (test) {
+//because the result of the children is not the result of parent :)
+function printResult (test) {
     if (!test.parent) print(test);
 }
 
 
 //universal printer dependent on resolved test
 function print (test) {
+    //clear loading title
+    if (!isBrowser) {
+        clearInterval(titleInterval);
+        logUpdate.clear();
+    }
+
     var single = test.children && test.children.length ? false : true;
 
     if (test.status === 'error') {
@@ -206,6 +291,16 @@ function printSkip (test, single) {
 }
 
 
+//return indentation of a number
+function indent (number) {
+    var str = '';
+    for (var i = 0; i < number; i++) {
+        str += test.INDENT;
+    }
+    return str;
+}
+
+
 //skip alias
 test.skip = function skip (message) {
    return test(message);
@@ -221,6 +316,7 @@ test.only = function only (message, fn) {
 
 //more obvious chain
 test.test = test;
+
 
 
 module.exports = test;
