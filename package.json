@@ -1,11 +1,14 @@
 {
   "name": "tst",
-  "version": "1.0.1",
-  "description": "A function to run tests",
+  "version": "1.0.2",
+  "description": "Minimalistic test runner for node/browser",
   "main": "index.js",
   "directories": {
     "test": "test"
   },
+  "files": [
+    "index.js"
+  ],
   "scripts": {
     "test": "node test"
   },
@@ -14,7 +17,15 @@
     "url": "https://github.com/dfcreative/tst"
   },
   "keywords": [
-    "testing"
+    "testing",
+    "mocha",
+    "ava",
+    "tap",
+    "tape",
+    "karma",
+    "test",
+    "runner",
+    "light-mocha",
   ],
   "author": "grahamlyons <graham@grahamlyons.com>",
   "contributors": [
@@ -22,7 +33,7 @@
   ],
   "license": "BSD",
   "bugs": {
-    "url": "https://github.com/grahamlyons/tst/issues"
+    "url": "https://github.com/dfcreative/tst/issues"
   },
   "dependencies": {
     "chalk": "^1.1.1",
