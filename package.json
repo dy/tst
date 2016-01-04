@@ -1,6 +1,6 @@
 {
   "name": "tst",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Minimalistic test runner for node/browser",
   "main": "index.js",
   "directories": {
