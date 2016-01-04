@@ -4,25 +4,21 @@ var now = require('performance-now');
 
 var INDENT = '  ';
 var indentCount = 0;
-
-//list of current running tests
-var currentTest;
-
-//test ids
 var testCount = 0;
 
 
+/**
+ * Main test function
+ */
 function test (message, testFunction) {
     var resolve, reject;
 
     //init test object params
-    var testObject = {
-        parent: currentTest,
+    var testObj = {
         indent: indentCount++,
         id: testCount++,
         title: message
     };
-
 
     if (!testFunction) {
         //if only message passed - do skip
@@ -30,63 +26,66 @@ function test (message, testFunction) {
             indentCount--;
 
             //return resolved promise
-            return Promise.resolve(testObject).then(function (test) {
+            var promise = Promise.resolve().then(function () {
                 if (isBrowser) {
-                    console.log('%c- ' + test.title, 'color: blue');
+                    console.log('%c- ' + testObj.title, 'color: blue');
                 }
                 else {
-                    console.log(chalk.cyan(indent(test.indent), '-', test.title));
+                    console.log(chalk.cyan(indent(testObj.indent), '-', testObj.title));
                 }
             });
+
+            return promise;
         }
 
         //detect test name
         testFunction = message;
         message = message.name;
-        if (!message) message = 'Test #' + testObject.id;
+        if (!message) message = 'Test #' + testObj.id;
 
         //update test title
-        testObject.title = message;
+        testObj.title = message;
     }
 
 
-    //register formatters
-    return (new Promise(function (resolve, reject) {
-        try{
-            testObject.time = now();
-            testFunction.call(testObject);
-            testObject.time = now() - testObject.time;
-            resolve(testObject);
-        } catch (e) {
-            testObject.error = e;
-            reject(testObject);
-        }
+    //exec promise
+    var promise = new Promise(function (resolve, reject) {
+        testObj.time = now();
+        testFunction.call(testObj);
+        testObj.time = now() - testObj.time;
 
-        indentCount--;
-    })).then(
-        function (test) {
+        resolve();
+    });
+
+    //register formatters
+    promise.then(
+        function () {
             if (isBrowser) {
-                console.log('%c√ ' + test.title + '%c' + indent(1) + test.time.toFixed(2) + 'ms', 'color: green', 'color:rgb(150,150,150); font-size:0.9em');
+                console.log('%c√ ' + testObj.title + '%c' + indent(1) + testObj.time.toFixed(2) + 'ms', 'color: green', 'color:rgb(150,150,150); font-size:0.9em');
             }
             else {
-                console.log(chalk.green(indent(test.indent), '√', test.title), chalk.gray(indent(1) + test.time.toFixed(2) + 'ms'));
+                console.log(chalk.green(indent(testObj.indent), '√', testObj.title), chalk.gray(indent(1) + testObj.time.toFixed(2) + 'ms'));
             }
         },
-        function (test) {
+        function (error) {
             //Leave formatting to browser, it shows errors better
             if (isBrowser) {
-                console.group('%c× ' + test.title, 'color: red');
-                console.error(test.error);
+                console.group('%c× ' + testObj.title, 'color: red');
+                console.error(error);
                 console.groupEnd();
             }
             else {
-                console.log(chalk.red(indent(test.indent), '×', test.title));
+                console.log(chalk.red(indent(testObj.indent), '×', testObj.title));
 
                 //NOTE: node prints e.stack along with e.message
-                console.error(chalk.gray(indent(test.indent), test.error.stack));
+                console.error(chalk.gray(indent(testObj.indent + 1), error.stack));
             }
         }
     );
+
+    indentCount--;
+
+    return promise;
 }
 
 function skip (message) {

@@ -1,5 +1,5 @@
-var test = require('../index'),
-    assert = require('assert');
+var test = require('../index');
+var assert = require('assert');
 
 test('Successful test', function() {
     assert.ok(true);
