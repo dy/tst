@@ -5,15 +5,19 @@ A function for running tests.
 ```js
 // ./test.js
 
-var test = require('tst'),
-    assert = require('assert');
+var test = require('tst');
+var assert = require('assert');
+
+//Uncomment this to run inclusive test mode
+//test.only();
 
 test('A very simple test', function() {
     var success = true;
     assert.ok(success);
 });
 
-test.skip('Another test', function () {
+//Exclusive test
+test.skip('Skipped test', function () {
 
 });
 
@@ -21,6 +25,11 @@ test(function () {
 	test('Nested test', function () {
 
 	});
+});
+
+//Inclusive test
+test.only(function () {
+
 });
 ```
 

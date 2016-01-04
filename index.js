@@ -2,18 +2,24 @@ var chalk = require('chalk');
 var isBrowser = require('is-browser');
 var now = require('performance-now');
 
-var INDENT = '  ';
-var testCount = 0;
+//default indentation
+test.INDENT = '  ';
+
+//whether we run the only test
+test.ONLY = false;
 
 //chain of nested test calls
 var tests = [];
-
+var testCount = 0;
 
 /**
  * Main test function
  */
 function test (message, testFunction) {
-    var resolve, reject;
+    if (test.ONLY) return;
+
+    //ignore bad args
+    if (!message) return;
 
     //init test object params
     var testObj = {
@@ -88,7 +94,7 @@ function end (testObj) {
 function indent (number) {
     var str = '';
     for (var i = 0; i < number; i++) {
-        str += INDENT;
+        str += test.INDENT;
     }
     return str;
 }
@@ -176,6 +182,13 @@ function printSkip (test, single) {
 test.skip = function skip (message) {
    return test(message);
 };
+
+//half-working only alias
+test.only = function only (message, fn) {
+    test.ONLY = false;
+    test(message, fn);
+    test.ONLY = true;
+}
 
 
 module.exports = test;

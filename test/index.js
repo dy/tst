@@ -1,6 +1,8 @@
 var test = require('../index');
 var assert = require('assert');
 
+// test.only();
+
 test('Successful test', function() {
     assert.ok(true);
 });
@@ -41,6 +43,10 @@ test(function NestedTestsContainer () {
 	});
 });
 
-test('Final', function () {
+test.only('Final', function () {
+
+});
+
+test('After-party', function () {
 
 });
