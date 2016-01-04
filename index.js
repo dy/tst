@@ -93,17 +93,19 @@ function indent (number) {
 
 //universal printer dependent on resolved test
 function print (test) {
+    var single = test.children && test.children.length ? false : true;
+
     if (test.error instanceof Error) {
         printError(test);
     }
     else if (test.error) {
-        printWarn(test);
+        printWarn(test, single);
     }
     else if (test.success) {
-        printSuccess(test);
+        printSuccess(test, single);
     }
     else {
-        printSkip(test);
+        printSkip(test, single);
     }
 
     if (test.children) {
@@ -111,43 +113,45 @@ function print (test) {
             print(test.children[i]);
         }
     }
+
+    if (!single && isBrowser) console.groupEnd();
 }
 
 //print pure red error
 function printError (test) {
     //browser shows errors better
     if (isBrowser) {
-        console.group('%c× ' + test.title, 'color: red');
+        console.log('%c× ' + test.title, 'color: red');
         if (test.error && test.error !== true) {
             console.error(test.error);
         }
-        console.groupEnd();
+        // console.groupEnd();
     }
     else {
         console.log(chalk.red(indent(test.indent), '×', test.title));
 
         //NOTE: node prints e.stack along with e.message
         if (test.error.stack) {
-            var stack = test.error.stack.replace(/^\s*/gm, indent(test.indent + 1) + ' ');
+            var stack = test.error.stack.replace(/^\s*/gm, indent(test.indent) + '   ');
             console.error(chalk.gray(stack));
         }
     }
 }
 
 //print green success
-function printSuccess (test) {
+function printSuccess (test, single) {
     if (isBrowser) {
-        console.log('%c√ ' + test.title + '%c' + indent(1) + test.time.toFixed(2) + 'ms', 'color: green', 'color:rgb(150,150,150); font-size:0.9em');
+        console[single ? 'log' : 'group']('%c√ ' + test.title + '%c  ' + test.time.toFixed(2) + 'ms', 'color: green; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
     }
     else {
-        console.log(chalk.green(indent(test.indent), '√', test.title), chalk.gray(indent(1) + test.time.toFixed(2) + 'ms'));
+        console.log(chalk.green(indent(test.indent), '√', test.title), chalk.gray(' ' + test.time.toFixed(2) + 'ms'));
     }
 }
 
 //print yellow warning (not all tests passed)
-function printWarn (test) {
+function printWarn (test, single) {
     if (isBrowser) {
-        console.log('%c~ ' + test.title + '%c' + indent(1) + test.time.toFixed(2) + 'ms', 'color: yellow', 'color:rgb(150,150,150); font-size:0.9em');
+        console[single ? 'log' : 'group']('%c~ ' + test.title + '%c' + indent(1) + test.time.toFixed(2) + 'ms', 'color: orange; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
     }
     else {
         console.log(chalk.yellow(indent(test.indent), '~', test.title), chalk.gray(indent(1) + test.time.toFixed(2) + 'ms'));
@@ -155,9 +159,9 @@ function printWarn (test) {
 }
 
 //print blue skip
-function printSkip (test) {
+function printSkip (test, single) {
     if (isBrowser) {
-        console.log('%c- ' + test.title, 'color: blue');
+        console[single ? 'log' : 'group']('%c- ' + test.title, 'color: blue');
     }
     else {
         console.log(chalk.cyan(indent(test.indent), '-', test.title));

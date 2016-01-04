@@ -36,7 +36,11 @@ test(function NestedTestsContainer () {
 	});
 	test('Nested test 4', function () {
 		test('Double nested test', function () {
-			xxx;
+			throw Error('xxx');
 		});
 	});
-})
+});
+
+test('Final', function () {
+
+});
