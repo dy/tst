@@ -4,7 +4,10 @@ var now = require('performance-now');
 
 var INDENT = '  ';
 var testCount = 0;
+
+//chain of nested test calls
 var tests = [];
+
 
 /**
  * Main test function
@@ -20,13 +23,17 @@ function test (message, testFunction) {
         parent: tests[tests.length - 1]
     };
 
+    //create nesting references
     if (testObj.parent) {
         if (!testObj.parent.children) testObj.parent.children = [];
         testObj.parent.children.push(testObj);
     }
 
+    //append current test to the chain
     tests.push(testObj);
 
+
+    //handle args
     if (!testFunction) {
         //if only message passed - do skip
         if (typeof message === 'string') {
@@ -43,32 +50,28 @@ function test (message, testFunction) {
     }
 
 
-    //exec
+    //exec test
     try {
         testObj.time = now();
         testFunction.call(testObj);
         testObj.time = now() - testObj.time;
 
+        //update status
         testObj.success = true;
     } catch (e) {
-        //notify parents that error happened
+        //set parents status to error happened in nested test
         if (tests.length) {
             for (var i = tests.length; i--;) {
                 tests[i].error = true;
             }
         }
 
+        //update test status
         testObj.error = e;
     }
 
     return end(testObj);
 }
-
-
-//skipper
-test.skip = function skip (message) {
-   return test(message);
-};
 
 
 //test ender - prints logs, if needed
@@ -167,6 +170,12 @@ function printSkip (test, single) {
         console.log(chalk.cyan(indent(test.indent), '-', test.title));
     }
 }
+
+
+//skip alias
+test.skip = function skip (message) {
+   return test(message);
+};
 
 
 module.exports = test;
