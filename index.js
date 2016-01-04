@@ -43,11 +43,8 @@ function test (message, testFunction) {
         //if only message passed - do skip
         if (typeof message === 'string') {
             testObj.status = 'skip';
-            testObj.promise = Promise.resolve().then(function () {
-                if (!testObj.parent) {
-                    print(testObj);
-                }
-            });
+            testObj.promise = Promise.resolve();
+            printFirstLevel(testObj);
             return test;
         }
 
@@ -63,41 +60,37 @@ function test (message, testFunction) {
     //save test to the chain
     tests.push(testObj);
 
+    var isAsync = testFunction.length;
+
     //exec test
-    testObj.promise = new Promise(function (resolve, reject) {
-        testObj.time = now();
-        testFunction.call(testObj);
-        testObj.time = now() - testObj.time;
-        resolve();
-    })
-    //NOTE: this resolves not instantly
-    .then(function () {
-        if (!testObj.status) testObj.status = 'success';
+    if (!isAsync) {
+        try {
+            testObj.time = now();
+            testFunction.call(testObj);
+            testObj.time = now() - testObj.time;
 
-        //print 1st-level output
-        if (!testObj.parent) {
-            print(testObj);
-        }
-    }, function (e) {
-        //set parents status to error happened in nested test
-        var parent = testObj.parent;
-        while (parent) {
-            parent.status = 'warning';
-            parent = parent.parent;
+            if (!testObj.status) testObj.status = 'success';
+        } catch (e) {
+            //set parents status to error happened in nested test
+            var parent = testObj.parent;
+            while (parent) {
+                parent.status = 'warning';
+                parent = parent.parent;
+            }
+
+            //update test status
+            testObj.status = 'error';
+            testObj.error = e;
         }
 
-        //update test status
-        testObj.status = 'error';
-        testObj.error = e;
+        printFirstLevel(testObj);
 
-        //print 1st-level output
-        if (!testObj.parent) {
-            print(testObj);
-        }
-    });
+        testObj.promise = Promise.resolve();
+    }
 
     //remove test from the chain
     tests.pop();
+
 
     return test;
 }
@@ -110,6 +103,11 @@ function indent (number) {
         str += test.INDENT;
     }
     return str;
+}
+
+//print only 1st level guys
+function printFirstLevel (test) {
+    if (!test.parent) print(test);
 }
 
 
