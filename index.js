@@ -40,7 +40,8 @@ function test (message, fn) {
         status: null,
         fn: fn,
         children: [],
-        async: false
+        async: false,
+        last: false
     };
 
     //handle args
@@ -100,11 +101,18 @@ function run () {
     //exec it, the promise will be formed
     exec(currentTest);
 
-    //push all the children to the queue
+    //at the moment test is run, we know all it’s children
+    //push all the children to the queue, after the current test
+    //FIXME: this guy erases good stacktrace :< Maybe call asyncs last?
     var children = currentTest.children;
 
     for (var i = children.length; i--;){
         testQueue.unshift(children[i]);
+    }
+
+    //mark last kid
+    if (children.length) {
+        children[children.length - 1].last = true;
     }
 
     //if test is not async - run results at instant to avoid losing stacktrace
@@ -142,29 +150,22 @@ function exec (testObj) {
     //display title of the test
     printTitle(testObj);
 
+
     //exec sync test
     if (!testObj.async) {
+        testObj.promise = Promise.resolve();
+
         try {
             testObj.time = now();
             testObj.fn.call(testObj);
             testObj.time = now() - testObj.time;
 
-            if (!testObj.status) testObj.status = 'success';
+            if (!testObj.status !== 'warning') testObj.status = 'success';
+
+            print(testObj);
         } catch (e) {
-            //set parents status to error happened in nested test
-            var parent = testObj.parent;
-            while (parent) {
-                parent.status = 'warning';
-                parent = parent.parent;
-            }
-
-            //update test status
-            testObj.status = 'error';
-            testObj.error = e;
+            error(e);
         }
-
-        testObj.promise = Promise.resolve();
-        print(testObj);
     }
     //exec async test - it should be run in promise
     //sorry about the stacktrace, nothing I can do...
@@ -186,24 +187,27 @@ function exec (testObj) {
             if (testObj.status !== 'warning') testObj.status = 'success';
 
             print(testObj);
-        }, function (e) {
-            var parent = testObj.parent;
-            while (parent) {
-                parent.status = 'warning';
-                parent = parent.parent;
-            }
-
-            //update test status
-            testObj.status = 'error';
-            testObj.error = e;
-
-            print(testObj);
-        });
+        }, error);
     }
 
     //after promise’s executor, but after promise then’s
     //so user can’t create tests asynchronously, they should be created at once
     tests.pop();
+
+    //error handler
+    function error (e) {
+        var parent = testObj.parent;
+        while (parent) {
+            parent.status = 'warning';
+            parent = parent.parent;
+        }
+
+        //update test status
+        testObj.status = 'error';
+        testObj.error = e;
+
+        print(testObj);
+    }
 
     return testObj;
 }
@@ -261,13 +265,23 @@ function print (testObj) {
         printSkip(testObj, single);
     }
 
-    // if (testObj.children) {
-    //     for (var i = 0, l = testObj.children.length; i < l; i++) {
-    //         print(testObj.children[i]);
-    //     }
-    // }
-
-    if (!single && isBrowser) console.groupEnd();
+    //last child should close parent’s group in browser
+    if (testObj.last) {
+        if (isBrowser) {
+            //if truly last - create as many groups as many last parents
+            if (!testObj.children.length) {
+                console.groupEnd();
+                var parent = testObj.parent;
+                while (parent && parent.last) {
+                    console.groupEnd();
+                    parent = parent.parent;
+                }
+            }
+        } else {
+            //create padding
+            if (!testObj.children.length) console.log();
+        }
+    }
 }
 
 
@@ -282,12 +296,12 @@ function printError (testObj) {
             // } else {
                 // console.error(testObj.error);
             // }
-            console.error(testObj.error)
+            console.error(testObj.error.stack)
         }
         console.groupEnd();
     }
     else {
-        console.log(chalk.red(indent(testObj) + ' × ' + testObj.title));
+        console.log(chalk.red(indent(testObj) + ' × ') + chalk.red(testObj.title));
 
         //NOTE: node prints e.stack along with e.message
         if (testObj.error.stack) {
@@ -300,10 +314,20 @@ function printError (testObj) {
 //print green success
 function printSuccess (testObj, single) {
     if (isBrowser) {
-        console[single ? 'log' : 'group']('%c√ ' + testObj.title + '%c  ' + testObj.time.toFixed(2) + 'ms', 'color: green; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
+        if (single) {
+            console.log('%c√ ' + testObj.title + '%c  ' + testObj.time.toFixed(2) + 'ms', 'color: green; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
+        } else {
+            console.group('%c+ ' + testObj.title + '%c  ' + testObj.time.toFixed(2) + 'ms', 'color: black; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
+        }
     }
     else {
-        console.log(chalk.green(indent(testObj) + ' √ ' + testObj.title) + chalk.gray(' ' + testObj.time.toFixed(2) + 'ms'));
+        if (!single) {
+            console.log();
+            console.log(indent(testObj) +' ' + chalk.white('+') + ' ' + chalk.white(testObj.title) + chalk.gray(' ' + testObj.time.toFixed(2) + 'ms'));
+        }
+        else {
+            console.log(chalk.green(indent(testObj) + ' √ ') + chalk.green.dim(testObj.title) + chalk.gray(' ' + testObj.time.toFixed(2) + 'ms'));
+        }
     }
 }
 
@@ -323,7 +347,7 @@ function printSkip (testObj, single) {
         console[single ? 'log' : 'group']('%c- ' + testObj.title, 'color: blue');
     }
     else {
-        console.log(chalk.cyan(indent(testObj) + ' - ' + testObj.title));
+        console.log(chalk.cyan(indent(testObj) + ' - ') + chalk.cyan.dim(testObj.title));
     }
 }
 

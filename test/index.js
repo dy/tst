@@ -1,6 +1,6 @@
 var test = require('../index')//.only();
+// var test = it;
 var assert = require('assert');
-
 
 test('Successful test', function() {
     assert.ok(true);
@@ -19,7 +19,11 @@ test('Async test', function (done) {
 		// console.log(3)
 		// console.log(4)
 		done();
-	}, 2000);
+	}, 1700);
+
+	test('Async nested', function () {
+
+	});
 });
 
 test.skip('Skipped test', function () {

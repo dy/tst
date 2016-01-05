@@ -1,3 +1,6 @@
-* async tests throw uncatchable errors in callbacks (browser)
+* async tests throw uncatchable errors in callbacks (browser), in settimeouts within
 * assertion error in chrome looks unwieldy.
-* `only` does not work well with nested tests.
+	* that is because of redefining this.stack, etc.
+* async errors looses good stacktrace
+* add grep for browser tests
+* `only` is painful with nested tests.
