@@ -1,4 +1,4 @@
-For those who tired of testing.
+For those who are tired of testing.
 
 [![npm install tst](https://nodei.co/npm/tst.png?mini=true)](https://npmjs.org/package/tst/)
 
