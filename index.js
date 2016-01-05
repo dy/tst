@@ -4,7 +4,6 @@ var now = require('performance-now');
 var elegantSpinner = require('elegant-spinner');
 var logUpdate = require('log-update');
 var ansi = require('ansi-escapes');
-var cliCursor = require('cli-cursor');
 
 
 //default indentation
@@ -77,19 +76,19 @@ function run () {
     if (currentTest) return;
 
     //get the planned test
-    cliCursor.hide();
     currentTest = testQueue.shift();
+
+    //if the queue is empty - return
+    if (!currentTest) return;
 
     //exec it, the promise will be formed
     exec(currentTest);
 
     //plan running next test after the promise
     currentTest.promise.then(function () {
-        cliCursor.show();
         currentTest = null;
         run();
     }, function () {
-        cliCursor.show();
         currentTest = null;
         run();
     });
@@ -100,7 +99,6 @@ function run () {
  * Test executor
  */
 function exec (test) {
-
     //detect indent based on running nested tests
     test.indent = tests.length;
     test.parent = tests[tests.length - 1];
