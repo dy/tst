@@ -36,7 +36,9 @@
     "url": "https://github.com/dfcreative/tst/issues"
   },
   "dependencies": {
+    "ansi-escapes": "^1.1.0",
     "chalk": "^1.1.1",
+    "cli-cursor": "^1.0.2",
     "elegant-spinner": "^1.0.1",
     "is-browser": "^2.0.1",
     "log-update": "^1.0.2",

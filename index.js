@@ -3,6 +3,8 @@ var isBrowser = require('is-browser');
 var now = require('performance-now');
 var elegantSpinner = require('elegant-spinner');
 var logUpdate = require('log-update');
+var ansi = require('ansi-escapes');
+var cliCursor = require('cli-cursor');
 
 
 //default indentation
@@ -75,6 +77,7 @@ function run () {
     if (currentTest) return;
 
     //get the planned test
+    cliCursor.hide();
     currentTest = testQueue.shift();
 
     //exec it, the promise will be formed
@@ -82,9 +85,11 @@ function run () {
 
     //plan running next test after the promise
     currentTest.promise.then(function () {
+        cliCursor.show();
         currentTest = null;
         run();
     }, function () {
+        cliCursor.show();
         currentTest = null;
         run();
     });
@@ -95,6 +100,7 @@ function run () {
  * Test executor
  */
 function exec (test) {
+
     //detect indent based on running nested tests
     test.indent = tests.length;
     test.parent = tests[tests.length - 1];
@@ -105,6 +111,7 @@ function exec (test) {
         test.parent.children.push(test);
     }
 
+
     //ignore skipping test
     if (test.status === 'skip') {
         test.promise = Promise.resolve();
@@ -114,8 +121,6 @@ function exec (test) {
 
     //save test to the chain
     tests.push(test);
-
-    printTitle(test);
 
     var isAsync = test.fn.length;
 
@@ -153,6 +158,7 @@ function exec (test) {
         if (!test.timeout) test.timeout = test.TIMEOUT;
         test.promise = Promise.race([
             new Promise(function (resolve, reject) {
+                printTitle(test);
                 test.time = now();
                 test.fn.call(test, resolve);
             }),
@@ -192,9 +198,25 @@ function printTitle (test) {
     if (!isBrowser) {
         var frame = elegantSpinner();
 
-        titleInterval = setInterval(function () {
-           logUpdate(chalk.white(indent(test.indent) + ' ' + frame() + ' ' + test.title));
-        }, 50);
+        updateTitle();
+        titleInterval = setInterval(updateTitle, 50);
+
+        //update title frame
+        function updateTitle () {
+            //FIXME: this is the most undestructive for logs way of rendering, but crappy
+            process.stdout.write(ansi.cursorLeft);
+            process.stdout.write(ansi.eraseEndLine);
+            process.stdout.write(chalk.white(indent(test.indent) + ' ' + frame() + ' ' + test.title) + indent(1));
+            // logUpdate(chalk.white(indent(test.indent) + ' ' + frame() + ' ' + test.title));
+        }
+    }
+}
+//clear printed title (mostly node)
+function clearTitle () {
+    if (!isBrowser && titleInterval) {
+        clearInterval(titleInterval);
+        process.stdout.write(ansi.cursorLeft);
+        process.stdout.write(ansi.eraseEndLine);
     }
 }
 
@@ -208,11 +230,7 @@ function printResult (test) {
 
 //universal printer dependent on resolved test
 function print (test) {
-    //clear loading title
-    if (!isBrowser) {
-        clearInterval(titleInterval);
-        logUpdate.clear();
-    }
+    clearTitle();
 
     var single = test.children && test.children.length ? false : true;
 
