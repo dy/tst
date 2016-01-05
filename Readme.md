@@ -1,3 +1,5 @@
+For those who tired of testing.
+
 [![npm install tst](https://nodei.co/npm/tst.png?mini=true)](https://npmjs.org/package/tst/)
 
 ```js
@@ -35,7 +37,15 @@ test('Async stuff', function (done) {
 });
 ```
 
-Run in node: `$ node ./test.js` or in browser `$ beefy ./test.js`.
+Run in node: `$ node ./test.js`
+
+![Terminal](/terminal.png?raw=true "Terminal view")
+
+or in browser: `$ beefy ./test.js`.
+
+![Browser](/console.png?raw=true "Browser view")
+
+If you’ve changed your mind, just return to mocha: `var test = it;`.
 
 
 ### Related
