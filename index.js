@@ -39,7 +39,8 @@ function test (message, fn) {
         title: message,
         status: null,
         fn: fn,
-        children: []
+        children: [],
+        async: false
     };
 
     //handle args
@@ -59,14 +60,18 @@ function test (message, fn) {
         }
     }
 
+    //detect async as at least one function argument
+    testObj.async = !!(testObj.fn && testObj.fn.length);
+
     //nested tests are detected here
     //because calls to `.test` from children happen only when some test is active
     testObj.parent = tests[tests.length - 1];
 
+    //register children
     if (testObj.parent) {
         testObj.parent.children.push(testObj);
     }
-    //if test has no parent - plan it separately
+    //if test has no parent - plan it's separate run
     else {
         testQueue.push(testObj);
     }
@@ -102,14 +107,21 @@ function run () {
         testQueue.unshift(children[i]);
     }
 
+    //if test is not async - run results at instant to avoid losing stacktrace
+    if (!currentTest.async) {
+        currentTest = null;
+        run();
+    }
     //plan running next test after the promise
-    currentTest.promise.then(function () {
-        currentTest = null;
-        run();
-    }, function () {
-        currentTest = null;
-        run();
-    });
+    else {
+        currentTest.promise.then(function () {
+            currentTest = null;
+            run();
+        }, function () {
+            currentTest = null;
+            run();
+        });
+    }
 }
 
 
@@ -120,20 +132,18 @@ function exec (testObj) {
     //ignore skipping test
     if (testObj.status === 'skip') {
         testObj.promise = Promise.resolve();
-        printResult(testObj);
+        print(testObj);
         return testObj;
     }
 
     //save test to the chain
     tests.push(testObj);
 
-    var isAsync = testObj.fn.length;
-
     //display title of the test
     printTitle(testObj);
 
     //exec sync test
-    if (!isAsync) {
+    if (!testObj.async) {
         try {
             testObj.time = now();
             testObj.fn.call(testObj);
@@ -154,7 +164,7 @@ function exec (testObj) {
         }
 
         testObj.promise = Promise.resolve();
-        end(testObj);
+        print(testObj);
     }
     //exec async test - it should be run in promise
     //sorry about the stacktrace, nothing I can do...
@@ -164,6 +174,7 @@ function exec (testObj) {
         //this race should be done within the timeout, self and all registered kids
         testObj.promise = Promise.race([
             new Promise(function (resolve, reject) {
+                testObj.status = 'pending';
                 testObj.time = now();
                 testObj.fn.call(testObj, resolve);
             }),
@@ -172,10 +183,9 @@ function exec (testObj) {
             })
         ]).then(function () {
             testObj.time = now() - testObj.time;
-            if (!testObj.status) testObj.status = 'success';
+            if (testObj.status !== 'warning') testObj.status = 'success';
 
-            //FIXME: nested tests may be not finished yet
-            end(testObj);
+            print(testObj);
         }, function (e) {
             var parent = testObj.parent;
             while (parent) {
@@ -187,16 +197,13 @@ function exec (testObj) {
             testObj.status = 'error';
             testObj.error = e;
 
-            //FIXME: nested tests may be not finished yet
-            end(testObj);
+            print(testObj);
         });
     }
 
-    function end(){
-        printResult(testObj);
-        tests.pop();
-    }
-
+    //after promise’s executor, but after promise then’s
+    //so user can’t create tests asynchronously, they should be created at once
+    tests.pop();
 
     return testObj;
 }
@@ -235,13 +242,6 @@ function clearTitle () {
 }
 
 
-//print only 1st level guys
-//because the result of the children is not the result of parent :)
-function printResult (testObj) {
-    print(testObj);
-}
-
-
 //universal printer dependent on resolved test
 function print (testObj) {
     clearTitle();
@@ -277,7 +277,12 @@ function printError (testObj) {
     if (isBrowser) {
         console.group('%c× ' + testObj.title, 'color: red; font-weight: normal');
         if (testObj.error) {
-            console.error(testObj.error);
+            // if (testObj.error.name === 'AssertionError') {
+            //     console.assert(false, testObj.error);
+            // } else {
+                // console.error(testObj.error);
+            // }
+            console.error(testObj.error)
         }
         console.groupEnd();
     }
