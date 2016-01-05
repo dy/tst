@@ -179,6 +179,7 @@ function exec (testObj) {
     //sorry about the stacktrace, nothing I can do...
     else {
         //this race should be done within the timeout, self and all registered kids
+        var toId;
         testObj.promise = Promise.race([
             new Promise(function (resolve, reject) {
                 testObj.status = 'pending';
@@ -186,11 +187,12 @@ function exec (testObj) {
                 testObj.fn.call(testObj, resolve);
             }),
             new Promise(function (resolve, reject) {
-                setTimeout(function () {
+                toId = setTimeout(function () {
                     reject(new Error('Timeout ' + testObj._timeout + 'ms reached. Please fix the test or set `this.timeout(' + (testObj._timeout + 1000) + ');`.'));
                 }, testObj._timeout);
             })
         ]).then(function () {
+            clearTimeout(toId);
             testObj.time = now() - testObj.time;
             if (testObj.status !== 'group') testObj.status = 'success';
 
