@@ -38,7 +38,8 @@ function test (message, fn) {
         id: testCount++,
         title: message,
         status: null,
-        fn: fn
+        fn: fn,
+        children: []
     };
 
     //handle args
@@ -58,8 +59,18 @@ function test (message, fn) {
         }
     }
 
-    //plan running new test
-    testQueue.push(testObj);
+    //nested tests are detected here
+    //because calls to `.test` from children happen only when some test is active
+    testObj.parent = tests[tests.length - 1];
+
+    if (testObj.parent) {
+        testObj.parent.children.push(testObj);
+    }
+    //if test has no parent - plan it separately
+    else {
+        testQueue.push(testObj);
+    }
+
 
     //run tests queue
     run();
@@ -84,6 +95,13 @@ function run () {
     //exec it, the promise will be formed
     exec(currentTest);
 
+    //push all the children to the queue
+    var children = currentTest.children;
+
+    for (var i = children.length; i--;){
+        testQueue.unshift(children[i]);
+    }
+
     //plan running next test after the promise
     currentTest.promise.then(function () {
         currentTest = null;
@@ -98,101 +116,95 @@ function run () {
 /**
  * Test executor
  */
-function exec (test) {
-    //detect indent based on running nested tests
-    test.indent = tests.length;
-    test.parent = tests[tests.length - 1];
-
-    //create nesting references
-    if (test.parent) {
-        if (!test.parent.children) test.parent.children = [];
-        test.parent.children.push(test);
-    }
-
-
+function exec (testObj) {
     //ignore skipping test
-    if (test.status === 'skip') {
-        test.promise = Promise.resolve();
-        printResult(test);
-        return test;
+    if (testObj.status === 'skip') {
+        testObj.promise = Promise.resolve();
+        printResult(testObj);
+        return testObj;
     }
 
     //save test to the chain
-    tests.push(test);
+    tests.push(testObj);
 
-    var isAsync = test.fn.length;
+    var isAsync = testObj.fn.length;
+
+    //display title of the test
+    printTitle(testObj);
 
     //exec sync test
     if (!isAsync) {
         try {
-            test.time = now();
-            test.fn.call(test);
-            test.time = now() - test.time;
+            testObj.time = now();
+            testObj.fn.call(testObj);
+            testObj.time = now() - testObj.time;
 
-            if (!test.status) test.status = 'success';
+            if (!testObj.status) testObj.status = 'success';
         } catch (e) {
             //set parents status to error happened in nested test
-            var parent = test.parent;
+            var parent = testObj.parent;
             while (parent) {
                 parent.status = 'warning';
                 parent = parent.parent;
             }
 
             //update test status
-            test.status = 'error';
-            test.error = e;
+            testObj.status = 'error';
+            testObj.error = e;
         }
 
-        printResult(test);
-
-        test.promise = Promise.resolve();
-
-        //remove test from the chain
-        tests.pop();
+        testObj.promise = Promise.resolve();
+        end(testObj);
     }
     //exec async test - it should be run in promise
     //sorry about the stacktrace, nothing I can do...
     else {
-        if (!test.timeout) test.timeout = test.TIMEOUT;
-        test.promise = Promise.race([
+        if (!testObj.timeout) testObj.timeout = testObj.TIMEOUT;
+
+        //this race should be done within the timeout, self and all registered kids
+        testObj.promise = Promise.race([
             new Promise(function (resolve, reject) {
-                printTitle(test);
-                test.time = now();
-                test.fn.call(test, resolve);
+                testObj.time = now();
+                testObj.fn.call(testObj, resolve);
             }),
             new Promise(function (resolve, reject) {
                 // setTimeout()
             })
         ]).then(function () {
-            test.time = now() - test.time;
-            if (!test.status) test.status = 'success';
-            printResult(test);
+            testObj.time = now() - testObj.time;
+            if (!testObj.status) testObj.status = 'success';
 
-            tests.pop();
+            //FIXME: nested tests may be not finished yet
+            end(testObj);
         }, function (e) {
-            var parent = test.parent;
+            var parent = testObj.parent;
             while (parent) {
                 parent.status = 'warning';
                 parent = parent.parent;
             }
 
             //update test status
-            test.status = 'error';
-            test.error = e;
-            printResult(test);
+            testObj.status = 'error';
+            testObj.error = e;
 
-            tests.pop();
+            //FIXME: nested tests may be not finished yet
+            end(testObj);
         });
     }
 
+    function end(){
+        printResult(testObj);
+        tests.pop();
+    }
 
-    return test;
+
+    return testObj;
 }
 
 
 //print title (indicator of started test)
 var titleInterval;
-function printTitle (test) {
+function printTitle (testObj) {
     if (!isBrowser) {
         var frame = elegantSpinner();
 
@@ -204,9 +216,13 @@ function printTitle (test) {
             //FIXME: this is the most undestructive for logs way of rendering, but crappy
             process.stdout.write(ansi.cursorLeft);
             process.stdout.write(ansi.eraseEndLine);
-            process.stdout.write(chalk.white(indent(test.indent) + ' ' + frame() + ' ' + test.title) + indent(1));
+            process.stdout.write(chalk.white(indent(testObj) + ' ' + frame() + ' ' + testObj.title) + test.INDENT);
             // logUpdate(chalk.white(indent(test.indent) + ' ' + frame() + ' ' + test.title));
         }
+    }
+    //for browser - print grouped test name
+    else {
+
     }
 }
 //clear printed title (mostly node)
@@ -221,97 +237,99 @@ function clearTitle () {
 
 //print only 1st level guys
 //because the result of the children is not the result of parent :)
-function printResult (test) {
-    if (!test.parent) print(test);
+function printResult (testObj) {
+    print(testObj);
 }
 
 
 //universal printer dependent on resolved test
-function print (test) {
+function print (testObj) {
     clearTitle();
 
-    var single = test.children && test.children.length ? false : true;
+    var single = testObj.children && testObj.children.length ? false : true;
 
-    if (test.status === 'error') {
-        printError(test);
+    if (testObj.status === 'error') {
+        printError(testObj);
     }
-    else if (test.status === 'warning') {
-        printWarn(test, single);
+    else if (testObj.status === 'warning') {
+        printWarn(testObj, single);
     }
-    else if (test.status === 'success') {
-        printSuccess(test, single);
+    else if (testObj.status === 'success') {
+        printSuccess(testObj, single);
     }
-    else if (test.status === 'skip') {
-        printSkip(test, single);
+    else if (testObj.status === 'skip') {
+        printSkip(testObj, single);
     }
 
-    if (test.children) {
-        for (var i = 0, l = test.children.length; i < l; i++) {
-            print(test.children[i]);
-        }
-    }
+    // if (testObj.children) {
+    //     for (var i = 0, l = testObj.children.length; i < l; i++) {
+    //         print(testObj.children[i]);
+    //     }
+    // }
 
     if (!single && isBrowser) console.groupEnd();
 }
 
 
 //print pure red error
-function printError (test) {
+function printError (testObj) {
     //browser shows errors better
     if (isBrowser) {
-        console.group('%c× ' + test.title, 'color: red; font-weight: normal');
-        if (test.error) {
-            console.error(test.error);
+        console.group('%c× ' + testObj.title, 'color: red; font-weight: normal');
+        if (testObj.error) {
+            console.error(testObj.error);
         }
         console.groupEnd();
     }
     else {
-        console.log(chalk.red(indent(test.indent) + ' × ' + test.title));
+        console.log(chalk.red(indent(testObj) + ' × ' + testObj.title));
 
         //NOTE: node prints e.stack along with e.message
-        if (test.error.stack) {
-            var stack = test.error.stack.replace(/^\s*/gm, indent(test.indent) + '   ');
+        if (testObj.error.stack) {
+            var stack = testObj.error.stack.replace(/^\s*/gm, indent(testObj) + '   ');
             console.error(chalk.gray(stack));
         }
     }
 }
 
 //print green success
-function printSuccess (test, single) {
+function printSuccess (testObj, single) {
     if (isBrowser) {
-        console[single ? 'log' : 'group']('%c√ ' + test.title + '%c  ' + test.time.toFixed(2) + 'ms', 'color: green; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
+        console[single ? 'log' : 'group']('%c√ ' + testObj.title + '%c  ' + testObj.time.toFixed(2) + 'ms', 'color: green; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
     }
     else {
-        console.log(chalk.green(indent(test.indent) + ' √ ' + test.title) + chalk.gray(' ' + test.time.toFixed(2) + 'ms'));
+        console.log(chalk.green(indent(testObj) + ' √ ' + testObj.title) + chalk.gray(' ' + testObj.time.toFixed(2) + 'ms'));
     }
 }
 
 //print yellow warning (not all tests passed)
-function printWarn (test, single) {
+function printWarn (testObj, single) {
     if (isBrowser) {
-        console[single ? 'log' : 'group']('%c~ ' + test.title + '%c  ' + test.time.toFixed(2) + 'ms', 'color: orange; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
+        console[single ? 'log' : 'group']('%c~ ' + testObj.title + '%c  ' + testObj.time.toFixed(2) + 'ms', 'color: orange; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
     }
     else {
-        console.log(chalk.yellow(indent(test.indent) + ' ~ ' + test.title) + chalk.gray('  ' + test.time.toFixed(2) + 'ms'));
+        console.log(chalk.yellow(indent(testObj) + ' ~ ' + testObj.title) + chalk.gray('  ' + testObj.time.toFixed(2) + 'ms'));
     }
 }
 
 //print blue skip
-function printSkip (test, single) {
+function printSkip (testObj, single) {
     if (isBrowser) {
-        console[single ? 'log' : 'group']('%c- ' + test.title, 'color: blue');
+        console[single ? 'log' : 'group']('%c- ' + testObj.title, 'color: blue');
     }
     else {
-        console.log(chalk.cyan(indent(test.indent) + ' - ' + test.title));
+        console.log(chalk.cyan(indent(testObj) + ' - ' + testObj.title));
     }
 }
 
 
-//return indentation of a number
-function indent (number) {
+//return indentation of for a test, based on nestedness
+function indent (testObj) {
+    var parent = testObj.parent;
     var str = '';
-    for (var i = 0; i < number; i++) {
+    while (parent) {
         str += test.INDENT;
+        parent = parent.parent;
     }
     return str;
 }

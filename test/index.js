@@ -32,25 +32,27 @@ test(function () {
 
 });
 
-// test(function NestedTestsContainer () {
-// 	test('Nested test 1');
+test(function NestedTestsContainer () {
+	test('Nested test 1');
 
-// 	test('Nested test 2', function () {
-
-// 	});
-// 	test('Nested test 3', function () {
-// 		xxx;
-// 	});
-// 	test('Nested test 4', function () {
-// 		test('Double nested test', function () {
-// 			throw Error('xxx');
-// 		});
-// 	});
-// });
-
-test.only('Final', function () {
-
+	test('Nested test 2', function (done) {
+		setTimeout(function () {
+			done();
+		}, 500)
+	});
+	test('Nested test 3', function () {
+		xxx;
+	});
+	test('Nested test 4', function () {
+		test('Double nested test', function () {
+			throw Error('xxx');
+		});
+	});
 });
+
+// test.only('Final', function () {
+
+// });
 
 test('After-party', function () {
 
