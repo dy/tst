@@ -50,7 +50,7 @@ If you’ve changed your mind, just return to mocha: `var test = it;`.
 
 ### Related
 
-> [ava](https://npmjs.org/package/ava) — futuristic test runner by [@sindresorhus](https://github.com/sindresohrus).<br/>
+> [ava](https://npmjs.org/package/ava) — futuristic test runner by [@sindresorhus](https://github.com/sindresorhus).<br/>
 > [mocha](https://npmjs.org/package/mocha) — vintage test runner by [@tj](https://github.com/tj).<br/>
 > [tape](https://npmjs.org/package/tape) — Test Anything Protocol by [@substack](https://github.com/substack).<br/>
 > [tap](https://npmjs.org/package/tap) — Test Anything Protocol by [@isaacs](https://github.com/isaacs)<br/>
