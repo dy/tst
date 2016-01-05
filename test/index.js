@@ -13,16 +13,13 @@ test('Failed test', function () {
 test('Async test', function (done) {
 	// console.log(1)
 	setTimeout(function () {
+		done();
 		// console.log(2)
 	}, 1000);
-	setTimeout(function () {
-		// console.log(3)
-		// console.log(4)
-		done();
-	}, 1700);
 
-	test('Async nested', function () {
-
+	test('Async nested', function (done) {
+		this.timeout(500);
+		setTimeout(done, 600);
 	});
 });
 

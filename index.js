@@ -41,8 +41,16 @@ function test (message, fn) {
         fn: fn,
         children: [],
         async: false,
-        last: false
+        last: false,
+        _timeout: test.TIMEOUT
     };
+
+    //mocha-compat only
+    testObj.timeout = (function (value) {
+        if (value == null) return this._timeout;
+        this._timeout = value;
+        return this;
+    }).bind(testObj);
 
     //handle args
     if (!fn) {
@@ -160,7 +168,7 @@ function exec (testObj) {
             testObj.fn.call(testObj);
             testObj.time = now() - testObj.time;
 
-            if (!testObj.status !== 'warning') testObj.status = 'success';
+            if (!testObj.status !== 'group') testObj.status = 'success';
 
             print(testObj);
         } catch (e) {
@@ -170,8 +178,6 @@ function exec (testObj) {
     //exec async test - it should be run in promise
     //sorry about the stacktrace, nothing I can do...
     else {
-        if (!testObj.timeout) testObj.timeout = testObj.TIMEOUT;
-
         //this race should be done within the timeout, self and all registered kids
         testObj.promise = Promise.race([
             new Promise(function (resolve, reject) {
@@ -180,11 +186,13 @@ function exec (testObj) {
                 testObj.fn.call(testObj, resolve);
             }),
             new Promise(function (resolve, reject) {
-                // setTimeout()
+                setTimeout(function () {
+                    reject(new Error('Timeout ' + testObj._timeout + 'ms reached. Please fix the test or set `this.timeout(' + (testObj._timeout + 1000) + ');`.'));
+                }, testObj._timeout);
             })
         ]).then(function () {
             testObj.time = now() - testObj.time;
-            if (testObj.status !== 'warning') testObj.status = 'success';
+            if (testObj.status !== 'group') testObj.status = 'success';
 
             print(testObj);
         }, error);
@@ -198,7 +206,7 @@ function exec (testObj) {
     function error (e) {
         var parent = testObj.parent;
         while (parent) {
-            parent.status = 'warning';
+            parent.status = 'group';
             parent = parent.parent;
         }
 
@@ -255,8 +263,8 @@ function print (testObj) {
     if (testObj.status === 'error') {
         printError(testObj);
     }
-    else if (testObj.status === 'warning') {
-        printWarn(testObj, single);
+    else if (testObj.status === 'group') {
+        printGroup(testObj, single);
     }
     else if (testObj.status === 'success') {
         printSuccess(testObj, single);
@@ -317,13 +325,12 @@ function printSuccess (testObj, single) {
         if (single) {
             console.log('%c√ ' + testObj.title + '%c  ' + testObj.time.toFixed(2) + 'ms', 'color: green; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
         } else {
-            console.group('%c+ ' + testObj.title + '%c  ' + testObj.time.toFixed(2) + 'ms', 'color: black; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
+            printGroup(testObj);
         }
     }
     else {
         if (!single) {
-            console.log();
-            console.log(indent(testObj) +' ' + chalk.white('+') + ' ' + chalk.white(testObj.title) + chalk.gray(' ' + testObj.time.toFixed(2) + 'ms'));
+            printGroup(testObj);
         }
         else {
             console.log(chalk.green(indent(testObj) + ' √ ') + chalk.green.dim(testObj.title) + chalk.gray(' ' + testObj.time.toFixed(2) + 'ms'));
@@ -332,12 +339,13 @@ function printSuccess (testObj, single) {
 }
 
 //print yellow warning (not all tests passed)
-function printWarn (testObj, single) {
+function printGroup (testObj) {
     if (isBrowser) {
-        console[single ? 'log' : 'group']('%c~ ' + testObj.title + '%c  ' + testObj.time.toFixed(2) + 'ms', 'color: orange; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
+        console.group('%c+ ' + testObj.title + '%c  ' + testObj.time.toFixed(2) + 'ms', 'color: orange; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
     }
     else {
-        console.log(chalk.yellow(indent(testObj) + ' ~ ' + testObj.title) + chalk.gray('  ' + testObj.time.toFixed(2) + 'ms'));
+        console.log();
+        console.log(indent(testObj) +' ' + chalk.yellow('+') + ' ' + chalk.yellow(testObj.title) + chalk.gray(' ' + testObj.time.toFixed(2) + 'ms'));
     }
 }
 

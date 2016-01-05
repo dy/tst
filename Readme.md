@@ -17,10 +17,10 @@ test.skip('Do not test unwanted things', function () {
 });
 
 test('Group tests', function () {
-	test('Nested', function () {
+	test('A', function () {
 
 	});
-	test('Nested', function () {
+	test('B', function () {
 
 	});
 });
@@ -28,10 +28,14 @@ test('Group tests', function () {
 test.only('Test of interest', function () {
 	//To run exclusive test mode, add .only() in require
 });
+
+test('Async stuff', function (done) {
+	this.timeout(3000);
+	setTimeout(done, 2100);
+});
 ```
 
 Run in node: `$ node ./test.js` or in browser `$ beefy ./test.js`.
-
 
 
 ### Related
