@@ -18,8 +18,19 @@ test('Async test', function (done) {
 	}, 1000);
 
 	test('Async nested', function (done) {
-		this.timeout(700);
-		setTimeout(done, 600);
+		this.timeout(600);
+		setTimeout(done, 500);
+		test('Async promise', new Promise (function (resolve) {
+			setTimeout(function () {
+				resolve();
+			}, 1000);
+			test('Async promise returned', function () {
+				this.timeout(1000);
+				return new Promise(function (done) {
+					setTimeout(done, 1200);
+				});
+			});
+		}));
 	});
 });
 
@@ -51,9 +62,9 @@ test(function NestedTestsContainer () {
 	});
 });
 
-// test.only('Final', function () {
+test.skip('Final', function () {
 
-// });
+});
 
 test('After-party', function () {
 

@@ -10,7 +10,7 @@ var ansi = require('ansi-escapes');
 test.INDENT = '  ';
 
 //whether we run the only test
-test.ONLY = false;
+test.ONLY_MODE = false;
 
 //default timeout for async tests
 test.TIMEOUT = 2000;
@@ -22,13 +22,20 @@ var testCount = 0;
 //planned tests to run
 var testQueue = [];
 
+//flag indicating that since some time tests are run in deferred fashion
+//i.e. lost their stack in browser :(
+var DEFERRED = false;
+
 
 /**
  * Test enqueuer
  */
-function test (message, fn) {
+function test (message, fn, only) {
     //if run in exclusive mode - allow only `test.only` calls
-    if (test.ONLY) return test;
+    if (test.ONLY_MODE) {
+        //but if test is run within the parent - allow it
+        if (!tests.length) return test;
+    }
 
     //ignore bad args
     if (!message) return test;
@@ -37,12 +44,31 @@ function test (message, fn) {
     var testObj = {
         id: testCount++,
         title: message,
+
+        //pending, success, error, group
         status: null,
+
+        //test function
         fn: fn,
+
+        //nested tests
         children: [],
-        async: false,
+
+        //whether test should be resolved
+        async: undefined,
+
+        //whether the test is last child within the group
         last: false,
-        _timeout: test.TIMEOUT
+
+        //timeout for the async
+        _timeout: test.TIMEOUT,
+
+        //whether the test is the only to run
+        only: !!only,
+
+        //whether the test was started in deferred fashion
+        //it can be sync, but launched after async
+        deferred: DEFERRED
     };
 
     //mocha-compat only
@@ -70,7 +96,21 @@ function test (message, fn) {
     }
 
     //detect async as at least one function argument
-    testObj.async = !!(testObj.fn && testObj.fn.length);
+    //NOTE: tests returning promise will set async flag here
+    if (testObj.async == null) {
+        testObj.async = !!(testObj.fn && testObj.fn.length);
+    }
+
+    //also detect promise, if passed one
+    if (testObj.fn && testObj.fn.then) {
+        //also that means that the test is run already
+        //and tests within the promise executor are already detected it’s parent wrongly
+        //nothing we can do. Redefining parent is not an option -
+        //we don’t know which tests were of this parent, which were not.
+        testObj.promise = testObj.fn;
+        testObj.async = true;
+        testObj.time = now();
+    }
 
     //nested tests are detected here
     //because calls to `.test` from children happen only when some test is active
@@ -130,13 +170,13 @@ function run () {
     }
     //plan running next test after the promise
     else {
-        currentTest.promise.then(function () {
-            currentTest = null;
-            run();
-        }, function () {
-            currentTest = null;
-            run();
-        });
+        DEFERRED = true;
+        currentTest.promise.then(planRun, planRun);
+    }
+
+    function planRun () {
+        currentTest = null;
+        run();
     }
 }
 
@@ -158,51 +198,83 @@ function exec (testObj) {
     //display title of the test
     printTitle(testObj);
 
+    //timeout promise timeout id
+    var toId;
 
     //exec sync test
     if (!testObj.async) {
         testObj.promise = Promise.resolve();
 
+        var time;
         try {
             testObj.time = now();
-            testObj.fn.call(testObj);
-            testObj.time = now() - testObj.time;
-
-            if (!testObj.status !== 'group') testObj.status = 'success';
-
-            print(testObj);
+            var result = testObj.fn.call(testObj);
+            time = now() - testObj.time;
         } catch (e) {
             error(e);
         }
+
+        //if the result is promise - whoops, we need to run async
+        if (result && result.then) {
+            testObj.async = true;
+            testObj.promise = result;
+            //FIXME: this guy violates the order of nesting
+            //because as far it was thought as sync
+            execAsync(testObj);
+        }
+
+        //if result is not error - do finish
+        else if (!testObj.error) {
+            testObj.time = time;
+            if (!testObj.status !== 'group') testObj.status = 'success';
+            print(testObj);
+        }
     }
+    else {
+        execAsync(testObj);
+    }
+
+    //after promise’s executor, but before promise then’s
+    //so user can’t create tests asynchronously, they should be created at once
+    tests.pop();
+
     //exec async test - it should be run in promise
     //sorry about the stacktrace, nothing I can do...
-    else {
-        //this race should be done within the timeout, self and all registered kids
-        var toId;
-        testObj.promise = Promise.race([
-            new Promise(function (resolve, reject) {
-                testObj.status = 'pending';
-                testObj.time = now();
-                testObj.fn.call(testObj, resolve);
-            }),
-            new Promise(function (resolve, reject) {
-                toId = setTimeout(function () {
-                    reject(new Error('Timeout ' + testObj._timeout + 'ms reached. Please fix the test or set `this.timeout(' + (testObj._timeout + 1000) + ');`.'));
-                }, testObj._timeout);
-            })
-        ]).then(function () {
+    function execAsync (testObj) {
+        //if promise is already created (by user) - race with timeout
+        //FIXME: add time measure
+        if (testObj.promise) {
+            testObj.promise = Promise.race([
+                testObj.promise,
+                new Promise(execTimeout)
+            ]);
+        }
+        //else - invoke function
+        else {
+            testObj.promise = Promise.race([
+                new Promise(function (resolve, reject) {
+                    testObj.status = 'pending';
+                    testObj.time = now();
+                    return testObj.fn.call(testObj, resolve);
+                }),
+                new Promise(execTimeout)
+            ])
+        }
+
+        testObj.promise.then(function () {
             clearTimeout(toId);
             testObj.time = now() - testObj.time;
             if (testObj.status !== 'group') testObj.status = 'success';
 
             print(testObj);
         }, error);
-    }
 
-    //after promise’s executor, but after promise then’s
-    //so user can’t create tests asynchronously, they should be created at once
-    tests.pop();
+        function execTimeout (resolve, reject) {
+            toId = setTimeout(function () {
+                reject(new Error('Timeout ' + testObj._timeout + 'ms reached. Please fix the test or set `this.timeout(' + (testObj._timeout + 1000) + ');`.'));
+            }, testObj._timeout);
+        }
+    }
 
     //error handler
     function error (e) {
@@ -223,7 +295,7 @@ function exec (testObj) {
 }
 
 
-//print title (indicator of started test)
+//print title (indicator of started, now current test)
 var titleInterval;
 function printTitle (testObj) {
     if (!isBrowser) {
@@ -240,10 +312,6 @@ function printTitle (testObj) {
             process.stdout.write(chalk.white(indent(testObj) + ' ' + frame() + ' ' + testObj.title) + test.INDENT);
             // logUpdate(chalk.white(indent(test.indent) + ' ' + frame() + ' ' + test.title));
         }
-    }
-    //for browser - print grouped test name
-    else {
-
     }
 }
 //clear printed title (mostly node)
@@ -301,12 +369,12 @@ function printError (testObj) {
     if (isBrowser) {
         console.group('%c× ' + testObj.title, 'color: red; font-weight: normal');
         if (testObj.error) {
-            // if (testObj.error.name === 'AssertionError') {
-            //     console.assert(false, testObj.error);
-            // } else {
-                // console.error(testObj.error);
-            // }
-            console.error(testObj.error.stack)
+            //FIXME: deferred tests have awful stack in browser, so to less blood shed use no-sourcemaps errors
+            if (testObj.deferred) {
+                console.error(testObj.error.stack);
+            } else {
+                console.error(testObj.error);
+            }
         }
         console.groupEnd();
     }
@@ -381,9 +449,9 @@ test.skip = function skip (message) {
 
 //half-working only alias
 test.only = function only (message, fn) {
-    test.ONLY = false;
-    test(message, fn);
-    test.ONLY = true;
+    test.ONLY_MODE = false;
+    test(message, fn, true);
+    test.ONLY_MODE = true;
     return test;
 }
 
