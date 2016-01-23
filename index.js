@@ -6,6 +6,9 @@ var logUpdate = require('log-update');
 var ansi = require('ansi-escapes');
 
 
+Error.stackTraceLimit = 100;
+
+
 //default indentation
 test.INDENT = '  ';
 
@@ -14,6 +17,9 @@ test.ONLY_MODE = false;
 
 //default timeout for async tests
 test.TIMEOUT = 2000;
+
+//max timeout
+test.MAX_TIMEOUT = 10e5;
 
 //chain of nested test calls
 var tests = [];
@@ -74,7 +80,9 @@ function test (message, fn, only) {
     //mocha-compat only
     testObj.timeout = (function (value) {
         if (value == null) return this._timeout;
-        this._timeout = value;
+        if (value === false) this._timeout = test.MAX_TIMEOUT;
+        else if (value === Infinity) this._timeout = test.MAX_TIMEOUT;
+        else this._timeout = value;
         return this;
     }).bind(testObj);
 
@@ -370,11 +378,11 @@ function printError (testObj) {
         console.group('%c× ' + testObj.title, 'color: red; font-weight: normal');
         if (testObj.error) {
             //FIXME: deferred tests have awful stack in browser, so to less blood shed use no-sourcemaps errors
-            if (testObj.deferred) {
+            // if (testObj.deferred) {
                 console.error(testObj.error.stack);
-            } else {
-                console.error(testObj.error);
-            }
+            // } else {
+            //     console.error(testObj.error);
+            // }
         }
         console.groupEnd();
     }

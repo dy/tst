@@ -18,7 +18,7 @@ test('Async test', function (done) {
 	}, 1000);
 
 	test('Async nested', function (done) {
-		this.timeout(600);
+		this.timeout(false);
 		setTimeout(done, 500);
 		test('Async promise', new Promise (function (resolve) {
 			setTimeout(function () {
