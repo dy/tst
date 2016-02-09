@@ -1,4 +1,3 @@
-* test CI systems: throwing exit status correctly or something
 * async tests throw uncatchable errors in callbacks (in browser), in settimeouts
 * assertion error in chrome looks unwieldy.
 	* that is because of redefining this.stack in error.

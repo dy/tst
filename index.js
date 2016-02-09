@@ -12,7 +12,7 @@ var logUpdate = require('log-update');
 var ansi = require('ansi-escapes');
 
 
-Error.stackTraceLimit = 100;
+// Error.stackTraceLimit = 10;
 
 
 //default indentation
@@ -325,6 +325,10 @@ function exec (testObj) {
 
     //error handler
     function error (e) {
+        //grab stack (the most actual is here, further is mystically lost)
+        testObj.stack = e.stack;
+
+        //set flag that bundle is failed
         test.ERROR = true;
 
         var parent = testObj.parent;
@@ -411,6 +415,14 @@ function print (testObj) {
     }
 }
 
+// Create a new object, that prototypally inherits from the Error constructor
+function MyError(message, stack) {
+  this.name = 'MyError';
+  this.message = message;
+  this.stack = stack;
+}
+MyError.prototype = Object.create(Error.prototype);
+MyError.prototype.constructor = MyError;
 
 //print pure red error
 function printError (testObj) {
@@ -418,12 +430,9 @@ function printError (testObj) {
     if (isBrowser) {
         console.group('%c× ' + testObj.title, 'color: red; font-weight: normal');
         if (testObj.error) {
-            //FIXME: deferred tests have awful stack in browser, so to less blood shed use no-sourcemaps errors
-            // if (testObj.deferred) {
-                console.error(testObj.error.stack);
-            // } else {
-            //     console.error(testObj.error);
-            // }
+            console.groupCollapsed('%c' + testObj.error.message, 'color: red; font-weight: normal');
+            console.error(testObj.stack);
+            console.groupEnd();
         }
         console.groupEnd();
     }
@@ -498,8 +507,8 @@ test.skip = function skip (message) {
 
 //only alias
 test.only = function only (message, fn) {
-    //indicate that only is detected
-    test.DETECT_ONLY = false;
+    //indicate that only is detected, except for the case of intentional run
+    if (fn) test.DETECT_ONLY = false;
     //change only mode to true
     test.ONLY_MODE = true;
     test(message, fn, true);

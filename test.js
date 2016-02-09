@@ -1,4 +1,4 @@
-var test = require('./');
+var test = require('./')//.only();
 var assert = require('assert');
 // var test = it;
 
@@ -66,6 +66,18 @@ test.skip('Final', function () {
 
 });
 
-test.only('After-party', function () {
+test('After-party', function () {
+	//this guy is useful to debug stacktrace and .only method
 
+	var a = 1;
+
+	function someFnJustToFillTheSpace() {
+		errorFn();
+	}
+
+	function errorFn () {
+		xxx;
+	}
+
+	someFnJustToFillTheSpace();
 });
