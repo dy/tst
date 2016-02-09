@@ -1,3 +1,9 @@
+/**
+ * Simple node/browser test runner
+ *
+ * @module tst
+ */
+
 var chalk = require('chalk');
 var isBrowser = require('is-browser');
 var now = require('performance-now');
@@ -12,7 +18,7 @@ Error.stackTraceLimit = 100;
 //default indentation
 test.INDENT = '  ';
 
-//whether we run the only test
+//whether we run the only test, forcefully
 test.ONLY_MODE = false;
 
 //default timeout for async tests
@@ -32,13 +38,29 @@ var testQueue = [];
 //i.e. lost their stack in browser :(
 var DEFERRED = false;
 
+//indicate whether we are in only-detection mode (tests are just planned, not run)
+//or we are in a forced full-bundle run. Unlikely user will ever touch this flag.
+test.DETECT_ONLY = true;
+
+
+//run execution after all sync tests are registered
+if (test.DETECT_ONLY) {
+    setTimeout(function () {
+        //if only detection mode wasn’t changed by user
+        //which means sync tests are run already - run the thing
+        if (test.DETECT_ONLY) {
+            run();
+        }
+    });
+}
+
 
 /**
  * Test enqueuer
  */
 function test (message, fn, only) {
     //if run in exclusive mode - allow only `test.only` calls
-    if (test.ONLY_MODE) {
+    if (test.ONLY_MODE && !only) {
         //but if test is run within the parent - allow it
         if (!tests.length) return test;
     }
@@ -69,7 +91,7 @@ function test (message, fn, only) {
         //timeout for the async
         _timeout: test.TIMEOUT,
 
-        //whether the test is the only to run
+        //whether the test is the only to run (launched via .only method)
         only: !!only,
 
         //whether the test was started in deferred fashion
@@ -133,12 +155,15 @@ function test (message, fn, only) {
         testQueue.push(testObj);
     }
 
-
-    //run tests queue
-    run();
+    //if detecion only mode - ignore execution
+    //if ONLY_MODE - execute it at instant
+    if (!test.DETECT_ONLY || test.ONLY_MODE) {
+        run();
+    }
 
     return test;
 }
+
 
 /**
  * Tests queue runner
@@ -153,6 +178,11 @@ function run () {
 
     //if the queue is empty - return
     if (!currentTest) return;
+
+    //ignore test if it is not the only run
+    if (test.ONLY_MODE && !currentTest.only) {
+        return planRun();
+    }
 
     //exec it, the promise will be formed
     exec(currentTest);
@@ -322,7 +352,7 @@ function printTitle (testObj) {
         }
     }
 }
-//clear printed title (mostly node)
+//clear printed title (node)
 function clearTitle () {
     if (!isBrowser && titleInterval) {
         clearInterval(titleInterval);
@@ -416,7 +446,7 @@ function printSuccess (testObj, single) {
     }
 }
 
-//print yellow warning (not all tests passed)
+//print yellow warning (not all tests are passed or it is container)
 function printGroup (testObj) {
     if (isBrowser) {
         console.group('%c+ ' + testObj.title + '%c  ' + testObj.time.toFixed(2) + 'ms', 'color: orange; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
@@ -455,11 +485,13 @@ test.skip = function skip (message) {
    return test(message);
 };
 
-//half-working only alias
+//only alias
 test.only = function only (message, fn) {
-    test.ONLY_MODE = false;
-    test(message, fn, true);
+    //indicate that only is detected
+    test.DETECT_ONLY = false;
+    //change only mode to true
     test.ONLY_MODE = true;
+    test(message, fn, true);
     return test;
 }
 

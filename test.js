@@ -1,4 +1,4 @@
-var test = require('./')//.only();
+var test = require('./');
 var assert = require('assert');
 // var test = it;
 
