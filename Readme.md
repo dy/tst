@@ -1,11 +1,13 @@
-For those who are tired of testing.
+TST
+
+> Minimalistic test runner for browser and node with [mocha](http://npmjs.org/package/mocha)/[tap](http://npmjs.org/package/tap)-compatible API.
 
 [![npm install tst](https://nodei.co/npm/tst.png?mini=true)](https://npmjs.org/package/tst/)
 
 ```js
 // ./test.js
 
-var test = require('tst')//.only();
+var test = require('tst');
 var assert = require('assert');
 
 
@@ -28,7 +30,7 @@ test('Group tests', function () {
 });
 
 test.only('Test of interest', function () {
-	//To run exclusive test mode, add .only() in require
+	//this test is run exclusively
 });
 
 test('Async stuff', function (done) {

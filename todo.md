@@ -6,6 +6,4 @@
 	* an idea - to capture stack on test start, to see at least the entry point. And then parse with stacktrace-parser or alike.
 * async errors loose good stacktrace :(
 * add href-grep for browser tests, like #5.
-* `only` is painful with nested tests.
-	* Propagate .only call up to parent, but keep siblings unaffected.
 * add links in browser console to trigger hash-href

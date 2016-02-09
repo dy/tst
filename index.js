@@ -42,6 +42,15 @@ var DEFERRED = false;
 //or we are in a forced full-bundle run. Unlikely user will ever touch this flag.
 test.DETECT_ONLY = true;
 
+//detect whether at least one test failed
+test.ERROR = false;
+
+
+//end with error, if any
+process.on('exit', function () {
+    if (test.ERROR) process.exit(1);
+});
+
 
 //run execution after all sync tests are registered
 if (test.DETECT_ONLY) {
@@ -316,6 +325,8 @@ function exec (testObj) {
 
     //error handler
     function error (e) {
+        test.ERROR = true;
+
         var parent = testObj.parent;
         while (parent) {
             parent.status = 'group';
@@ -497,7 +508,6 @@ test.only = function only (message, fn) {
 
 //more obvious chain
 test.test = test;
-
 
 
 module.exports = test;

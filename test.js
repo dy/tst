@@ -66,6 +66,6 @@ test.skip('Final', function () {
 
 });
 
-test('After-party', function () {
+test.only('After-party', function () {
 
 });
