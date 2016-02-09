@@ -1,4 +1,4 @@
-TST
+# TST
 
 > Minimalistic test runner for browser and node with [mocha](http://npmjs.org/package/mocha)/[tap](http://npmjs.org/package/tap)-compatible API.
 
