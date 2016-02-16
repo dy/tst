@@ -325,6 +325,8 @@ function exec (testObj) {
 
     //error handler
     function error (e) {
+        if (typeof e !== 'object') e = Error(e);
+
         //grab stack (the most actual is here, further is mystically lost)
         testObj.stack = e.stack;
 
@@ -430,7 +432,8 @@ function printError (testObj) {
     if (isBrowser) {
         console.group('%c× ' + testObj.title, 'color: red; font-weight: normal');
         if (testObj.error) {
-            console.groupCollapsed('%c' + testObj.error.message, 'color: red; font-weight: normal');
+            var msg = typeof testObj.error === 'string' ? testObj.error : testObj.error.message;
+            console.groupCollapsed('%c' + msg, 'color: red; font-weight: normal');
             console.error(testObj.stack);
             console.groupEnd();
         }
