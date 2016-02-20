@@ -316,8 +316,9 @@ function exec (testObj) {
         }
 
         testObj.promise.then(function () {
-            clearTimeout(toId);
             testObj.time = now() - testObj.time;
+
+            clearTimeout(toId);
             if (testObj.status !== 'group') testObj.status = 'success';
 
             print(testObj);
