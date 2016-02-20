@@ -155,7 +155,7 @@ function test (message, fn, only) {
     //because calls to `.test` from children happen only when some test is active
     testObj.parent = tests[tests.length - 1];
 
-    //register children
+    //register children - supposed that parent will run all the children after fin
     if (testObj.parent) {
         testObj.parent.children.push(testObj);
     }
@@ -200,6 +200,13 @@ function run () {
     //push all the children to the queue, after the current test
     //FIXME: this guy erases good stacktrace :< Maybe call asyncs last?
     var children = currentTest.children;
+
+    //mind the case if no only children test is selected - run them all instead of none
+    if (children.every(function (child) {return !child.only})) {
+        children.forEach(function (child) {
+            child.only = true;
+        });
+    }
 
     for (var i = children.length; i--;){
         testQueue.unshift(children[i]);

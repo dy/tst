@@ -1,4 +1,4 @@
-* .only on the parent test should run all the included tests
+* show diff
 * force done if test error happened, do not wait for it to be called
 * make stack trace not worse than mocha
 * make parent only test run all it’s children
