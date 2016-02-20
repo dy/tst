@@ -439,20 +439,32 @@ function printError (testObj) {
     if (isBrowser) {
         console.group('%c× ' + testObj.title, 'color: red; font-weight: normal');
         if (testObj.error) {
-            var msg = typeof testObj.error === 'string' ? testObj.error : testObj.error.message;
-            console.groupCollapsed('%c' + msg, 'color: red; font-weight: normal');
-            console.error(testObj.stack);
-            console.groupEnd();
+            if (testObj.error.name === 'AssertionError') {
+                var msg = '%cAssertionError:\n%c' + testObj.error.expected + '\n' + '%c' + testObj.error.operator + '\n' + '%c' + testObj.error.actual;
+                console.groupCollapsed(msg, 'color: red; font-weight: normal', 'color: green; font-weight: normal', 'color: gray; font-weight: normal', 'color: red; font-weight: normal');
+                console.error(testObj.stack);
+                console.groupEnd();
+            }
+            else {
+                var msg = typeof testObj.error === 'string' ? testObj.error : testObj.error.message;
+                console.groupCollapsed('%c' + msg, 'color: red; font-weight: normal');
+                console.error(testObj.stack);
+                console.groupEnd();
+            }
         }
         console.groupEnd();
     }
     else {
         console.log(chalk.red(indent(testObj) + ' × ') + chalk.red(testObj.title));
 
-        //NOTE: node prints e.stack along with e.message
         if (testObj.error.stack) {
-            var stack = testObj.error.stack.replace(/^\s*/gm, indent(testObj) + '   ');
-            console.error(chalk.gray(stack));
+            if (testObj.error.name === 'AssertionError') {
+                console.error(chalk.gray('AssertionError:') + chalk.green(testObj.error.expected) + '\n' + chalk.gray(testObj.error.operator) + '\n' + chalk.red(testObj.error.actual));
+            } else {
+                //NOTE: node prints e.stack along with e.message
+                var stack = testObj.error.stack.replace(/^\s*/gm, indent(testObj) + '   ');
+                console.error(chalk.gray(stack));
+            }
         }
     }
 }

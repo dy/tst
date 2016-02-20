@@ -66,6 +66,16 @@ test.skip('Final', function () {
 
 });
 
+test.only('Diff', function () {
+	assert.equal(`
+		var x = 1;
+	`, `
+		var x = 1;
+
+
+	`)
+});
+
 test('After-party', function () {
 	//this guy is useful to debug stacktrace and .only method
 
