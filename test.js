@@ -4,10 +4,22 @@ var assert = require('assert');
 
 test('Successful test', function() {
     assert.ok(true);
+}).after(function () {
+	console.log('After callback');
+}).on('after', function () {
+	console.log('After event')
+}).before(function () {
+	console.log('Before callback');
+}).on('before', function () {
+	console.log('Before event')
+}).on('success', function () {
+	console.log('Success event')
 });
 
 test('Failed test', function () {
     assert.equal(1, 2);
+}).on('fail', function (e) {
+	console.log('Error event', e)
 });
 
 test('Async test', function (done) {
@@ -66,7 +78,7 @@ test.skip('Final', function () {
 
 });
 
-test.only('Diff', function () {
+test('Diff', function () {
 	assert.equal(`
 		var x = 1;
 	`, `

@@ -10,6 +10,9 @@ var now = require('performance-now');
 var elegantSpinner = require('elegant-spinner');
 var logUpdate = require('log-update');
 var ansi = require('ansi-escapes');
+var inherits = require('inherits');
+var Emitter = require('events');
+var extend = require('xtend/mutable');
 
 
 // Error.stackTraceLimit = 10;
@@ -78,7 +81,7 @@ function test (message, fn, only) {
     if (!message) return test;
 
     //init test object params
-    var testObj = {
+    var testObj = new Test({
         id: testCount++,
         title: message,
 
@@ -106,16 +109,7 @@ function test (message, fn, only) {
         //whether the test was started in deferred fashion
         //it can be sync, but launched after async
         deferred: DEFERRED
-    };
-
-    //mocha-compat only
-    testObj.timeout = (function (value) {
-        if (value == null) return this._timeout;
-        if (value === false) this._timeout = test.MAX_TIMEOUT;
-        else if (value === Infinity) this._timeout = test.MAX_TIMEOUT;
-        else this._timeout = value;
-        return this;
-    }).bind(testObj);
+    });
 
     //handle args
     if (!fn) {
@@ -170,9 +164,8 @@ function test (message, fn, only) {
         run();
     }
 
-    return test;
+    return testObj;
 }
-
 
 /**
  * Tests queue runner
@@ -194,7 +187,7 @@ function run () {
     }
 
     //exec it, the promise will be formed
-    exec(currentTest);
+    currentTest.exec();
 
     //at the moment test is run, we know all it’s children
     //push all the children to the queue, after the current test
@@ -235,184 +228,299 @@ function run () {
 }
 
 
+
 /**
- * Test executor
+ * A test object constructor
  */
-function exec (testObj) {
+function Test (opts) {
+    extend(this, opts);
+}
+
+inherits(Test, Emitter);
+
+
+/**
+ * Call before exec
+ */
+Test.prototype.after = function (cb) {
+    this.once('after', cb);
+    return this;
+};
+
+/**
+ * Call after exec
+ */
+Test.prototype.before = function (cb) {
+    this.once('before', cb);
+    return this;
+};
+
+/**
+ * Bind promise-like
+ */
+Test.prototype.then = function (resolve, reject) {
+    this.once('success', resolve);
+    this.once('error', reject);
+    return this;
+};
+
+/**
+ * Mocha-compat timeout setter
+ */
+Test.prototype.timeout = function (value) {
+    if (value == null) return this._timeout;
+    if (value === false) this._timeout = test.MAX_TIMEOUT;
+    else if (value === Infinity) this._timeout = test.MAX_TIMEOUT;
+    else this._timeout = value;
+    return this;
+}
+
+/**
+ * Prototype props
+ *
+ * @True {[type]}
+ */
+extend(Test.prototype, {
+    id: testCount,
+    title: 'Undefined test',
+
+    //pending, success, error, group
+    status: null,
+
+    //test function
+    fn: null,
+
+    //nested tests
+    children: [],
+
+    //whether test should be resolved
+    async: undefined,
+
+    //whether the test is last child within the group
+    last: false,
+
+    //timeout for the async
+    _timeout: test.TIMEOUT,
+
+    //whether the test is the only to run (launched via .only method)
+    only: false,
+
+    //whether the test was started in deferred fashion
+    //it can be sync, but launched after async
+    deferred: DEFERRED
+});
+
+/**
+ * Execute main test function
+ */
+Test.prototype.exec = function () {
+    var self = this;
+
     //ignore skipping test
-    if (testObj.status === 'skip') {
-        testObj.promise = Promise.resolve();
-        print(testObj);
-        return testObj;
+    if (self.status === 'skip') {
+        self.promise = Promise.resolve();
+        self.print();
+        return self;
     }
 
     //save test to the chain
-    tests.push(testObj);
+    tests.push(self);
 
     //display title of the test
-    printTitle(testObj);
+    self.printTitle();
 
     //timeout promise timeout id
     var toId;
 
+    //prepare test
+    self.emit('before');
+
     //exec sync test
-    if (!testObj.async) {
-        testObj.promise = Promise.resolve();
+    if (!self.async) {
+        self.promise = Promise.resolve();
 
         var time;
         try {
-            testObj.time = now();
-            var result = testObj.fn.call(testObj);
-            time = now() - testObj.time;
+
+            self.time = now();
+            var result = self.fn.call(self);
+            time = now() - self.time;
+
         } catch (e) {
-            error(e);
+            self.fail(e);
         }
 
         //if the result is promise - whoops, we need to run async
         if (result && result.then) {
-            testObj.async = true;
-            testObj.promise = result;
+            self.async = true;
+            self.promise = result;
             //FIXME: this guy violates the order of nesting
-            //because as far it was thought as sync
-            execAsync(testObj);
+            //because so far it was thought as sync
+            self.execAsync();
         }
 
         //if result is not error - do finish
-        else if (!testObj.error) {
-            testObj.time = time;
-            if (!testObj.status !== 'group') testObj.status = 'success';
-            print(testObj);
+        else {
+            self.time = time;
+            self.emit('after');
+
+            if (!self.error) {
+                if (!self.status !== 'group') self.status = 'success';
+
+                self.emit('success');
+                self.print();
+            }
         }
+
     }
     else {
-        execAsync(testObj);
+        self.execAsync();
     }
 
     //after promise’s executor, but before promise then’s
     //so user can’t create tests asynchronously, they should be created at once
     tests.pop();
 
-    //exec async test - it should be run in promise
-    //sorry about the stacktrace, nothing I can do...
-    function execAsync (testObj) {
-        //if promise is already created (by user) - race with timeout
-        //FIXME: add time measure
-        if (testObj.promise) {
-            testObj.promise = Promise.race([
-                testObj.promise,
-                new Promise(execTimeout)
-            ]);
-        }
-        //else - invoke function
-        else {
-            testObj.promise = Promise.race([
-                new Promise(function (resolve, reject) {
-                    testObj.status = 'pending';
-                    testObj.time = now();
-                    return testObj.fn.call(testObj, resolve);
-                }),
-                new Promise(execTimeout)
-            ])
-        }
+    return self;
+};
 
-        testObj.promise.then(function () {
-            testObj.time = now() - testObj.time;
 
-            clearTimeout(toId);
-            if (testObj.status !== 'group') testObj.status = 'success';
+/*
+ * Exec async test - it should be run in promise
+ * sorry about the stacktrace, nothing I can do...
+ */
+Test.prototype.execAsync = function () {
+    var self = this;
 
-            print(testObj);
-        }, error);
-
-        function execTimeout (resolve, reject) {
-            toId = setTimeout(function () {
-                reject(new Error('Timeout ' + testObj._timeout + 'ms reached. Please fix the test or set `this.timeout(' + (testObj._timeout + 1000) + ');`.'));
-            }, testObj._timeout);
-        }
+    //if promise is already created (by user) - race with timeout
+    //FIXME: add time measure
+    if (self.promise) {
+        self.promise = Promise.race([
+            self.promise,
+            new Promise(execTimeout)
+        ]);
+    }
+    //else - invoke function
+    else {
+        self.promise = Promise.race([
+            new Promise(function (resolve, reject) {
+                self.status = 'pending';
+                self.time = now();
+                return self.fn.call(self, resolve);
+            }),
+            new Promise(execTimeout)
+        ])
     }
 
-    //error handler
-    function error (e) {
-        if (typeof e !== 'object') e = Error(e);
+    self.promise.then(function () {
+        self.time = now() - self.time;
 
-        //grab stack (the most actual is here, further is mystically lost)
-        testObj.stack = e.stack;
+        clearTimeout(toId);
+        if (self.status !== 'group') self.status = 'success';
 
-        //set flag that bundle is failed
-        test.ERROR = true;
+        self.emit('after');
+        self.emit('success');
 
-        var parent = testObj.parent;
-        while (parent) {
-            parent.status = 'group';
-            parent = parent.parent;
-        }
+        self.print();
+    }, function (e) {
+        self.fail(e)
+    });
 
-        //update test status
-        testObj.status = 'error';
-        testObj.error = e;
+    function execTimeout (resolve, reject) {
+        toId = setTimeout(function () {
+            reject(new Error('Timeout ' + self._timeout + 'ms reached. Please fix the test or set `this.timeout(' + (self._timeout + 1000) + ');`.'));
+        }, self._timeout);
+    }
+};
 
-        print(testObj);
+
+/**
+ * Resolve to error (error handler)
+ */
+Test.prototype.fail = function (e) {
+    var self = this;
+
+    if (typeof e !== 'object') e = Error(e);
+
+    //grab stack (the most actual is here, further is mystically lost)
+    self.stack = e.stack;
+
+    //set flag that bundle is failed
+    test.ERROR = true;
+
+    var parent = self.parent;
+    while (parent) {
+        parent.status = 'group';
+        parent = parent.parent;
     }
 
-    return testObj;
-}
+    //update test status
+    self.status = 'error';
+    self.error = e;
+
+    self.emit('fail', e);
+
+    self.print();
+};
 
 
-//print title (indicator of started, now current test)
-var titleInterval;
-function printTitle (testObj) {
+Test.prototype.printTitle = function () {
+    var self = this;
+
     if (!isBrowser) {
         var frame = elegantSpinner();
 
+        //print title (indicator of started, now current test)
         updateTitle();
-        titleInterval = setInterval(updateTitle, 50);
+        self.titleInterval = setInterval(updateTitle, 50);
 
         //update title frame
         function updateTitle () {
             //FIXME: this is the most undestructive for logs way of rendering, but crappy
             process.stdout.write(ansi.cursorLeft);
             process.stdout.write(ansi.eraseEndLine);
-            process.stdout.write(chalk.white(indent(testObj) + ' ' + frame() + ' ' + testObj.title) + test.INDENT);
+            process.stdout.write(chalk.white(indent(self) + ' ' + frame() + ' ' + self.title) + test.INDENT);
             // logUpdate(chalk.white(indent(test.indent) + ' ' + frame() + ' ' + test.title));
         }
     }
 }
 //clear printed title (node)
-function clearTitle () {
-    if (!isBrowser && titleInterval) {
-        clearInterval(titleInterval);
+Test.prototype.clearTitle = function () {
+    if (!isBrowser && this.titleInterval) {
+        clearInterval(this.titleInterval);
         process.stdout.write(ansi.cursorLeft);
         process.stdout.write(ansi.eraseEndLine);
     }
 }
 
-
 //universal printer dependent on resolved test
-function print (testObj) {
-    clearTitle();
+Test.prototype.print = function () {
+    var self = this;
 
-    var single = testObj.children && testObj.children.length ? false : true;
+    this.clearTitle();
 
-    if (testObj.status === 'error') {
-        printError(testObj);
+    var single = self.children && self.children.length ? false : true;
+
+    if (self.status === 'error') {
+        self.printError(self);
     }
-    else if (testObj.status === 'group') {
-        printGroup(testObj, single);
+    else if (self.status === 'group') {
+        self.printGroup(single);
     }
-    else if (testObj.status === 'success') {
-        printSuccess(testObj, single);
+    else if (self.status === 'success') {
+        self.printSuccess(single);
     }
-    else if (testObj.status === 'skip') {
-        printSkip(testObj, single);
+    else if (self.status === 'skip') {
+        self.printSkip(single);
     }
 
     //last child should close parent’s group in browser
-    if (testObj.last) {
+    if (self.last) {
         if (isBrowser) {
             //if truly last - create as many groups as many last parents
-            if (!testObj.children.length) {
+            if (!self.children.length) {
                 console.groupEnd();
-                var parent = testObj.parent;
+                var parent = self.parent;
                 while (parent && parent.last) {
                     console.groupEnd();
                     parent = parent.parent;
@@ -420,50 +528,43 @@ function print (testObj) {
             }
         } else {
             //create padding
-            if (!testObj.children.length) console.log();
+            if (!self.children.length) console.log();
         }
     }
 }
 
-// Create a new object, that prototypally inherits from the Error constructor
-function MyError(message, stack) {
-  this.name = 'MyError';
-  this.message = message;
-  this.stack = stack;
-}
-MyError.prototype = Object.create(Error.prototype);
-MyError.prototype.constructor = MyError;
-
 //print pure red error
-function printError (testObj) {
+Test.prototype.printError = function () {
+    var self = this;
+
     //browser shows errors better
     if (isBrowser) {
-        console.group('%c× ' + testObj.title, 'color: red; font-weight: normal');
-        if (testObj.error) {
-            if (testObj.error.name === 'AssertionError') {
-                var msg = '%cAssertionError:\n%c' + testObj.error.expected + '\n' + '%c' + testObj.error.operator + '\n' + '%c' + testObj.error.actual;
+        console.group('%c× ' + self.title, 'color: red; font-weight: normal');
+        if (self.error) {
+            if (self.error.name === 'AssertionError') {
+                var msg = '%cAssertionError:\n%c' + self.error.expected + '\n' + '%c' + self.error.operator + '\n' + '%c' + self.error.actual;
                 console.groupCollapsed(msg, 'color: red; font-weight: normal', 'color: green; font-weight: normal', 'color: gray; font-weight: normal', 'color: red; font-weight: normal');
-                console.error(testObj.stack);
+                console.error(self.stack);
                 console.groupEnd();
             }
             else {
-                var msg = typeof testObj.error === 'string' ? testObj.error : testObj.error.message;
+                var msg = typeof self.error === 'string' ? self.error : self.error.message;
                 console.groupCollapsed('%c' + msg, 'color: red; font-weight: normal');
-                console.error(testObj.stack);
+                console.error(self.stack);
                 console.groupEnd();
             }
         }
         console.groupEnd();
     }
     else {
-        console.log(chalk.red(indent(testObj) + ' × ') + chalk.red(testObj.title));
+        console.log(chalk.red(indent(self) + ' × ') + chalk.red(self.title));
 
-        if (testObj.error.stack) {
-            if (testObj.error.name === 'AssertionError') {
-                console.error(chalk.gray('AssertionError:') + chalk.green(testObj.error.expected) + '\n' + chalk.gray(testObj.error.operator) + '\n' + chalk.red(testObj.error.actual));
+        if (self.error.stack) {
+            if (self.error.name === 'AssertionError') {
+                console.error(chalk.gray('AssertionError:') + chalk.green(self.error.expected) + '\n' + chalk.gray(self.error.operator) + '\n' + chalk.red(self.error.actual));
             } else {
                 //NOTE: node prints e.stack along with e.message
-                var stack = testObj.error.stack.replace(/^\s*/gm, indent(testObj) + '   ');
+                var stack = self.error.stack.replace(/^\s*/gm, indent(self) + '   ');
                 console.error(chalk.gray(stack));
             }
         }
@@ -471,42 +572,48 @@ function printError (testObj) {
 }
 
 //print green success
-function printSuccess (testObj, single) {
+Test.prototype.printSuccess = function (single) {
+    var self = this;
+
     if (isBrowser) {
         if (single) {
-            console.log('%c√ ' + testObj.title + '%c  ' + testObj.time.toFixed(2) + 'ms', 'color: green; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
+            console.log('%c√ ' + self.title + '%c  ' + self.time.toFixed(2) + 'ms', 'color: green; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
         } else {
-            printGroup(testObj);
+            self.printGroup();
         }
     }
     else {
         if (!single) {
-            printGroup(testObj);
+            self.printGroup();
         }
         else {
-            console.log(chalk.green(indent(testObj) + ' √ ') + chalk.green.dim(testObj.title) + chalk.gray(' ' + testObj.time.toFixed(2) + 'ms'));
+            console.log(chalk.green(indent(self) + ' √ ') + chalk.green.dim(self.title) + chalk.gray(' ' + self.time.toFixed(2) + 'ms'));
         }
     }
 }
 
 //print yellow warning (not all tests are passed or it is container)
-function printGroup (testObj) {
+Test.prototype.printGroup = function () {
+    var self = this;
+
     if (isBrowser) {
-        console.group('%c+ ' + testObj.title + '%c  ' + testObj.time.toFixed(2) + 'ms', 'color: orange; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
+        console.group('%c+ ' + self.title + '%c  ' + self.time.toFixed(2) + 'ms', 'color: orange; font-weight: normal', 'color:rgb(150,150,150); font-size:0.9em');
     }
     else {
         console.log();
-        console.log(indent(testObj) +' ' + chalk.yellow('+') + ' ' + chalk.yellow(testObj.title) + chalk.gray(' ' + testObj.time.toFixed(2) + 'ms'));
+        console.log(indent(self) +' ' + chalk.yellow('+') + ' ' + chalk.yellow(self.title) + chalk.gray(' ' + self.time.toFixed(2) + 'ms'));
     }
 }
 
 //print blue skip
-function printSkip (testObj, single) {
+Test.prototype.printSkip = function (single) {
+    var self = this;
+
     if (isBrowser) {
-        console[single ? 'log' : 'group']('%c- ' + testObj.title, 'color: blue');
+        console[single ? 'log' : 'group']('%c- ' + self.title, 'color: blue');
     }
     else {
-        console.log(chalk.cyan(indent(testObj) + ' - ') + chalk.cyan.dim(testObj.title));
+        console.log(chalk.cyan(indent(self) + ' - ') + chalk.cyan.dim(self.title));
     }
 }
 
@@ -523,6 +630,8 @@ function indent (testObj) {
 }
 
 
+
+
 //skip alias
 test.skip = function skip (message) {
    return test(message);
@@ -534,8 +643,9 @@ test.only = function only (message, fn) {
     if (fn) test.DETECT_ONLY = false;
     //change only mode to true
     test.ONLY_MODE = true;
-    test(message, fn, true);
-    return test;
+
+    var result = test(message, fn, true);
+    return result;
 }
 
 //more obvious chain

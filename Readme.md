@@ -36,6 +36,12 @@ test.only('Test of interest', function () {
 test('Async stuff', function (done) {
 	this.timeout(3000);
 	setTimeout(done, 2100);
+})
+.after(function () {
+	//will be invoked after test
+})
+.before(function () {
+	//will be invoked before the test
 });
 ```
 

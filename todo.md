@@ -1,4 +1,10 @@
-* show diff
+* show status of grouped parent tests as the summary status of the children
+* think of impementing sync strategy - just form a test source code based on collected grouped tests.
+	* Or fix up errors - now they are awful. throwing string, throwing error etc.
+		* though it may depend on server runner, not the tst itself
+* measure time for the parent test as a sum of inner times (if contain kids - do not end timer).
+* add tap-spec etc output, to show test summary
+* show diff nicely, at least line numbers with diff, or objects
 * force done if test error happened, do not wait for it to be called
 * make stack trace not worse than mocha
 * async tests throw uncatchable errors in callbacks (in browser), in settimeouts
