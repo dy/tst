@@ -502,7 +502,7 @@ Test.prototype.print = function () {
     var single = self.children && self.children.length ? false : true;
 
     if (self.status === 'error') {
-        self.printError(self);
+        self.printError();
     }
     else if (self.status === 'group') {
         self.printGroup(single);
@@ -542,8 +542,14 @@ Test.prototype.printError = function () {
         console.group('%c× ' + self.title, 'color: red; font-weight: normal');
         if (self.error) {
             if (self.error.name === 'AssertionError') {
-                var msg = '%cAssertionError:\n%c' + self.error.expected + '\n' + '%c' + self.error.operator + '\n' + '%c' + self.error.actual;
-                console.groupCollapsed(msg, 'color: red; font-weight: normal', 'color: green; font-weight: normal', 'color: gray; font-weight: normal', 'color: red; font-weight: normal');
+                if (typeof self.error.expected !== 'object') {
+                    var msg = '%cAssertionError:\n%c' + self.error.expected + '\n' + '%c' + self.error.operator + '\n' + '%c' + self.error.actual;
+                    console.groupCollapsed(msg, 'color: red; font-weight: normal', 'color: green; font-weight: normal', 'color: gray; font-weight: normal', 'color: red; font-weight: normal');
+                }
+                else {
+                    var msg = '%cAssertionError: ' + self.error.message;
+                    console.groupCollapsed(msg, 'color: red; font-weight: normal');
+                }
                 console.error(self.stack);
                 console.groupEnd();
             }
