@@ -13,6 +13,7 @@ var ansi = require('ansi-escapes');
 var inherits = require('inherits');
 var Emitter = require('events');
 var extend = require('xtend/mutable');
+var inspect = require('util-inspect')
 
 
 // Error.stackTraceLimit = 10;
@@ -567,7 +568,9 @@ Test.prototype.printError = function () {
 
         if (self.error.stack) {
             if (self.error.name === 'AssertionError') {
-                console.error(chalk.gray('AssertionError: ') + chalk.green(self.error.expected) + '\n' + chalk.gray(self.error.operator) + '\n' + chalk.red(self.error.actual));
+                var expected = inspect(self.error.expected)
+                var actual = inspect(self.error.actual)
+                console.error(chalk.gray('AssertionError: ') + chalk.green(expected) + '\n' + chalk.gray(self.error.operator) + '\n' + chalk.red(actual));
             } else {
                 //NOTE: node prints e.stack along with e.message
                 var stack = self.error.stack.replace(/^\s*/gm, indent(self) + '   ');
