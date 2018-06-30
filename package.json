@@ -4,7 +4,7 @@
   "version": "1.1.1",
   "repository": "goto-bus-stop/tape-modern",
   "author": "Rich Harris (https://github.com/Rich-Harris)",
-  "main": "dist/tape-modern.umd.js",
+  "main": "dist/tape-modern.cjs.js",
   "module": "dist/tape-modern.esm.js",
   "types": "types/index.d.ts",
   "files": [
