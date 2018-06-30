@@ -105,4 +105,4 @@ window.done = done;
 
 ## License
 
-[LIL](LICENSE)
+[LIL](LICENSE) © Rich Harris

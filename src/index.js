@@ -1,3 +1,5 @@
+import util from 'util'
+
 let ondone
 export const done = new Promise((resolve) => {
   ondone = resolve
@@ -21,10 +23,12 @@ function start () {
   }
 }
 
-export const test = Object.assign(function test (name, fn) {
+export function test (name, fn) {
   tests.push({ name, fn, skip: false, only: false, shouldRun: false })
   start()
-}, {
+}
+
+Object.assign(test, {
   skip (name, fn) {
     tests.push({ name, fn, skip: true, only: false, shouldRun: null })
     start()
@@ -60,12 +64,19 @@ function logResult (ok, operator, msg, info = {}) {
     console.log(`  operator: ${operator}`)
 
     if (isNode) {
-      const util = require('util')
-      if ('expected' in info) console.log(`  expected:\n    ${util.format(info.expected).replace(/\n/gm, `\n    `)}`)
-      if ('actual' in info) console.log(`  actual:\n    ${util.format(info.actual).replace(/\n/gm, `\n    `)}`)
+      if ('expected' in info) {
+        console.log(`  expected:\n    ${util.format(info.expected).replace(/\n/gm, `\n    `)}`)
+      }
+      if ('actual' in info) {
+        console.log(`  actual:\n    ${util.format(info.actual).replace(/\n/gm, `\n    `)}`)
+      }
     } else {
-      if ('expected' in info) console.log(`  expected:`, info.expected)
-      if ('actual' in info) console.log(`  actual:`, info.actual)
+      if ('expected' in info) {
+        console.log(`  expected:`, info.expected)
+      }
+      if ('actual' in info) {
+        console.log(`  actual:`, info.actual)
+      }
     }
 
     // find where the error occurred, and try to clean it up
