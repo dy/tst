@@ -1,8 +1,9 @@
 {
-  "name": "tape-modern",
+  "name": "@goto-bus-stop/tape-modern",
   "description": "Minimum viable TAP-compliant testing framework",
   "version": "1.1.1",
-  "repository": "Rich-Harris/tape-modern",
+  "repository": "goto-bus-stop/tape-modern",
+  "author": "Rich Harris (https://github.com/Rich-Harris)",
   "main": "dist/tape-modern.umd.js",
   "module": "dist/tape-modern.esm.js",
   "types": "types/index.d.ts",

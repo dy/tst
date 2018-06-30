@@ -1,4 +1,4 @@
-# tape-modern
+# @goto-bus-stop/tape-modern
 
 Minimum viable testing framework:
 
