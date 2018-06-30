@@ -11,11 +11,14 @@ function start () {
     console.log('TAP version 13')
 
     Promise.resolve().then(() => {
-      const hasOnly = tests.some(test => test.only)
-      tests.forEach(test => {
-        test.shouldRun = test.skip
-          ? false
-          : hasOnly ? test.only : true
+      const hasOnly = tests.some((test) => test.only)
+      tests.forEach((test) => {
+        test.shouldRun = true
+        if (test.skip) {
+          test.shouldRun = false
+        } else if (hasOnly) {
+          test.shouldRun = test.only
+        }
       })
 
       dequeue()
@@ -90,7 +93,7 @@ function logResult (ok, operator, msg, info = {}) {
       const dirname = typeof __dirname === 'string' && __dirname.replace(/dist$/, '')
 
       for (let i = 0; i < lines.length; i += 1) {
-        if (~lines[i].indexOf(dirname)) {
+        if (lines[i].indexOf(dirname) !== -1) {
           lines = lines.slice(0, i)
           break
         }
@@ -107,23 +110,43 @@ function logResult (ok, operator, msg, info = {}) {
 }
 
 export const assert = {
-  fail: (msg) => logResult(false, 'fail', msg),
+  fail (msg) {
+    logResult(false, 'fail', msg)
+  },
 
-  pass: (msg) => logResult(true, 'pass', msg),
+  pass (msg) {
+    logResult(true, 'pass', msg)
+  },
 
-  ok: (value, msg = 'should be truthy') =>
+  ok (value, msg = 'should be truthy') {
     logResult(Boolean(value), 'ok', msg, {
       actual: value,
       expected: true
-    }),
+    })
+  },
 
-  equal: (a, b, msg = 'should be equal') =>
+  notOk (value, msg = 'should be falsy') {
+    logResult(!Boolean(value), 'notOk', msg, {
+      actual: value,
+      expected: false
+    })
+  },
+
+  equal (a, b, msg = 'should be equal') {
     logResult(a === b, 'equal', msg, {
       actual: a,
       expected: b
-    }),
+    })
+  },
 
-  throws: (fn, expected, msg = 'should throw') => {
+  notEqual (a, b, msg = 'should not be equal') {
+    logResult(a !== b, 'notEqual', msg, {
+      actual: a,
+      expected: b
+    })
+  },
+
+  throws (fn, expected, msg = 'should throw') {
     try {
       fn()
       logResult(false, 'throws', msg, {

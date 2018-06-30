@@ -6,20 +6,18 @@ Minimum viable testing framework:
 * Works in Node and in browsers
 * Everything is assumed to be async — no need to faff around with `t.plan` and `t.end`
 
-It requires Node 7.6+, because it uses `async`/`await`.
-
+It requires Node 4.
 
 ## Installation
 
 ```bash
-npm i -D tape-modern
+npm i -D @goto-bus-stop/tape-modern
 ```
-
 
 ## Usage
 
 ```js
-const { test } = require('tape-modern');
+const { test } = require('@goto-bus-stop/tape-modern');
 
 test('these tests will all pass', t => {
 	t.ok(true);
@@ -95,7 +93,7 @@ test.skip('this test will be skipped', t => {
 You can check when your tests have finished running with the `done` promise:
 
 ```js
-const { done } = require('tape-modern');
+const { done } = require('@goto-bus-stop/tape-modern');
 
 // make it visible to e.g. Puppeteer, so that
 // we can do `await page.evaluate(() => done)`
