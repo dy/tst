@@ -126,7 +126,7 @@ export const assert = {
   },
 
   notOk (value, msg = 'should be falsy') {
-    logResult(!Boolean(value), 'notOk', msg, {
+    logResult(!value, 'notOk', msg, {
       actual: value,
       expected: false
     })
