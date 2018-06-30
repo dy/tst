@@ -1,19 +1,18 @@
-import typescript from 'rollup-plugin-typescript';
-import resolve from 'rollup-plugin-node-resolve';
-import pkg from './package.json';
+import async from 'rollup-plugin-async'
+import buble from 'rollup-plugin-buble'
+
+const pkg = require('./package.json')
 
 export default {
-	input: 'src/index.ts',
-	output: [
-		{ file: pkg.main, format: 'cjs' },
-		{ file: pkg.module, format: 'es' }
-	],
-	name: 'tape',
-	plugins: [
-		resolve(),
-		typescript({
-			typescript: require('typescript')
-		})
-	],
-	sourcemap: true
-};
+  input: './src/index.js',
+  output: [
+    { file: pkg.main, format: 'cjs', sourcemap: true },
+    { file: pkg.module, format: 'es', sourcemap: true }
+  ],
+  plugins: [
+    async(),
+    buble({
+      target: { node: 4 }
+    })
+  ]
+}
