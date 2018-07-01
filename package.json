@@ -1,7 +1,7 @@
 {
   "name": "@goto-bus-stop/tape-modern",
   "description": "Minimum viable TAP-compliant testing framework",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "repository": "goto-bus-stop/tape-modern",
   "author": "Rich Harris (https://github.com/Rich-Harris)",
   "main": "dist/tape-modern.cjs.js",
