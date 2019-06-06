@@ -210,3 +210,5 @@ async function dequeue () {
     if (isNode) process.exit(failed ? 1 : 0)
   }
 }
+
+export default test
