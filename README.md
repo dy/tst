@@ -4,6 +4,7 @@ Minimum viable testing framework:
 
 * TAP compliant
 * Works in Node and in browsers
+* Works via https://unpkg.com/@dy/tape-modern?module
 * Everything is assumed to be async — no need to faff around with `t.plan` and `t.end`
 
 It requires Node 4.
