@@ -1,5 +1,3 @@
-import util from 'util'
-
 let ondone
 export const done = new Promise((resolve) => {
   ondone = resolve
@@ -68,10 +66,10 @@ function logResult (ok, operator, msg, info = {}) {
 
     if (isNode) {
       if ('expected' in info) {
-        console.log(`  expected:\n    ${util.format(info.expected).replace(/\n/gm, `\n    `)}`)
+        console.log(`  expected:\n    ${info.expected.replace(/\n/gm, `\n    `)}`)
       }
       if ('actual' in info) {
-        console.log(`  actual:\n    ${util.format(info.actual).replace(/\n/gm, `\n    `)}`)
+        console.log(`  actual:\n    ${info.actual.replace(/\n/gm, `\n    `)}`)
       }
     } else {
       if ('expected' in info) {
