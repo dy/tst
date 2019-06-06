@@ -1,4 +1,4 @@
-# @goto-bus-stop/tape-modern
+# @dy/tape-modern
 
 Minimum viable testing framework:
 
@@ -11,13 +11,13 @@ It requires Node 4.
 ## Installation
 
 ```bash
-npm i -D @goto-bus-stop/tape-modern
+npm i -D @dy/tape-modern
 ```
 
 ## Usage
 
 ```js
-const { test } = require('@goto-bus-stop/tape-modern');
+const { test } = require('@dy/tape-modern');
 
 test('these tests will all pass', t => {
 	t.ok(true);
@@ -93,7 +93,7 @@ test.skip('this test will be skipped', t => {
 You can check when your tests have finished running with the `done` promise:
 
 ```js
-const { done } = require('@goto-bus-stop/tape-modern');
+const { done } = require('@dy/tape-modern');
 
 // make it visible to e.g. Puppeteer, so that
 // we can do `await page.evaluate(() => done)`

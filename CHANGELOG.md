@@ -1,8 +1,13 @@
-# @goto-bus-stop/tape-modern changelog
+# @dy/tape-modern changelog
 
 All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/).
+
+# 2.0.2
+
+* Fork to @dy/tape-modern
+* Removed redundant util to enable unpkg.com use
 
 ## 2.0.1
 
