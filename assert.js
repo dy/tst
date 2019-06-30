@@ -110,5 +110,5 @@ export {
   equal as eq,
   notEqual as neq,
   deepEqual as deq,
-  throws as throw, throws as err
+  throws as err
 }
