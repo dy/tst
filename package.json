@@ -1,29 +1,16 @@
 {
-  "name": "@dy/tape-modern",
-  "description": "Minimum viable TAP-compliant testing framework",
-  "version": "2.0.4",
-  "repository": "dy/tape-modern",
-  "author": "Rich Harris (https://github.com/Rich-Harris)",
-  "main": "dist/tape-modern.cjs.js",
-  "module": "dist/tape-modern.esm.js",
-  "types": "types/index.d.ts",
-  "files": [
-    "dist",
-    "types"
-  ],
-  "devDependencies": {
-    "glob": "^7.1.2",
-    "mocha": "^4.0.1",
-    "rollup": "^0.62.0",
-    "rollup-plugin-async": "^1.2.0",
-    "rollup-plugin-buble": "^0.19.2",
-    "standard": "^11.0.1"
-  },
+  "name": "tst",
+  "description": "Testing tool",
+  "version": "2.0.0",
+  "repository": "dy/tst",
+  "author": "Dmitry Yv",
+  "main": "index.js",
+  "module": "index.js",
+  "license": "MIT",
   "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -cw",
-    "test": "standard && echo \"TODO\"",
-    "prepublishOnly": "npm test && npm run build"
+    "test": "node -r esm test.js"
   },
-  "license": "LIL"
+  "devDependencies": {
+    "esm": "^3.2.25"
+  }
 }

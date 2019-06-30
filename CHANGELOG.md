@@ -1,8 +1,18 @@
-# @dy/tape-modern changelog
+# tst
 
 All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/).
+
+Changes prior to tst@2.0 are discarded.
+
+## 2.0.0
+
+* Remove all package deps
+* Add deepEqual assert
+* Add assertion aliases
+
+## Prior this it was called tape-modern
 
 ## 2.0.4
 
