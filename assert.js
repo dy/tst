@@ -41,8 +41,8 @@ export function deepEqual (a, b, msg = 'should deep equal') {
   if (a === b) return
   if ('length' in a) {
     if (a.length !== b.length) return log(false, 'deepEqual', msg, {
-      'actual length': a.length,
-      'expected length': b.length
+      actual: '<length ' + a.length + '>',
+      expected: '<length ' + b.length + '>'
     })
 
     for (let i = 0; i < a.length; i++) {

@@ -68,32 +68,21 @@ export function log (ok, operator, msg, info = {}) {
     console.log('  ---')
     console.log(`  operator: ${operator}`)
 
-    if (isNode) {
-      if ('expected' in info) {
-        console.log(`  expected:\n    ${info.expected.toString().replace(/\n/gm, `\n    `)}`)
-      }
-      if ('actual' in info) {
-        console.log(`  actual:\n    ${info.actual.toString().replace(/\n/gm, `\n    `)}`)
-      }
-      let {actual, expected, ...rest} = info
-      for (let prop in rest) {
-          console.log(`  ${prop}:\n    ${rest[prop].toString().replace(/\n/gm, `\n    `)}`)
-      }
-    } else {
-      if ('expected' in info) {
-        console.log(`  expected:`, info.expected)
-      }
-      if ('actual' in info) {
-        console.log(`  actual:`, info.actual)
-      }
-      let {actual, expected, ...rest} = info
-      for (let prop in rest) {
-          console.log(`  ${prop}:`, rest[prop])
-      }
+    if ('expected' in info) {
+      console.log(`  expected:`, info.expected)
+    }
+    if ('actual' in info) {
+      console.log(`  actual:`, info.actual)
+    }
+    let {actual, expected, ...rest} = info
+    for (let prop in rest) {
+        console.log(`  ${prop}:`, rest[prop])
     }
 
     // find where the error occurred, and try to clean it up
-    let lines = new Error().stack.split('\n').slice(3)
+    let err = new Error()
+    Error.captureStackTrace(err, log);
+    let lines = err.stack.split('\n').slice(3)
 
     let cwd = ''
 
