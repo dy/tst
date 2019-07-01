@@ -1,3 +1,4 @@
+import fastDeepEqual from 'fast-deep-equal'
 import { log } from './index.js'
 
 
@@ -38,43 +39,10 @@ export function notEqual (a, b, msg = 'should not be equal') {
 }
 
 export function deepEqual (a, b, msg = 'should deep equal') {
-  if (a === b) return
-  if ('length' in a) {
-    if (a.length !== b.length) return log(false, 'deepEqual', msg, {
-      actual: '<length ' + a.length + '>',
-      expected: '<length ' + b.length + '>'
-    })
-
-    for (let i = 0; i < a.length; i++) {
-      if (a[i] !== b[i]) {
-        return log(false, 'deepEqual', msg, {
-          actual: a,
-          expected: b,
-          index: i
-        })
-      }
-    }
-  }
-  else {
-    for (let prop in a) {
-      if (a[prop] !== b[prop]) {
-        return log (false, 'deepEqual', msg, {
-          actual: a,
-          expected: b,
-          prop
-        })
-      }
-    }
-    for (let prop in b) {
-      if (a[prop] !== b[prop]) {
-        return log (false, 'deepEqual', msg, {
-          actual: a,
-          expected: b,
-          prop
-        })
-      }
-    }
-  }
+  log(fastDeepEqual(a, b), 'deepEqual', msg, {
+    actual: a,
+    expected: b
+  })
 }
 
 export function throws (fn, expected, msg = 'should throw') {

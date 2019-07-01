@@ -12,5 +12,8 @@
   },
   "devDependencies": {
     "esm": "^3.2.25"
+  },
+  "dependencies": {
+    "fast-deep-equal": "^2.0.1"
   }
 }

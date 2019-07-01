@@ -1,6 +1,5 @@
 import * as assert from './assert.js'
 
-
 let ondone
 
 export const done = new Promise((resolve) => {
