@@ -1,5 +1,13 @@
 # tst
 
+* tape-compatible
+* async
+* better logs
+* better stacktrace
+* better assertions
+* no need for t.end, t.plan
+* muted skipped
+
 ```js
 import t from 'https://unpkg.com/tst?module'
 
@@ -8,10 +16,11 @@ t('these tests will all pass', t => {
 	t.ok(true, 'this time with an optional message');
 	t.ok('not true, but truthy enough');
 
-	t.eq(1 + 1, 2);
-	t.eq(Math.max(1, 2, 3), 3);
+	t.equal(1 + 1, 2);
+	t.equal(Math.max(1, 2, 3), 3);
+	t.deepEqual({}, {})
 
-	t.err(() => {
+	t.throws(() => {
 		throw new Error('oh no!');
 	}, /oh no!/);
 
@@ -19,8 +28,8 @@ t('these tests will all pass', t => {
 })
 
 t('these tests will not pass', t => {
-	t.eq(42, '42');
-	t.eq({}, {});
+	t.equal(42, '42');
+	t.equal({}, {});
 
 	t.fail('nok')
 })
@@ -29,3 +38,8 @@ t.skip('this test will not run', t => {
 	t.pass('ok')
 })
 ```
+
+### Other efforts
+
+* tape-modern
+* @goto-bus-stop/tape-modern
