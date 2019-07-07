@@ -41,7 +41,7 @@ t.skip('this test will not run', t => {
 })
 ```
 
-### Parallel art
+### Neighbor art
 
 * tape-modern
 * @goto-bus-stop/tape-modern
