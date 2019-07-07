@@ -2,11 +2,13 @@
 
 * tape-compatible
 * async
-* better logs
-* better stacktrace
-* better assertions
-* no need for t.end, t.plan
+* interactive logs
+* relevant stacktrace
+* deepEqual <!-- almost, same -->
+* no `t.end`, `t.plan`
 * muted skipped
+
+## Usage
 
 ```js
 import t from 'https://unpkg.com/tst?module'
