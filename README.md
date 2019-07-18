@@ -1,11 +1,11 @@
 # tst
 
 * tape-compatible
-* async
-* interactive logs
-* relevant stacktrace
-* deepEqual <!-- almost, same -->
 * no `t.end`, `t.plan`
+* async
+* inspectable logs
+* relevant stacktrace
+* `deepEqual` <!-- almost, same -->
 * muted skipped
 
 ## Usage
