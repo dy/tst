@@ -60,53 +60,12 @@ const isNode = typeof process !== 'undefined' && Object.prototype.toString.call(
 export function log (ok, operator, msg, info = {}) {
   assertIndex += 1
   if (ok) {
-    console.log(`ok ${assertIndex} — ${msg}`)
+    console.log(`%c ok ${assertIndex} — ${msg}`, 'color: green')
     passed += 1
   } else {
-    console.log(`not ok ${assertIndex} — ${msg}`)
     failed += 1
 
-    console.log('  ---')
-    console.log(`  operator: ${operator}`)
-
-    if ('expected' in info) {
-      console.log(`  expected:`, info.expected)
-    }
-    if ('actual' in info) {
-      console.log(`  actual:`, info.actual)
-    }
-    let {actual, expected, ...rest} = info
-    for (let prop in rest) {
-        console.log(`  ${prop}:`, rest[prop])
-    }
-
-    // find where the error occurred, and try to clean it up
-    let err = new Error()
-    Error.captureStackTrace(err, log);
-    let lines = err.stack.split('\n').slice(3)
-
-    let cwd = ''
-
-    if (isNode) {
-      cwd = process.cwd()
-      if (/[/\\]/.test(cwd[0])) cwd += cwd[0]
-
-      const dirname = typeof __dirname === 'string' && __dirname.replace(/dist$/, '')
-
-      for (let i = 0; i < lines.length; i += 1) {
-        if (lines[i].indexOf(dirname) !== -1) {
-          lines = lines.slice(0, i)
-          break
-        }
-      }
-    }
-
-    const stack = lines
-      .map((line) => `    ${line.replace(cwd, '').trim()}`)
-      .join('\n')
-
-    console.log(`  stack:   \n${stack}`)
-    console.log(`  ...`)
+    console.error(`not ok ${assertIndex} — ${msg}`, info)
   }
 }
 
@@ -132,8 +91,7 @@ async function dequeue () {
       await test.fn(assert)
     } catch (err) {
       failed += 1
-      console.log(`not ok ${assertIndex} — ${err.message}`)
-      console.error(err.stack)
+      console.error(`not ok ${assertIndex} —`, err)
     }
 
     dequeue()
