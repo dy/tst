@@ -1,6 +1,8 @@
 import fastDeepEqual from 'fast-deep-equal'
 import { log } from './index.js'
 
+// TODO: same (members)
+// TODO: almost
 
 export function fail (msg) {
   log(false, 'fail', msg)

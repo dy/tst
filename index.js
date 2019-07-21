@@ -54,7 +54,6 @@ let skipped = 0
 
 const isNode = typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]'
 
-
 export function log (ok, operator, msg, info = {}) {
   assertIndex += 1
   if (ok) {
@@ -129,7 +128,7 @@ async function dequeue () {
     } catch (err) {
       failed += 1
       console.log(`not ok ${assertIndex} — ${err.message}`)
-      console.error(`  ${err.stack.replace(/^\s+/gm, '    ')}`)
+      console.error(err.stack)
     }
 
     dequeue()
