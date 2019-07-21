@@ -1,12 +1,14 @@
 # tst
 
 * tape-compatible
+* no `t.end`, `t.plan`
 * async
-* better logs
-* better stacktrace
-* better assertions
-* no need for t.end, t.plan
+* inspectable logs
+* relevant stacktrace
+* `deepEqual` <!-- almost, same -->
 * muted skipped
+
+## Usage
 
 ```js
 import t from 'https://unpkg.com/tst?module'
@@ -39,7 +41,7 @@ t.skip('this test will not run', t => {
 })
 ```
 
-### Other efforts
+### Neighbor art
 
 * tape-modern
 * @goto-bus-stop/tape-modern
