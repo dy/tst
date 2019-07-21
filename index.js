@@ -27,21 +27,24 @@ function start () {
 }
 
 export default function test (name, fn) {
+  if (!fn) return test.todo(name)
   tests.push({ name, fn, skip: false, only: false, shouldRun: false })
   start()
 }
 
-Object.assign(test, {
-  skip (name, fn) {
-    tests.push({ name, fn, skip: true, only: false, shouldRun: null })
-    start()
-  },
+test.todo = function (name, fn) {
+  tests.push({ name, fn, skip: true, todo: true, only: false, shouldRun: null })
+}
 
-  only (name, fn) {
-    tests.push({ name, fn, skip: false, only: true, shouldRun: null })
-    start()
-  }
-})
+test.skip = function (name, fn) {
+  tests.push({ name, fn, skip: true, only: false, shouldRun: null })
+  start()
+}
+
+test.only = function (name, fn) {
+  tests.push({ name, fn, skip: false, only: true, shouldRun: null })
+  start()
+}
 
 let testIndex = 0
 let assertIndex = 0
@@ -112,11 +115,13 @@ async function dequeue () {
 
   if (test) {
     if (!test.shouldRun) {
-      if (test.skip) {
-        // Useless info
-        // console.log(`# skip ${test.name}`)
+      if (test.todo) {
+        console.log(`# todo ${test.name}`)
       }
-      skipped += 1
+      else if (test.skip) {
+        console.log(`%c# skip ${test.name}`, 'color: #ddd')
+        skipped += 1
+      }
       dequeue()
       return
     }
