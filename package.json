@@ -1,7 +1,7 @@
 {
   "name": "tst",
   "description": "Testing tool",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "repository": "dy/tst",
   "author": "Dmitry Yv",
   "main": "index.js",
