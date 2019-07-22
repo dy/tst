@@ -4,9 +4,10 @@
 * no `t.end`, `t.plan`
 * async
 * inspectable logs
-* relevant stacktrace
+* correct stacktrace
 * `deepEqual` <!-- almost, same -->
 * muted skipped
+* time measurement
 
 ## Usage
 
