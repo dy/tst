@@ -28,21 +28,21 @@ function start () {
 
 export default function test (name, fn) {
   if (!fn) return test.todo(name)
-  tests.push({ name, fn, skip: false, only: false, shouldRun: false })
+  tests.push({ name, fn, skip: false, only: false, shouldRun: false, results: [] })
   start()
 }
 
 test.todo = function (name, fn) {
-  tests.push({ name, fn, skip: true, todo: true, only: false, shouldRun: null })
+  tests.push({ name, fn, skip: true, todo: true, only: false, shouldRun: null, results: [] })
 }
 
 test.skip = function (name, fn) {
-  tests.push({ name, fn, skip: true, only: false, shouldRun: null })
+  tests.push({ name, fn, skip: true, only: false, shouldRun: null, results: [] })
   start()
 }
 
 test.only = function (name, fn) {
-  tests.push({ name, fn, skip: false, only: true, shouldRun: null })
+  tests.push({ name, fn, skip: false, only: true, shouldRun: null, results: [] })
   start()
 }
 
@@ -55,16 +55,20 @@ let passed = 0
 let failed = 0
 let skipped = 0
 
+export let current = null // current test
+
 const isNode = typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]'
 
 export function log (ok, operator, msg, info = {}) {
   assertIndex += 1
   if (ok) {
-    console.log(`%c ✔ ${assertIndex} — ${msg}`, 'color: #229944')
+    current.results.push({ idx: assertIndex, msg })
+    // console.log(`%c ✔ ${assertIndex} — ${msg}`, 'color: #229944')
     passed += 1
   } else {
+    current.results.push({ idx: assertIndex, msg, info, error: new Error() })
     failed += 1
-    console.assert(false, `${assertIndex} — ${msg}`, info, (new Error()))
+    // console.assert(false, `${assertIndex} — ${msg}`, info, (new Error()))
   }
 }
 
@@ -84,17 +88,26 @@ async function dequeue () {
       return
     }
 
-
     try {
-      let from = new Date()
+      current = test
+      let from = performance.now()
       await test.fn(assert)
-      let time = new Date() - from
-      console.log(`# ${test.name} (${time}ms)`)
+      let time = performance.now() - from
+      console.log(`# ${test.name} (${time.toPrecision(3)}ms)`)
     } catch (err) {
       console.log(`# ${test.name}`)
       failed += 1
       // FIXME: this syntax is due to chrome not always able to grasp the stack trace from source maps
       console.error(err.stack)
+    }
+    finally {
+      current.results.forEach(res => {
+        if (res.error) {
+          console.assert(false, `${res.idx} — ${res.msg}`, res.info, res.error)
+        } else {
+          console.log(`%c ✔ ${res.idx} — ${res.msg}`, 'color: #229944')
+        }
+      })
     }
 
     dequeue()
