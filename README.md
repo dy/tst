@@ -4,16 +4,25 @@
 * no `t.end`, `t.plan`
 * async
 * inspectable logs
-* correct stacktrace
+* correct stacktrace with sourcemaps
 * `deepEqual` <!-- almost, same -->
 * muted skipped
 * time measurement
+* colors
 
-## Usage
+## Install
+
+[![npm install tst](https://nodei.co/npm/tst.png?mini=true)](https://npmjs.org/package/tst/)
+
+or
 
 ```js
 import t from 'https://unpkg.com/tst?module'
+```
 
+## Use
+
+```js
 t('these tests will all pass', t => {
 	t.ok(true);
 	t.ok(true, 'this time with an optional message');
