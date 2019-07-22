@@ -64,9 +64,7 @@ export function log (ok, operator, msg, info = {}) {
     passed += 1
   } else {
     failed += 1
-
     console.assert(false, `${assertIndex} — ${msg}`, info, (new Error()))
-    // console.log(info)
   }
 }
 
@@ -86,11 +84,14 @@ async function dequeue () {
       return
     }
 
-    console.log(`# ${test.name}`)
 
     try {
+      let from = new Date()
       await test.fn(assert)
+      let time = new Date() - from
+      console.log(`# ${test.name} (${time}ms)`)
     } catch (err) {
+      console.log(`# ${test.name}`)
       failed += 1
       // FIXME: this syntax is due to chrome not always able to grasp the stack trace from source maps
       console.error(err.stack)
