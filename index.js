@@ -60,12 +60,13 @@ const isNode = typeof process !== 'undefined' && Object.prototype.toString.call(
 export function log (ok, operator, msg, info = {}) {
   assertIndex += 1
   if (ok) {
-    console.log(`%c ok ${assertIndex} — ${msg}`, 'color: green')
+    console.log(`%c ✔ ${assertIndex} — ${msg}`, 'color: #229944')
     passed += 1
   } else {
     failed += 1
 
-    console.error(`not ok ${assertIndex} — ${msg}`, info)
+    console.assert(false, `${assertIndex} — ${msg}`, info, (new Error()))
+    // console.log(info)
   }
 }
 
@@ -91,7 +92,8 @@ async function dequeue () {
       await test.fn(assert)
     } catch (err) {
       failed += 1
-      console.error(`not ok ${assertIndex} —`, err)
+      // FIXME: this syntax is due to chrome not always able to grasp the stack trace from source maps
+      console.error(err.stack)
     }
 
     dequeue()
