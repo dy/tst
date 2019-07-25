@@ -47,7 +47,7 @@ t('these tests will not pass', t => {
 })
 
 t.skip('this test will not run', t => {
-	t.pass('ok')
+	t.pass('ok' + t.time)
 })
 ```
 

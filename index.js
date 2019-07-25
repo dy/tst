@@ -26,24 +26,43 @@ function start () {
   }
 }
 
+function Test(o) {
+  Object.assign(this, o)
+}
+Test.prototype.time = null
+Test.prototype.run = async function run () {
+  let from = this.startTime = performance.now()
+  await this.fn(this)
+  this.endTime = performance.now() - from
+}
+Object.assign(Test.prototype, assert)
+
 export default function test (name, fn) {
   if (!fn) return test.todo(name)
-  tests.push({ name, fn, skip: false, only: false, shouldRun: false, results: [] })
+  let t = new Test({ name, fn, skip: false, only: false, shouldRun: false, assert: [] })
+  tests.push(t)
   start()
+  return t
 }
 
 test.todo = function (name, fn) {
-  tests.push({ name, fn, skip: true, todo: true, only: false, shouldRun: null, results: [] })
+  let t = new Test({ name, fn, skip: true, todo: true, only: false, shouldRun: null, assert: [] })
+  tests.push(t)
+  return t
 }
 
 test.skip = function (name, fn) {
-  tests.push({ name, fn, skip: true, only: false, shouldRun: null, results: [] })
+  let t = new Test({ name, fn, skip: true, only: false, shouldRun: null, assert: [] })
+  tests.push(t)
   start()
+  return t
 }
 
 test.only = function (name, fn) {
-  tests.push({ name, fn, skip: false, only: true, shouldRun: null, results: [] })
+  let t = new Test({ name, fn, skip: false, only: true, shouldRun: null, assert: [] })
+  tests.push(t)
   start()
+  return t
 }
 
 let testIndex = 0
@@ -62,13 +81,13 @@ const isNode = typeof process !== 'undefined' && Object.prototype.toString.call(
 export function log (ok, operator, msg, info = {}) {
   assertIndex += 1
   if (ok) {
-    current.results.push({ idx: assertIndex, msg })
-    // console.log(`%c ✔ ${assertIndex} — ${msg}`, 'color: #229944')
+    current.assert.push({ idx: assertIndex, msg })
+    console.log(`%c ✔ ${assertIndex} — ${msg}`, 'color: #229944')
     passed += 1
   } else {
-    current.results.push({ idx: assertIndex, msg, info, error: new Error() })
+    current.assert.push({ idx: assertIndex, msg, info, error: new Error() })
     failed += 1
-    // console.assert(false, `${assertIndex} — ${msg}`, info, (new Error()))
+    console.assert(false, `${assertIndex} — ${msg}`, info, (new Error()))
   }
 }
 
@@ -90,29 +109,19 @@ async function dequeue () {
 
     try {
       current = test
-      let from = performance.now()
-      await test.fn(assert)
-      let time = performance.now() - from
-      console.log(`# ${test.name} (${time.toPrecision(3)}ms)`)
-    } catch (err) {
       console.log(`# ${test.name}`)
+      await test.run()
+    } catch (err) {
       failed += 1
       // FIXME: this syntax is due to chrome not always able to grasp the stack trace from source maps
       console.error(err.stack)
     }
-    finally {
-      current.results.forEach(res => {
-        if (res.error) {
-          console.assert(false, `${res.idx} — ${res.msg}`, res.info, res.error)
-        } else {
-          console.log(`%c ✔ ${res.idx} — ${res.msg}`, 'color: #229944')
-        }
-      })
-    }
 
     dequeue()
-  } else {
-    // summarise
+  }
+
+  // summarise
+  else {
     const total = passed + failed + skipped
     console.log(`\n1..${total}`)
     console.log(`# tests ${total}`)
