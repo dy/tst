@@ -28,38 +28,43 @@ function start () {
 
 function Test(o) {
   Object.assign(this, o)
+  this.assert = []
 }
-Test.prototype.time = null
 Test.prototype.run = async function run () {
   let from = this.startTime = performance.now()
   await this.fn(this)
   this.endTime = performance.now() - from
 }
-Object.assign(Test.prototype, assert)
+Object.assign(Test.prototype, {
+  shouldRun: false,
+  skip: false,
+  only: false,
+  fn: null
+}, assert)
 
 export default function test (name, fn) {
   if (!fn) return test.todo(name)
-  let t = new Test({ name, fn, skip: false, only: false, shouldRun: false, assert: [] })
+  let t = new Test({ name, fn })
   tests.push(t)
   start()
   return t
 }
 
 test.todo = function (name, fn) {
-  let t = new Test({ name, fn, skip: true, todo: true, only: false, shouldRun: null, assert: [] })
+  let t = new Test({ name, fn, skip: true, shouldRun: null })
   tests.push(t)
   return t
 }
 
 test.skip = function (name, fn) {
-  let t = new Test({ name, fn, skip: true, only: false, shouldRun: null, assert: [] })
+  let t = new Test({ name, fn, skip: true, shouldRun: null })
   tests.push(t)
   start()
   return t
 }
 
 test.only = function (name, fn) {
-  let t = new Test({ name, fn, skip: false, only: true, shouldRun: null, assert: [] })
+  let t = new Test({ name, fn, only: true, shouldRun: null })
   tests.push(t)
   start()
   return t
