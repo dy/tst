@@ -1,34 +1,8 @@
 import * as assert from './assert.js'
 
-let ondone
-
-export const done = new Promise((resolve) => {
-  ondone = resolve
-})
-
-function start () {
-  if (!running) {
-    running = true
-
-    Promise.resolve().then(() => {
-      const hasOnly = tests.some((test) => test.only)
-      tests.forEach((test) => {
-        test.shouldRun = true
-        if (test.skip) {
-          test.shouldRun = false
-        } else if (hasOnly) {
-          test.shouldRun = test.only
-        }
-      })
-
-      dequeue()
-    })
-  }
-}
-
 function Test(o) {
   Object.assign(this, o)
-  this.assert = []
+  this.assertion = []
 }
 Test.prototype.run = async function run () {
   let from = this.startTime = performance.now()
@@ -36,8 +10,8 @@ Test.prototype.run = async function run () {
   this.endTime = performance.now() - from
 }
 Object.assign(Test.prototype, {
-  shouldRun: false,
   skip: false,
+  todo: false,
   only: false,
   fn: null
 }, assert)
@@ -49,30 +23,26 @@ export default function test (name, fn) {
   start()
   return t
 }
-
 test.todo = function (name, fn) {
-  let t = new Test({ name, fn, skip: true, shouldRun: null })
+  let t = new Test({ name, fn, todo: true })
   tests.push(t)
+  start()
   return t
 }
-
 test.skip = function (name, fn) {
-  let t = new Test({ name, fn, skip: true, shouldRun: null })
+  let t = new Test({ name, fn, skip: true })
   tests.push(t)
   start()
   return t
 }
-
 test.only = function (name, fn) {
-  let t = new Test({ name, fn, only: true, shouldRun: null })
+  let t = new Test({ name, fn, only: true })
   tests.push(t)
   start()
   return t
 }
 
-let testIndex = 0
 let assertIndex = 0
-let running = false
 
 const tests = []
 let passed = 0
@@ -86,30 +56,50 @@ const isNode = typeof process !== 'undefined' && Object.prototype.toString.call(
 export function log (ok, operator, msg, info = {}) {
   assertIndex += 1
   if (ok) {
-    current.assert.push({ idx: assertIndex, msg })
+    current.assertion.push({ idx: assertIndex, msg })
     console.log(`%c ✔ ${assertIndex} — ${msg}`, 'color: #229944')
     passed += 1
   } else {
-    current.assert.push({ idx: assertIndex, msg, info, error: new Error() })
+    current.assertion.push({ idx: assertIndex, msg, info, error: new Error() })
     failed += 1
     console.assert(false, `${assertIndex} — ${msg}`, info, (new Error()))
   }
 }
 
-async function dequeue () {
-  const test = tests[testIndex++]
 
-  if (test) {
-    if (!test.shouldRun) {
-      if (test.todo) {
-        console.log(`# todo ${test.name}`)
-      }
-      else if (test.skip) {
-        console.log(`%c# skip ${test.name}`, 'color: #ddd')
-        skipped += 1
-      }
+let ondone, hasOnly = false, running = false
+
+
+function start() {
+  if (!running) {
+    running = true
+
+    Promise.resolve().then(() => {
+      hasOnly = tests.some(test => test.only)
+
       dequeue()
-      return
+    })
+  }
+}
+
+async function dequeue () {
+  if (tests.length) {
+    const test = tests.shift()
+
+    if (hasOnly && !test.only) {
+      // in only-run - ignore tests
+      skipped += 1
+      return dequeue()
+    }
+
+    if (test.skip) {
+      console.log(`%c# skip ${test.name}`, 'color: #ddd')
+      skipped += 1
+      return dequeue()
+    }
+    if (test.todo) {
+      console.log(`# todo ${test.name}`)
+      return dequeue()
     }
 
     try {
@@ -122,19 +112,22 @@ async function dequeue () {
       console.error(err.stack)
     }
 
-    dequeue()
+    return dequeue()
   }
 
   // summarise
-  else {
-    const total = passed + failed + skipped
-    console.log(`\n1..${total}`)
-    console.log(`# tests ${total}`)
-    if (passed) console.log(`# pass ${passed}`)
-    if (failed) console.log(`# fail ${failed}`)
-    if (skipped) console.log(`# skip ${skipped}`)
+  const total = passed + failed + skipped
+  console.log(`---\n# tests ${total}`)
+  if (hasOnly) console.log(`# only ${total - skipped}`)
+  if (passed) console.log(`# pass ${passed}`)
+  if (failed) console.log(`# fail ${failed}`)
+  if (skipped) console.log(`# skip ${skipped}`)
 
-    ondone()
-    if (isNode) process.exit(failed ? 1 : 0)
-  }
+  ondone()
+  if (isNode) process.exit(failed ? 1 : 0)
 }
+
+
+export const done = new Promise((resolve) => {
+  ondone = resolve
+})
