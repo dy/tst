@@ -67,7 +67,7 @@ export function log (ok, operator, msg, info = {}) {
 }
 
 
-let ondone, hasOnly = false, running = false
+let ondone, only = 0, running = false
 
 
 function start() {
@@ -75,7 +75,7 @@ function start() {
     running = true
 
     Promise.resolve().then(() => {
-      hasOnly = tests.some(test => test.only)
+      tests.forEach(test => test.only && only++)
 
       dequeue()
     })
@@ -86,7 +86,7 @@ async function dequeue () {
   if (tests.length) {
     const test = tests.shift()
 
-    if (hasOnly && !test.only) {
+    if (only && !test.only) {
       // in only-run - ignore tests
       skipped += 1
       return dequeue()
@@ -116,9 +116,10 @@ async function dequeue () {
   }
 
   // summarise
+  console.log(`---`)
   const total = passed + failed + skipped
-  console.log(`---\n# tests ${total}`)
-  if (hasOnly) console.log(`# only ${total - skipped}`)
+  if (only) console.log(`# only ${only} cases`)
+  console.log(`# total ${ total }`)
   if (passed) console.log(`# pass ${passed}`)
   if (failed) console.log(`# fail ${failed}`)
   if (skipped) console.log(`# skip ${skipped}`)
