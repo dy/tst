@@ -47,6 +47,13 @@ export function deepEqual (a, b, msg = 'should deep equal') {
   })
 }
 
+export function is (a, b, msg = 'should be') {
+  log(fastDeepEqual(a, b), 'is', msg, {
+    actual: a,
+    expected: b
+  })
+}
+
 export function throws (fn, expected, msg = 'should throw') {
   try {
     fn()
@@ -72,11 +79,4 @@ export function throws (fn, expected, msg = 'should throw') {
       throw new Error(`Second argument to t.throws must be an Error constructor, regex, or function`)
     }
   }
-}
-
-// alias
-export {
-  notOk as nok,
-  deepEqual as is,
-  throws as err
 }
