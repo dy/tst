@@ -1,13 +1,13 @@
-import * as assert from './assert.js'
+let assert = require('./assert.js')
+
+const isNode = typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]'
 
 function Test(o) {
   Object.assign(this, o)
   this.assertion = []
 }
 Test.prototype.run = async function run () {
-  let from = this.startTime = performance.now()
   await this.fn(this)
-  this.endTime = performance.now() - from
 }
 Object.assign(Test.prototype, {
   skip: false,
@@ -51,13 +51,11 @@ let skipped = 0
 
 export let current = null // current test
 
-const isNode = typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]'
-
 export function log (ok, operator, msg, info = {}) {
   assertIndex += 1
   if (ok) {
     current.assertion.push({ idx: assertIndex, msg })
-    console.log(`%c ✔ ${assertIndex} — ${msg}`, 'color: #229944')
+    console.log(`${ isNode ? '' : '%c'}✔ ${assertIndex} — ${msg}`, 'color: #229944')
     passed += 1
   } else {
     current.assertion.push({ idx: assertIndex, msg, info, error: new Error() })
@@ -93,7 +91,7 @@ async function dequeue () {
     }
 
     if (test.skip) {
-      console.log(`%c# skip ${test.name}`, 'color: #ddd')
+      console.log(`${isNode ? '' : '%c'}# skip ${test.name}`, 'color: #ddd')
       skipped += 1
       return dequeue()
     }
