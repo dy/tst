@@ -77,11 +77,6 @@ export function throws (fn, expected, msg = 'should throw') {
 // alias
 export {
   notOk as nok,
-  equal as eq,
-  equal as is,
-  notEqual as neq,
-  notEqual as isnt,
-  notEqual as isNot,
-  deepEqual as deq,
+  deepEqual as is,
   throws as err
 }

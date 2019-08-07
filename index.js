@@ -55,7 +55,9 @@ export function log (ok, operator, msg, info = {}) {
   assertIndex += 1
   if (ok) {
     current.assertion.push({ idx: assertIndex, msg })
-    console.log(`${ isNode ? '' : '%c'}✔ ${assertIndex} — ${msg}`, 'color: #229944')
+    isNode ?
+    console.log(`✔ ${ assertIndex } — ${ msg }`) :
+    console.log(`%c✔ ${assertIndex} — ${msg}`, 'color: #229944')
     passed += 1
   } else {
     current.assertion.push({ idx: assertIndex, msg, info, error: new Error() })
@@ -91,7 +93,9 @@ async function dequeue () {
     }
 
     if (test.skip) {
-      console.log(`${isNode ? '' : '%c'}# skip ${test.name}`, 'color: #ddd')
+      isNode ?
+      console.log(`# skip ${test.name}`) :
+      console.log(`%c# skip ${test.name}`, 'color: #ddd')
       skipped += 1
       return dequeue()
     }
