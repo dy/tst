@@ -80,4 +80,3 @@ export function throws (fn, expected, msg = 'should throw') {
     }
   }
 }
-

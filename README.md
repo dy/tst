@@ -5,9 +5,8 @@
 * async
 * inspectable logs
 * correct stacktrace with sourcemaps
-* `deepEqual` <!-- almost, same -->
+* `is` assert <!-- almost, same -->
 * muted skipped
-* time measurement
 * colors
 
 ## Install
@@ -28,9 +27,9 @@ t('these tests will all pass', t => {
 	t.ok(true, 'this time with an optional message');
 	t.ok('not true, but truthy enough');
 
-	t.equal(1 + 1, 2);
-	t.equal(Math.max(1, 2, 3), 3);
-	t.deepEqual({}, {})
+	t.is(1 + 1, 2);
+	t.is(Math.max(1, 2, 3), 3);
+	t.is({}, {})
 
 	t.throws(() => {
 		throw new Error('oh no!');
@@ -40,8 +39,8 @@ t('these tests will all pass', t => {
 })
 
 t('these tests will not pass', t => {
-	t.equal(42, '42');
-	t.equal({}, {});
+	t.is(42, '42');
+	t.is({}, {});
 
 	t.fail('nok')
 })
@@ -55,3 +54,5 @@ t.skip('this test will not run', t => {
 
 * tape-modern
 * @goto-bus-stop/tape-modern
+
+<p align="right">HK</p>
