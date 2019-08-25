@@ -47,6 +47,13 @@ export function deepEqual (a, b, msg = 'should deep equal') {
   })
 }
 
+export function is(a, b, msg = 'should be the same') {
+  log(fastDeepEqual(a, b), 'is', msg, {
+    actual: a,
+    expected: b
+  })
+}
+
 export function throws (fn, expected, msg = 'should throw') {
   try {
     fn()
@@ -74,9 +81,3 @@ export function throws (fn, expected, msg = 'should throw') {
   }
 }
 
-// alias
-export {
-  notOk as nok,
-  deepEqual as is,
-  throws as err
-}
