@@ -76,7 +76,7 @@ export function throws (fn, expected, msg = 'should throw') {
         actual: err
       })
     } else {
-      throw new Error(`Second argument to t.throws must be an Error constructor, regex, or function`)
+      log(true, 'throws', msg)
     }
   }
 }
