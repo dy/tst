@@ -95,12 +95,12 @@ async function dequeue () {
     if (test.skip) {
       isNode ?
       console.log(`# skip ${test.name}`) :
-      console.log(`%c# skip ${test.name}`, 'color: #ddd')
+      console.log(`%c↪️ skip ${test.name}`, 'color: #ddd')
       skipped += 1
       return dequeue()
     }
     if (test.todo) {
-      console.log(`# todo ${test.name}`)
+      console.log(`🚧 ${test.name}`)
       return dequeue()
     }
 
