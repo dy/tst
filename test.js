@@ -1,9 +1,9 @@
-import t from '.'
+let t = require('./index.js')
 
 t('x', t => {
-  t.eq(1, 2)
-  t.neq(1, 1)
-  t.deq([1], [1,2])
+  t.equal(1, 1)
+  t.notEqual(1, 2)
+  t.deepEqual([1], [1])
   t.pass('passed')
 })
 
@@ -12,19 +12,19 @@ t('these tests will all pass', t => {
   t.ok(true, 'this time with an optional message');
   t.ok('not true, but truthy enough');
 
-  t.eq(1 + 1, 2);
-  t.eq(Math.max(1, 2, 3), 3);
+  t.equal(1 + 1, 2);
+  t.equal(Math.max(1, 2, 3), 3);
 
-  t.err(() => {
+  t.throws(() => {
     throw new Error('oh no!');
   }, /oh no!/);
 
   t.pass('ok')
 })
 
-t('these tests will not pass', t => {
-  t.eq(42, '42');
-  t.eq({}, {});
+t.skip('these tests will not pass', t => {
+  t.equal(42, '42');
+  t.equal({}, {});
 
   t.fail('nok')
 })

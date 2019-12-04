@@ -1,3 +1,6 @@
+module.exports = test
+module.exports.log = log
+
 let assert = require('./assert.js')
 
 const isNode = typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]'
@@ -13,10 +16,11 @@ Object.assign(Test.prototype, {
   skip: false,
   todo: false,
   only: false,
-  fn: null
+  fn: null,
+  end: () => {}
 }, assert)
 
-export default function test (name, fn) {
+function test (name, fn) {
   if (!fn) return test.todo(name)
   let t = new Test({ name, fn })
   tests.push(t)
@@ -49,9 +53,9 @@ let passed = 0
 let failed = 0
 let skipped = 0
 
-export let current = null // current test
+let current = null // current test
 
-export function log (ok, operator, msg, info = {}) {
+function log (ok, operator, msg, info = {}) {
   assertIndex += 1
   if (ok) {
     current.assertion.push({ idx: assertIndex, msg })
@@ -131,6 +135,6 @@ async function dequeue () {
 }
 
 
-export const done = new Promise((resolve) => {
+let done = new Promise((resolve) => {
   ondone = resolve
 })

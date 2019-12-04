@@ -1,6 +1,6 @@
 {
   "name": "tst",
-  "description": "Testing tool",
+  "description": "Tape-compatible test runner",
   "version": "3.4.1",
   "repository": "dy/tst",
   "author": "Dmitry Yv",

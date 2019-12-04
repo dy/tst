@@ -1,82 +1,82 @@
-import fastDeepEqual from 'fast-deep-equal'
-import { log } from './index.js'
+let fastDeepEqual = require('fast-deep-equal')
+let test = require('./index.js')
 
 // TODO: same (members)
 // TODO: almost
 
-export function fail (msg) {
-  log(false, 'fail', msg)
+module.exports.fail = function fail (msg) {
+  test.log(false, 'fail', msg)
 }
 
-export function pass (msg) {
-  log(true, 'pass', msg)
+module.exports.pass = function pass (msg) {
+  test.log(true, 'pass', msg)
 }
 
-export function ok (value, msg = 'should be truthy') {
-  log(Boolean(value), 'ok', msg, {
+module.exports.ok = function ok (value, msg = 'should be truthy') {
+  test.log(Boolean(value), 'ok', msg, {
     actual: value,
     expected: true
   })
 }
 
-export function notOk (value, msg = 'should be falsy') {
-  log(!value, 'notOk', msg, {
+module.exports.notOk = function notOk (value, msg = 'should be falsy') {
+  test.log(!value, 'notOk', msg, {
     actual: value,
     expected: false
   })
 }
 
-export function equal (a, b, msg = 'should be equal') {
-  log(a === b, 'equal', msg, {
+module.exports.equal = function equal (a, b, msg = 'should be equal') {
+  test.log(a === b, 'equal', msg, {
     actual: a,
     expected: b
   })
 }
 
-export function notEqual (a, b, msg = 'should not be equal') {
-  log(a !== b, 'notEqual', msg, {
+module.exports.notEqual = function notEqual (a, b, msg = 'should not be equal') {
+  test.log(a !== b, 'notEqual', msg, {
     actual: a,
     expected: b
   })
 }
 
-export function deepEqual (a, b, msg = 'should deep equal') {
-  log(fastDeepEqual(a, b), 'deepEqual', msg, {
+module.exports.deepEqual = function deepEqual (a, b, msg = 'should deep equal') {
+  test.log(fastDeepEqual(a, b), 'deepEqual', msg, {
     actual: a,
     expected: b
   })
 }
 
-export function is(a, b, msg = 'should be the same') {
-  log(fastDeepEqual(a, b), 'is', msg, {
+module.exports.is = function is(a, b, msg = 'should be the same') {
+  test.log(fastDeepEqual(a, b), 'is', msg, {
     actual: a,
     expected: b
   })
 }
 
-export function throws (fn, expected, msg = 'should throw') {
+module.exports.throws = function throws (fn, expected, msg = 'should throw') {
   try {
     fn()
-    log(false, 'throws', msg, {
+    test.log(false, 'throws', msg, {
       expected
     })
   } catch (err) {
     if (expected instanceof Error) {
-      log(err.name === expected.name, 'throws', msg, {
+      test.log(err.name === expected.name, 'throws', msg, {
         actual: err.name,
         expected: expected.name
       })
     } else if (expected instanceof RegExp) {
-      log(expected.test(err.toString()), 'throws', msg, {
+      test.log(expected.test(err.toString()), 'throws', msg, {
         actual: err.toString(),
         expected: expected
       })
     } else if (typeof expected === 'function') {
-      log(expected(err), 'throws', msg, {
+      test.log(expected(err), 'throws', msg, {
         actual: err
       })
     } else {
-      log(true, 'throws', msg)
+      test.log(true, 'throws', msg)
     }
   }
 }
