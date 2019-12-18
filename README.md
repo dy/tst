@@ -1,8 +1,11 @@
 # tst
 
 * tape-compatible
-* no `t.end`, `t.plan`
 * async
+* `t.todo`, `t.fixme` - broken/unfinished
+* `t.node`, `t.browser` - target env tests
+* `t.demo` - demo-run (can fail)
+* `t.silent` - no
 * inspectable logs
 * correct stacktrace with sourcemaps
 * `is` assert <!-- almost, same -->

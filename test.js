@@ -1,13 +1,13 @@
-let t = require('./index.js')
+import t from './index.js'
 
-t('x', t => {
+t('assertions', t => {
   t.equal(1, 1)
   t.notEqual(1, 2)
   t.deepEqual([1], [1])
   t.pass('passed')
 })
 
-t('these tests will all pass', t => {
+t('passes', t => {
   t.ok(true);
   t.ok(true, 'this time with an optional message');
   t.ok('not true, but truthy enough');
@@ -22,13 +22,44 @@ t('these tests will all pass', t => {
   t.pass('ok')
 })
 
-t.skip('these tests will not pass', t => {
+t('fails', t => {
   t.equal(42, '42');
   t.equal({}, {});
+  t.deepEqual([1,2,3], [4,5,6]);
 
   t.fail('nok')
 })
 
-t.skip('this test will not run', t => {
+t.node('node-only', t => {
+  t.is(1, 1)
+  t.ok(true)
+})
+
+t.browser('browser-only', t => {
+  t.is(1, 1)
+  t.ok(true)
+})
+
+t.demo('demo-run', t => {
+  t.is(1, 1)
+  t.notOk(true)
+})
+
+t.skip('this is skipped', t => {
+  t.pass('ok')
+})
+
+t.todo('to be done', t => {
+  t.is(1, 1)
+  t.notOk(true)
+})
+
+t.fixme('to be fixed', t => {
+  t.is(1, 1)
+  t.notOk(true)
+})
+
+t('async', async t => {
+  await new Promise(ok => setTimeout(ok, 500))
   t.pass('ok')
 })

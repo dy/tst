@@ -8,12 +8,15 @@
   "module": "index.js",
   "license": "MIT",
   "scripts": {
-    "test": "node -r esm test.js"
+    "test": "node -r esm test.js",
+    "start": "es-dev-server --node-resolve --dedupe --watch"
   },
   "devDependencies": {
+    "es-dev-server": "^1.32.0",
     "esm": "^3.2.25"
   },
   "dependencies": {
-    "fast-deep-equal": "^2.0.1"
+    "fast-equals": "^2.0.0",
+    "wait-please": "^2.0.1"
   }
 }
