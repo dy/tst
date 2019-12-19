@@ -24,6 +24,7 @@ class Test extends Promise {
     this.only = false
     this.demo = false
     this.fn = null
+    this.tag = ''
 
     Object.assign(this, o)
     tests.push(this)
@@ -72,25 +73,25 @@ export default function test (name, fn) {
   return new Test({ name, fn })
 }
 test.todo = function (name, fn) {
-  return new Test({ name: name + ' [todo]', fn, todo: true })
+  return new Test({ name, fn, todo: true, tag: 'todo' })
 }
 test.fixme = test.fix = function (name, fn) {
-  return new Test({ name: name + ' [fixme]', fn, todo: true })
+  return new Test({ name, fn, todo: true, tag: 'fixme' })
 }
 test.skip = function (name, fn) {
-  return new Test({ name: name + ' [skip]', fn, skip: true })
+  return new Test({ name, fn, skip: true, tag: 'skip' })
 }
 test.only = function (name, fn) {
-  return new Test({ name: name + ' [only]', fn, only: true })
+  return new Test({ name, fn, only: true, tag: 'only' })
 }
 test.node = function (name, fn) {
-  return new Test({ name: name + ' [node]', fn, skip: !isNode })
+  return new Test({ name: name, fn, skip: !isNode, tag: 'node' })
 }
 test.browser = function (name, fn) {
-  return new Test({ name: name + ' [browser]', fn, skip: isNode })
+  return new Test({ name: name, fn, skip: isNode, tag: 'browser' })
 }
 test.demo = function (name, fn) {
-  return new Test({ name: name + ' [demo]', fn, demo: true })
+  return new Test({ name, fn, demo: true, tag: 'demo' })
 }
 
 function start() {
@@ -116,20 +117,21 @@ async function dequeue () {
 
     if (test.skip) {
       isNode ?
-        console.log(`× skip ${test.name}`) :
-      console.log(`%c↪️ ${test.name}`, 'color: #ddd')
+        console.log(`≫ skip ${test.name}` + (test.tag ? ` [${test.tag}]` : '')) :
+        console.log(`%c${test.name} ≫` + (test.tag ? ` [${test.tag}]` : ''), 'color: #dadada')
       skipped += 1
       return dequeue()
     }
     if (test.todo) {
-      console.log(`🚧 ${test.name}`)
+      isNode ? console.log(`≫ ${test.name}` + (test.tag ? ` [${test.tag}]` : '')) :
+        console.log(`%c${test.name} 🚧` + (test.tag ? ` [${test.tag}]` : ''), 'color: #dadada')
       return dequeue()
     }
 
     try {
       current = test
-      isNode ? console.log(`▶ ${test.name}`) :
-      console.group(test.name)
+      isNode ? console.log(`▶ ${test.name}` + (test.tag ? ` [${test.tag}]` : '')) :
+        console.group(test.name + (test.tag ? ` [${test.tag}]` : ''))
       await test.run()
       console.groupEnd()
     } catch (err) {

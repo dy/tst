@@ -1,4 +1,5 @@
-import { deepEqual as fastDeepEqual } from 'fast-equals'
+import deq from 'dequal'
+
 // TODO: same (members)
 // TODO: almost
 
@@ -39,14 +40,14 @@ export function notEqual (a, b, msg = 'should not be equal') {
 }
 
 export function deepEqual (a, b, msg = 'should deep equal') {
-  this.log(fastDeepEqual(a, b), 'deepEqual', msg, {
+  this.log(deq(a, b), 'deepEqual', msg, {
     actual: a,
     expected: b
   })
 }
 
 export function is(a, b, msg = 'should be the same') {
-  this.log(fastDeepEqual(a, b), 'is', msg, {
+  this.log(deq(a, b), 'is', msg, {
     actual: a,
     expected: b
   })

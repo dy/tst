@@ -6,17 +6,18 @@
   "author": "Dmitry Yv",
   "main": "index.js",
   "module": "index.js",
+  "type": "module",
   "license": "MIT",
   "scripts": {
-    "test": "node -r esm test.js",
-    "start": "es-dev-server --node-resolve --dedupe --watch"
+    "test": "node test.js",
+    "start": "es-dev-server --node-resolve --dedupe"
   },
   "devDependencies": {
     "es-dev-server": "^1.32.0",
     "esm": "^3.2.25"
   },
   "dependencies": {
-    "fast-equals": "^2.0.0",
+    "dequal": "^1.0.0",
     "wait-please": "^2.0.1"
   }
 }
