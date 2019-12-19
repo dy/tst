@@ -10,7 +10,7 @@ let current = null // current test
 let ondone, only = 0, running = false
 
 class Test extends Promise {
-  constructor (o) {
+  constructor(o) {
     let resolve, reject
     super((ok, nok) => {
       resolve = ok
@@ -31,15 +31,12 @@ class Test extends Promise {
     start()
   }
   async run() {
-    let result
-    try {
-      this.resolve(result = await this.fn(this))
+    let result = this.fn(this)
+    if (result && result.then) {
+      return result.then(this.resolve, this.reject)
     }
-    catch (e) {
-      this.reject()
-    }
-    finally {
-      this.end()
+    else {
+      this.resolve(result)
     }
     return result
   }
@@ -68,7 +65,7 @@ class Test extends Promise {
 }
 Object.assign(Test.prototype, assert)
 
-export default function test (name, fn) {
+export default function test(name, fn) {
   if (!fn) return test.todo(name)
   return new Test({ name, fn })
 }
@@ -105,7 +102,7 @@ function start() {
   }
 }
 
-async function dequeue () {
+async function dequeue() {
   if (tests.length) {
     const test = tests.shift()
 
@@ -133,11 +130,12 @@ async function dequeue () {
       isNode ? console.log(`▶ ${test.name}` + (test.tag ? ` [${test.tag}]` : '')) :
         console.group(test.name + (test.tag ? ` [${test.tag}]` : ''))
       await test.run()
-      console.groupEnd()
     } catch (err) {
       failed += 1
       // FIXME: this syntax is due to chrome not always able to grasp the stack trace from source maps
       console.error(err.stack)
+    } finally {
+      if (!isNode) console.groupEnd()
     }
 
     return dequeue()
@@ -147,7 +145,7 @@ async function dequeue () {
   console.log(`---`)
   const total = passed + failed + skipped
   if (only) console.log(`# only ${only} cases`)
-  console.log(`# total ${ total }`)
+  console.log(`# total ${total}`)
   if (passed) console.log(`# pass ${passed}`)
   if (failed) console.log(`# fail ${failed}`)
   if (skipped) console.log(`# skip ${skipped}`)
