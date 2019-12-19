@@ -118,13 +118,13 @@ async function dequeue () {
     if (test.skip) {
       isNode ?
         console.log(`≫ skip ${test.name}` + (test.tag ? ` [${test.tag}]` : '')) :
-        console.log(`%c${test.name} ≫` + (test.tag ? ` [${test.tag}]` : ''), 'color: #dadada')
+        console.log(`%c${test.name} ≫`, 'color: #dadada')
       skipped += 1
       return dequeue()
     }
     if (test.todo) {
       isNode ? console.log(`≫ ${test.name}` + (test.tag ? ` [${test.tag}]` : '')) :
-        console.log(`%c${test.name} 🚧` + (test.tag ? ` [${test.tag}]` : ''), 'color: #dadada')
+        console.log(`%c${test.name} 🚧`, 'color: #dadada')
       return dequeue()
     }
 
