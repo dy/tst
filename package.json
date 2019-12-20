@@ -9,7 +9,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "test": "node test.js",
+    "test": "node -r esm test.js",
     "start": "es-dev-server --node-resolve --dedupe"
   },
   "devDependencies": {
