@@ -31,7 +31,7 @@ class Test extends Promise {
     start()
   }
   run() {
-    return this.fn(tihs)
+    return this.fn(this)
   }
   end() {
     this.done = true
@@ -122,13 +122,14 @@ async function dequeue() {
       current = test
       isNode ? console.log(`▶ ${test.name}` + (test.tag ? ` [${test.tag}]` : '')) :
         console.group(test.name + (test.tag ? ` [${test.tag}]` : ''))
-      // test.catch(e => {console.log(123)})
-      await test.run()
+      let result = await test.run()
+      test.resolve(result)
     } catch (err) {
-      // test.reject(err)
       failed += 1
       // FIXME: this syntax is due to chrome not always able to grasp the stack trace from source maps
       console.error(err.stack)
+      // FIXME: find out how to reject promise w/o error
+      // test.reject(err)
     } finally {
       if (!isNode) console.groupEnd()
     }
