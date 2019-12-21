@@ -53,15 +53,15 @@ export function createTest(test) {
     queue = queue.then(() => {
       skipped++
       isNode ?
-        console.log(`≫ ${test.index}. ${test.name}` + (test.tag ? ` | ${test.tag}` : '')) :
-        console.log(`%c${test.index}. ${test.name} ≫`, 'color: #dadada')
+        console.log(`≫  ${test.name}` + (test.tag ? ` | ${test.tag}` : '')) :
+        console.log(`%c ${test.name} ≫`, 'color: #dadada')
     })
   }
 
   else if (test.todo) {
     queue = queue.then(() => {
-      isNode ? console.log(`≫ ${test.index}. ${test.name}` + (test.tag ? ` | ${test.tag}` : '')) :
-        console.log(`%c${test.index}. ${test.name} 🚧`, 'color: #dadada')
+      isNode ? console.log(`≫  ${test.name}` + (test.tag ? ` | ${test.tag}` : '')) :
+        console.log(`%c ${test.name} 🚧`, 'color: #dadada')
     })
   }
 
@@ -72,19 +72,20 @@ export function createTest(test) {
       todo: false,
       only: false,
       demo: false,
+      end: () => { },
       log: (ok, operator, msg, info = {}) => {
         assertIndex += 1
-        if(ok) {
+        if (ok) {
           isNode ?
-            console.log(`✔ ${test.index}.${assertIndex} — ${msg}`) :
-            console.log(`%c✔ ${test.index}.${assertIndex} — ${msg}`, 'color: #229944')
+            console.log(`✔ ${assertIndex} — ${msg}`) :
+            console.log(`%c✔ ${assertIndex} — ${msg}`, 'color: #229944')
           if (!test.demo) {
             test.assertion.push({ idx: assertIndex, msg })
             passed += 1
           }
         } else {
           console.assert(false, `${assertIndex} — ${msg}`, info, (new Error()))
-          if(!test.demo) {
+          if (!test.demo) {
             test.assertion.push({ idx: assertIndex, msg, info, error: new Error() })
             failed += 1
           }
@@ -96,7 +97,7 @@ export function createTest(test) {
       clearTimeout(summaryTimeout)
       if (only && !test.only) { skipped++; return }
 
-      isNode ? console.log(`▶ ${test.index}. ${test.name}` + (test.tag ? ` | ${test.tag}` : '')) :
+      isNode ? console.log(`▶  ${test.name}` + (test.tag ? ` | ${test.tag}` : '')) :
         console.group(test.index + '. ' + test.name + (test.tag ? ` | ${test.tag}` : ''))
 
       let result
