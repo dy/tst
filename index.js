@@ -39,7 +39,7 @@ test.demo = function (name, fn) {
   return createTest({ name, fn, demo: true, tag: 'demo' })
 }
 test.require = function (name, fn) {
-  return createTest({ name, fn, skip: typeof 'require' !== 'undefined', tag: 'require' })
+  return createTest({ name, fn, skip: hasImport, tag: 'require' })
 }
 test.import = function (name, fn) {
   return createTest({ name, fn, skip: !hasImport, tag: 'import' })
