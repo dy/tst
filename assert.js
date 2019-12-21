@@ -26,7 +26,7 @@ export function notOk (value, msg = 'should be falsy') {
 }
 
 export function equal (a, b, msg = 'should be equal') {
-  this.log(a === b, 'equal', msg, {
+  this.log(Object.is(a, b), 'equal', msg, {
     actual: a,
     expected: b
   })
@@ -47,7 +47,7 @@ export function deepEqual (a, b, msg = 'should deep equal') {
 }
 
 export function is(a, b, msg = 'should be the same') {
-  this.log(deq(a, b), 'is', msg, {
+  this.log(isPrimitive(a) || isPrimitive(b) ? Object.is(a, b) : deq(a, b), 'is', msg, {
     actual: a,
     expected: b
   })
@@ -78,4 +78,11 @@ export function throws (fn, expected, msg = 'should throw') {
       this.log(true, 'throws', msg)
     }
   }
+}
+
+function isPrimitive(val) {
+  if (typeof val === 'object') {
+    return val === null;
+  }
+  return typeof val !== 'function';
 }

@@ -30,6 +30,12 @@ t('fails', t => {
   t.fail('nok')
 })
 
+t('async fail', async t => {
+  await new Promise(ok => setTimeout(ok))
+  throw Error('xxx')
+})
+
+
 t.node('node-only', t => {
   t.is(1, 1)
   t.ok(true)
@@ -38,6 +44,11 @@ t.node('node-only', t => {
 t.browser('browser-only', t => {
   t.is(1, 1)
   t.ok(true)
+})
+
+t('async ok', async t => {
+  await new Promise(ok => setTimeout(ok, 500))
+  t.pass('ok')
 })
 
 t.demo('demo-run', t => {
@@ -59,7 +70,7 @@ t.fixme('to be fixed', t => {
   t.notOk(true)
 })
 
-t('async', async t => {
+t('async end', async t => {
   await new Promise(ok => setTimeout(ok, 500))
   t.pass('ok')
 })

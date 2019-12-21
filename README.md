@@ -3,13 +3,13 @@
 * tape-compatible
 * async functions
 * `t.todo`, `t.fixme` - broken/unfinished
-* `t.node`, `t.browser` - target env tests
+* `t.node`, `t.browser`, `t.require`, `t.import` - target env tests
 * `t.demo` - demo-run (can fail)
 * inspectable errors
 * correct stacktrace with sourcemaps
-* `is` assert <!-- almost, same -->
+* `t.is` assert <!-- almost, same -->
 * muted skipped
-* colors
+* better colors
 
 ## Install
 
