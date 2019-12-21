@@ -27,6 +27,7 @@ test.skip = function (name, fn) {
   return createTest({ name, fn, skip: true, tag: 'skip' })
 }
 test.only = function (name, fn) {
+  only++
   return createTest({ name, fn, only: true, tag: 'only' })
 }
 test.node = function (name, fn) {
