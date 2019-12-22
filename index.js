@@ -53,6 +53,7 @@ export function createTest(test) {
   if (test.skip) {
     queue = queue.then(() => {
       skipped++
+      if (only && !test.only) { return }
       isNode ?
         console.log(`≫ ${test.name}` + (test.tag ? ` (${test.tag})` : '')) :
         console.log(`%c${test.name} ≫` + (test.tag ? ` (${test.tag})` : ''), 'color: #dadada')
@@ -61,6 +62,7 @@ export function createTest(test) {
 
   else if (test.todo) {
     queue = queue.then(() => {
+      if (only && !test.only) { skipped++; return }
       isNode ? console.log(`≫ ${test.name}` + (test.tag ? ` (${test.tag})` : '')) :
         console.log(`%c${test.name} 🚧` + (test.tag ? ` (${test.tag})` : ''), 'color: #dadada')
     })
