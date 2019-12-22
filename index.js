@@ -54,15 +54,15 @@ export function createTest(test) {
     queue = queue.then(() => {
       skipped++
       isNode ?
-        console.log(`≫  ${test.name}` + (test.tag ? ` | ${test.tag}` : '')) :
-        console.log(`%c ${test.name} ≫`, 'color: #dadada')
+        console.log(`≫ ${test.name}` + (test.tag ? ` (${test.tag})` : '')) :
+        console.log(`%c${test.name} ≫` + (test.tag ? ` (${test.tag})` : ''), 'color: #dadada')
     })
   }
 
   else if (test.todo) {
     queue = queue.then(() => {
-      isNode ? console.log(`≫  ${test.name}` + (test.tag ? ` | ${test.tag}` : '')) :
-        console.log(`%c ${test.name} 🚧`, 'color: #dadada')
+      isNode ? console.log(`≫ ${test.name}` + (test.tag ? ` (${test.tag})` : '')) :
+        console.log(`%c${test.name} 🚧` + (test.tag ? ` (${test.tag})` : ''), 'color: #dadada')
     })
   }
 
@@ -98,8 +98,8 @@ export function createTest(test) {
       if (only && !test.only) { skipped++; return }
       clearTimeout(summaryTimeout)
 
-      isNode ? console.log(`▶  ${test.name}` + (test.tag ? ` | ${test.tag}` : '')) :
-        console.group(test.index + '. ' + test.name + (test.tag ? ` | ${test.tag}` : ''))
+      isNode ? console.log(`▶ ${test.name}` + (test.tag ? ` (${test.tag})` : '')) :
+        console.group(test.name + (test.tag ? ` (${test.tag})` : ''))
 
       let result
 
