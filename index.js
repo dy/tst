@@ -2,6 +2,7 @@ import * as assert from './assert.js'
 
 const isNode = typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]'
 const hasImport = typeof require === 'undefined'
+const GREEN = '\u001b[32m', RED = '\u001b[31m', YELLOW = '\u001b[33m', RESET = '\u001b[0m', CYAN = '\u001b[36m'
 
 let summaryTimeout
 let assertIndex = 0
@@ -55,7 +56,7 @@ export function createTest(test) {
       skipped++
       if (only && !test.only) { return }
       isNode ?
-        console.log(`≫ ${test.name}` + (test.tag ? ` (${test.tag})` : '')) :
+        console.log(`${CYAN}≫ ${test.name}${test.tag ? ` (${test.tag})` : ''}${RESET}`) :
         console.log(`%c${test.name} ≫` + (test.tag ? ` (${test.tag})` : ''), 'color: #dadada')
     })
   }
@@ -63,7 +64,7 @@ export function createTest(test) {
   else if (test.todo) {
     queue = queue.then(() => {
       if (only && !test.only) { skipped++; return }
-      isNode ? console.log(`≫ ${test.name}` + (test.tag ? ` (${test.tag})` : '')) :
+      isNode ? console.log(`${CYAN}≫ ${test.name}${test.tag ? ` (${test.tag})` : ''}${RESET}`) :
         console.log(`%c${test.name} 🚧` + (test.tag ? ` (${test.tag})` : ''), 'color: #dadada')
     })
   }
@@ -80,14 +81,15 @@ export function createTest(test) {
         assertIndex += 1
         if (ok) {
           isNode ?
-            console.log(`✔ ${assertIndex} — ${msg}`) :
+            console.log(`${GREEN}✔ ${RESET}${assertIndex} — ${msg}`) :
             console.log(`%c✔ ${assertIndex} — ${msg}`, 'color: #229944')
           if (!test.demo) {
             test.assertion.push({ idx: assertIndex, msg })
             passed += 1
           }
         } else {
-          console.assert(false, `${assertIndex} — ${msg}`, info, (new Error()))
+          isNode ? (console.log(`${RED}✖ ${RESET}${assertIndex} — ${msg}`), console.log(info), console.error(new Error)) :
+            console.assert(false, `${assertIndex} — ${msg}`, info, new Error)
           if (!test.demo) {
             test.assertion.push({ idx: assertIndex, msg, info, error: new Error() })
             failed += 1
