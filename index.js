@@ -95,8 +95,8 @@ export function createTest(test) {
     }, test, assert)
 
     queue = queue.then(async () => {
-      clearTimeout(summaryTimeout)
       if (only && !test.only) { skipped++; return }
+      clearTimeout(summaryTimeout)
 
       isNode ? console.log(`▶  ${test.name}` + (test.tag ? ` | ${test.tag}` : '')) :
         console.group(test.index + '. ' + test.name + (test.tag ? ` | ${test.tag}` : ''))
