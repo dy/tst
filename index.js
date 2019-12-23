@@ -82,15 +82,15 @@ export function createTest(test) {
         assertIndex += 1
         if (ok) {
           isNode ?
-            console.log(`${GREEN}✔ ${RESET}${assertIndex} — ${msg}`) :
+            console.log(`${GREEN}✔ ${assertIndex} — ${msg}${RESET}`) :
             console.log(`%c✔ ${assertIndex} — ${msg}`, 'color: #229944')
           if (!test.demo) {
             test.assertion.push({ idx: assertIndex, msg })
             passed += 1
           }
         } else {
-          isNode ? (console.log(`${RED}✖ ${RESET}${assertIndex} — ${msg}`), console.log(info), console.error(new Error)) :
-            console.assert(false, `${assertIndex} — ${msg}`, info, new Error)
+          isNode ? (console.log(`${RED}✖ ${assertIndex} — ${msg}`), console.log(info), console.error(new Error)) :
+            console.assert(false, `${assertIndex} — ${msg}`, info, new Error, `${RESET}`)
           if (!test.demo) {
             test.assertion.push({ idx: assertIndex, msg, info, error: new Error() })
             failed += 1
@@ -103,7 +103,7 @@ export function createTest(test) {
       if (only && !test.only) { skipped++; return }
       clearTimeout(summaryTimeout)
 
-      isNode ? console.log(`▶ ${test.name}` + (test.tag ? ` (${test.tag})` : '')) :
+      isNode ? console.log(`▶ ${test.name}${test.tag ? ` (${test.tag})` : ''}`) :
         console.group(test.name + (test.tag ? ` (${test.tag})` : ''))
 
       let result
