@@ -4,7 +4,6 @@ const isNode = typeof process !== 'undefined' && Object.prototype.toString.call(
 const hasImport = typeof require === 'undefined'
 const GREEN = '\u001b[32m', RED = '\u001b[31m', YELLOW = '\u001b[33m', RESET = '\u001b[0m', CYAN = '\u001b[36m'
 
-let summaryTimeout
 let assertIndex = 0
 let index = 1
 let passed = 0
@@ -13,7 +12,8 @@ let skipped = 0
 let only = 0
 
 // some bundlers incur async tick (like parcel import().then) - safer to do macrotask
-let queue = new Promise(ok => setTimeout(ok))
+let start
+let queue = new Promise(resolve => start = resolve)
 
 export default function test(name, fn) {
   if (!fn) return test.todo(name)
@@ -101,7 +101,6 @@ export function createTest(test) {
 
     queue = queue.then(async () => {
       if (only && !test.only) { skipped++; return }
-      clearTimeout(summaryTimeout)
 
       isNode ? console.log(`▶ ${test.name}${test.tag ? ` (${test.tag})` : ''}`) :
         console.group(test.name + (test.tag ? ` (${test.tag})` : ''))
@@ -118,7 +117,6 @@ export function createTest(test) {
       }
       finally {
         if (!isNode) console.groupEnd()
-        summaryTimeout = setTimeout(showSummary)
       }
 
       return result
@@ -126,7 +124,12 @@ export function createTest(test) {
   }
 }
 
-function showSummary() {
+// requestIdleCallback awaits all ongoing requests, like `import()`
+(typeof setImmediate !== 'undefined' ? setImmediate : requestIdleCallback)(async () => {
+  start()
+
+  await queue
+
   // summarise
   console.log(`---`)
   const total = passed + failed + skipped
@@ -137,4 +140,4 @@ function showSummary() {
   if (skipped) console.log(`# skip ${skipped}`)
 
   if (isNode) process.exit(failed ? 1 : 0)
-}
+})
