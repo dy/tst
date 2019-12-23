@@ -89,8 +89,8 @@ export function createTest(test) {
             passed += 1
           }
         } else {
-          isNode ? (console.log(`${RED}✖ ${assertIndex} — ${msg}`), console.log(info), console.error(new Error)) :
-            console.assert(false, `${assertIndex} — ${msg}`, info, new Error, `${RESET}`)
+          isNode ? (console.log(`${RED}✖ ${assertIndex} — ${msg}`), console.log(info), console.error(new Error, RESET)) :
+            console.assert(false, `${assertIndex} — ${msg}${RESET}`, info, new Error)
           if (!test.demo) {
             test.assertion.push({ idx: assertIndex, msg, info, error: new Error() })
             failed += 1
