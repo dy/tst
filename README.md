@@ -1,15 +1,18 @@
 # tst
 
 * tape-compatible
-* async functions
-* `t.todo`, `t.fixme` - broken/unfinished
-* `t.node`, `t.browser`, `t.require`, `t.import` - target env tests
+* async functions support
+* `t.todo`, `t.fixme` for broken / unfinished tests
+* `t.node`, `t.browser`, `t.require`, `t.import` - environment conditional tests
 * `t.demo` - demo-run (can fail)
 * inspectable errors
 * correct stacktrace with sourcemaps
-* `t.is` assert <!-- almost, same -->
+* `t.is` for generic comparison <!-- almost, same -->
 * muted skipped
 * better colors
+* multiple `only` tests
+* run by `idle`
+* ES export
 
 ## Install
 
