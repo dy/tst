@@ -5,6 +5,7 @@
 * `t.todo`, `t.fixme` for broken / unfinished tests
 * `t.node`, `t.browser`, `t.require`, `t.import` - environment conditional tests
 * `t.demo` - demo-run (can fail)
+* `console.group` in browser
 * inspectable errors
 * correct stacktrace with sourcemaps
 * `t.is` for generic comparison <!-- almost, same -->
