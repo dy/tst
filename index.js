@@ -12,7 +12,8 @@ let failed = 0
 let skipped = 0
 let only = 0
 
-let queue = Promise.resolve()
+// some bundlers incur async tick (like parcel import().then) - safer to do macrotask
+let queue = new Promise(ok => setTimeout(ok))
 
 export default function test(name, fn) {
   if (!fn) return test.todo(name)
