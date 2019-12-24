@@ -11,7 +11,6 @@ let failed = 0
 let skipped = 0
 let only = 0
 
-// some bundlers incur async tick[s], like parcel import()
 let start
 let queue = new Promise(resolve => start = resolve)
 
@@ -55,7 +54,7 @@ export function createTest(test) {
   if (test.skip) {
     queue = queue.then(() => {
       skipped++
-      if (only && !test.only) { return }
+      if (only && !test.only) return
       isNode ?
         console.log(`${CYAN}≫ ${test.name}${test.tag ? ` (${test.tag})` : ''}${RESET}`) :
         console.log(`%c${test.name} ≫` + (test.tag ? ` (${test.tag})` : ''), 'color: #dadada')
@@ -130,7 +129,7 @@ export function createTest(test) {
 
   await queue
 
-  // summarise
+  // summary
   console.log(`---`)
   const total = passed + failed + skipped
   if (only) console.log(`# only ${only} cases`)
