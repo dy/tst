@@ -58,7 +58,7 @@ t.skip('this test will not run', t => {
 
 ### Neighbor art
 
-* tape-modern
-* @goto-bus-stop/tape-modern
+* [tape-modern](https://ghub.io/tape-modern)
+* [@goto-bus-stop/tape-modern](https://github.com/goto-bus-stop/tape-modern#readme)
 
 <p align="right">HK</p>
