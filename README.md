@@ -46,7 +46,7 @@ t('these tests will all pass', t => {
 
 t('these tests will not pass', t => {
 	t.is(42, '42');
-	t.is({}, {});
+	t.is({}, {x:1});
 
 	t.fail('nok')
 })
