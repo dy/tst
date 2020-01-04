@@ -41,22 +41,22 @@ export function notEqual(a, b, msg = 'should not be equal') {
 
 export function deepEqual(a, b, msg = 'should deep equal') {
   this.log(deq(a, b), 'deepEqual', msg, {
-    actual: a,
-    expected: b
+    actual: isPrimitive(a) ? a : a.slice ? a.slice() : Object.assign({}, a),
+    expected: isPrimitive(b) ? b : b.slice ? b.slice() : Object.assign({}, b)
   })
 }
 
 export function notDeepEqual(a, b, msg = 'should deep equal') {
   this.log(!deq(a, b), 'notDeepEqual', msg, {
-    actual: a,
-    expected: b
+    actual: isPrimitive(a) ? a : a.slice ? a.slice() : Object.assign({}, a),
+    expected: isPrimitive(b) ? b : b.slice ? b.slice() : Object.assign({}, b)
   })
 }
 
 export function is(a, b, msg = 'should be the same') {
   this.log(isPrimitive(a) || isPrimitive(b) ? Object.is(a, b) : deq(a, b), 'is', msg, {
-    actual: a,
-    expected: b
+    actual: isPrimitive(a) ? a : a.slice ? a.slice() : Object.assign({}, a),
+    expected: isPrimitive(b) ? b : b.slice ? b.slice() : Object.assign({}, b)
   })
 }
 
