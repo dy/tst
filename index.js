@@ -88,7 +88,12 @@ export function createTest(test) {
             passed += 1
           }
         } else {
-          isNode ? (console.log(`${RED}✖ ${assertIndex} — ${msg}`), console.log(info), console.error(new Error, RESET)) :
+          isNode ? (
+            console.log(`${RED}✖ ${assertIndex} — ${msg}`),
+            console.info(`actual:${RESET}`, typeof info.actual === 'string' ? JSON.stringify(info.actual) : info.actual, RED),
+            console.info(`expected:${RESET}`, typeof info.expected === 'string' ? JSON.stringify(info.expected) : info.expected, RED),
+            console.error(new Error, RESET)
+          ) :
             console.assert(false, `${assertIndex} — ${msg}${RESET}`, info, new Error)
           if (!test.demo) {
             test.assertion.push({ idx: assertIndex, msg, info, error: new Error() })
