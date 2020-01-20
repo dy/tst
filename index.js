@@ -128,8 +128,11 @@ export function createTest(test) {
   }
 }
 
-// requestIdleCallback awaits all ongoing requests, like `import()`
-(typeof setImmediate !== 'undefined' ? setImmediate : requestIdleCallback)(async () => {
+// tests called via import() cause network delay, hopefully 100ms is ok
+Promise.all([
+  new Promise(resolve => (typeof setImmediate !== 'undefined' ? setImmediate : requestIdleCallback)(resolve)),
+  new Promise(resolve => setTimeout(resolve, 100))
+]).then(async () => {
   start()
 
   await queue
