@@ -5,11 +5,11 @@
 * `t.todo`, `t.fixme` for broken / unfinished tests
 * `t.node`, `t.browser`, `t.require`, `t.import` - environment conditional tests
 * `t.demo` - demo-run (can fail)
-* `t.equalAny(a, b, c, ..., msg)`, `t.deepEqualAny(a, b, c, ..., msg)`
 * `console.group` in browser
 * inspectable errors
 * correct stacktrace with sourcemaps
 * `t.is` as generic assert `t.equal` for primitives and `t.deepEqual` for objects/arrays
+* `t.oneOf(item, list, msg)`
 * muted skipped
 * better colors
 * multiple `only` tests

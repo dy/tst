@@ -39,11 +39,10 @@ export function notEqual(a, b, msg = 'should not be equal') {
   })
 }
 
-export function equalAny(a, ...args) {
-  let msg = typeof args[args.length - 1] === 'string' ? args.pop() : 'should be equal any'
-  this.log(args.some(b => Object.is(a, b)), 'equalAny', msg, {
+export function equalAny(a, list, msg = 'should be equal any') {
+  this.log(list.some(b => Object.is(a, b)), 'equalAny', msg, {
     actual: a,
-    expected: new (class Any extends Array {})(...args)
+    expected: new (class Any extends Array {})(...list)
   })
 }
 
@@ -61,11 +60,10 @@ export function notDeepEqual(a, b, msg = 'should deep equal') {
   })
 }
 
-export function deepEqualAny(a, ...args) {
-  let msg = typeof args[args.length - 1] === 'string' ? args.pop() : 'should deep equal any'
-  this.log(args.some(b => deq(a, b)), 'deepEqualAny', msg, {
+export function deepEqualAny(a, list, msg = 'should deep equal any') {
+  this.log(list.some(b => deq(a, b)), 'deepEqualAny', msg, {
     actual: isPrimitive(a) ? a : a.slice ? a.slice() : Object.assign({}, a),
-    expected: new (class Any extends Array {})(...args.map(b =>
+    expected: new (class Any extends Array {})(...list.map(b =>
       isPrimitive(b) ? b : b.slice ? b.slice() : Object.assign({}, b)
     ))
   })
@@ -75,6 +73,16 @@ export function is(a, b, msg = 'should be the same') {
   this.log(isPrimitive(a) || isPrimitive(b) ? Object.is(a, b) : deq(a, b), 'is', msg, {
     actual: isPrimitive(a) ? a : a.slice ? a.slice() : Object.assign({}, a),
     expected: isPrimitive(b) ? b : b.slice ? b.slice() : Object.assign({}, b)
+  })
+}
+export function oneOf(a, list, msg = 'should be one of') {
+  this.log(list.some(b =>
+    isPrimitive(a) || isPrimitive(b) ? Object.is(a, b) : deq(a, b)
+  ), 'oneOf', msg, {
+    actual: isPrimitive(a) ? a : a.slice ? a.slice() : Object.assign({}, a),
+    expected: new (class Any extends Array { })(...list.map(b =>
+      isPrimitive(b) ? b : b.slice ? b.slice() : Object.assign({}, b)
+    ))
   })
 }
 
