@@ -5,12 +5,13 @@
 * `t.todo`, `t.fixme` for broken / unfinished tests
 * `t.node`, `t.browser`, `t.require`, `t.import` - environment conditional tests
 * `t.demo` - demo-run (can fail)
+* `t.is` - assert with `t.equal` for primitives and `t.deepEqual` for other
+* `t.oneOf(item, list, msg)` - assert optional results
+* `t.almost(a, b, eps, msg)` - assert approx value/array
+* `t.same(listA, listB, msg)` - assert same members
 * `console.group` in browser
 * inspectable errors
 * correct stacktrace with sourcemaps
-* `t.is` - generic assert with `t.equal` for primitives and `t.deepEqual` for other
-* `t.oneOf(item, list, msg)`
-* `t.almost(a, b, eps, msg)`
 * muted skipped
 * better colors
 * multiple `only` tests

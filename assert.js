@@ -1,7 +1,5 @@
 import deq from 'dequal'
 
-// TODO: same (members)
-
 export function fail(msg) {
   this.log(false, 'fail', msg)
 }
@@ -72,6 +70,13 @@ export function is(a, b, msg = 'should be the same') {
   this.log(isPrimitive(a) || isPrimitive(b) ? Object.is(a, b) : deq(a, b), 'is', msg, {
     actual: isPrimitive(a) ? a : a.slice ? a.slice() : Object.assign({}, a),
     expected: isPrimitive(b) ? b : b.slice ? b.slice() : Object.assign({}, b)
+  })
+}
+
+export function same(a, b, msg = 'should have same members') {
+  this.log(sameMembers(a, b), 'same', msg, {
+    actual: a,
+    expected: b
   })
 }
 
@@ -147,4 +152,21 @@ function almostEqual(a, b, eps) {
   }
 
   return a === b
+}
+
+function sameMembers(a, b) {
+  a = Array.from(a), b = Array.from(b)
+
+  if (a.length !== b.length) return false;
+
+  if (!b.every(function (item) {
+    var idx = a.indexOf(item);
+    if (idx < 0) return false;
+    a.splice(idx, 1);
+    return true;
+  })) return false;
+
+  if (a.length) return false;
+
+  return true;
 }

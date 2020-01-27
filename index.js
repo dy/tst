@@ -96,7 +96,8 @@ export function createTest(test) {
               console.error(new Error, RESET)
             )
           ) :
-            console.assert(false, `${assertIndex} — ${msg}${RESET}`, info, new Error)
+            info ? console.assert(false, `${assertIndex} — ${msg}${RESET}`, info, new Error) :
+                  console.assert(false, `${assertIndex} — ${msg}${RESET}`, new Error)
           if (!test.demo) {
             test.assertion.push({ idx: assertIndex, msg, info, error: new Error() })
             failed += 1

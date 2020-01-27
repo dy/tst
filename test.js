@@ -27,6 +27,8 @@ t('passes', t => {
   t.almost(0.1, new Float32Array([0.1])[0])
   t.almost([0.1], new Float32Array([0.1]))
 
+  t.same([0, 1], [1, 0])
+
   t.pass('ok')
 })
 
@@ -40,6 +42,8 @@ t('fails', t => {
 
   t.almost(0.11, new Float32Array([0.1])[0])
   t.almost([0.11], new Float32Array([0.1]))
+
+  t.same([0, 1], [1, 0, 1])
 
   t.fail('test failed')
 })
