@@ -8,14 +8,15 @@
 * `console.group` in browser
 * inspectable errors
 * correct stacktrace with sourcemaps
-* `t.is` as generic assert `t.equal` for primitives and `t.deepEqual` for objects/arrays
+* `t.is` - generic assert with `t.equal` for primitives and `t.deepEqual` for other
 * `t.oneOf(item, list, msg)`
+* `t.almost(a, b, eps, msg)`
 * muted skipped
 * better colors
 * multiple `only` tests
 * run by `idle`
 * ES export
-<!-- almost, same -->
+<!-- same -->
 
 ## Install
 

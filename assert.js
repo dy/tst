@@ -1,7 +1,6 @@
 import deq from 'dequal'
 
 // TODO: same (members)
-// TODO: almost
 
 export function fail(msg) {
   this.log(false, 'fail', msg)
@@ -25,21 +24,21 @@ export function notOk(value, msg = 'should be falsy') {
   })
 }
 
-export function equal(a, b, msg = 'should be equal') {
+export function equal(a, b, msg = 'should equal') {
   this.log(Object.is(a, b), 'equal', msg, {
     actual: a,
     expected: b
   })
 }
 
-export function notEqual(a, b, msg = 'should not be equal') {
+export function notEqual(a, b, msg = 'should not equal') {
   this.log(!Object.is(a, b), 'notEqual', msg, {
     actual: a,
     expected: b
   })
 }
 
-export function equalAny(a, list, msg = 'should be equal any') {
+export function equalAny(a, list, msg = 'should equal any') {
   this.log(list.some(b => Object.is(a, b)), 'equalAny', msg, {
     actual: a,
     expected: new (class Any extends Array {})(...list)
@@ -75,6 +74,7 @@ export function is(a, b, msg = 'should be the same') {
     expected: isPrimitive(b) ? b : b.slice ? b.slice() : Object.assign({}, b)
   })
 }
+
 export function oneOf(a, list, msg = 'should be one of') {
   this.log(list.some(b =>
     isPrimitive(a) || isPrimitive(b) ? Object.is(a, b) : deq(a, b)
@@ -83,6 +83,15 @@ export function oneOf(a, list, msg = 'should be one of') {
     expected: new (class Any extends Array { })(...list.map(b =>
       isPrimitive(b) ? b : b.slice ? b.slice() : Object.assign({}, b)
     ))
+  })
+}
+
+export function almost (a, b, eps, msg = 'should almost equal') {
+  this.log(isPrimitive(a) || isPrimitive(b) ? almostEqual(a, b, eps) :
+    Array.prototype.slice.call(a).every((a0, i) => a0 === b[i] || almostEqual(a0, b[i], eps)),
+    'almost', msg, {
+    actual: isPrimitive(a) ? a : a.slice ? a.slice() : Object.assign({}, a),
+    expected: isPrimitive(b) ? b : b.slice ? b.slice() : Object.assign({}, b)
   })
 }
 
@@ -118,4 +127,24 @@ function isPrimitive(val) {
     return val === null;
   }
   return typeof val !== 'function';
+}
+
+function almostEqual(a, b, eps) {
+  if (eps === undefined) {
+    eps = Math.min(
+      Math.max(
+        Math.abs(a - new Float32Array([a])[0]),
+        Math.abs(b - new Float32Array([b])[0])
+      ),
+      1.19209290e-7
+    )
+  }
+
+  var d = Math.abs(a - b)
+
+  if (d <= eps) {
+    return true
+  }
+
+  return a === b
 }

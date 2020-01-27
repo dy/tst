@@ -24,6 +24,9 @@ t('passes', t => {
   t.oneOf(1, [1, 2, 3], 'one of')
   t.deepEqualAny(['b'], [['a'], ['b']])
 
+  t.almost(0.1, new Float32Array([0.1])[0])
+  t.almost([0.1], new Float32Array([0.1]))
+
   t.pass('ok')
 })
 
@@ -34,6 +37,9 @@ t('fails', t => {
 
   t.equalAny(1, [2, 3])
   t.deepEqualAny(['a'], [['b'], ['c']])
+
+  t.almost(0.11, new Float32Array([0.1])[0])
+  t.almost([0.11], new Float32Array([0.1]))
 
   t.fail('test failed')
 })
