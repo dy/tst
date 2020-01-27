@@ -19,15 +19,22 @@ t('passes', t => {
     throw new Error('oh no!');
   }, /oh no!/);
 
+  t.equalAny(3, 1, 2, 3)
+  t.equalAny(1, 1, 2, 3, 'equals any msg')
+  t.deepEqualAny(['b'], ['a'], ['b'])
+
   t.pass('ok')
 })
 
 t('fails', t => {
   t.equal(42, '42');
   t.equal({}, {});
-  t.deepEqual([1,2,3], [4,5,6]);
+  t.deepEqual([1,2,3], [4,5,6])
 
-  t.fail('nok')
+  t.equalAny(1, 2, 3)
+  t.deepEqualAny(['a'], ['b'], ['c'])
+
+  t.fail('test failed')
 })
 
 t('async fail', async t => {

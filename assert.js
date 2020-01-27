@@ -39,6 +39,14 @@ export function notEqual(a, b, msg = 'should not be equal') {
   })
 }
 
+export function equalAny(a, ...args) {
+  let msg = typeof args[args.length - 1] === 'string' ? args.pop() : 'should be equal any'
+  this.log(args.some(b => Object.is(a, b)), 'equalAny', msg, {
+    actual: a,
+    expected: new (class Any extends Array {})(...args)
+  })
+}
+
 export function deepEqual(a, b, msg = 'should deep equal') {
   this.log(deq(a, b), 'deepEqual', msg, {
     actual: isPrimitive(a) ? a : a.slice ? a.slice() : Object.assign({}, a),
@@ -50,6 +58,16 @@ export function notDeepEqual(a, b, msg = 'should deep equal') {
   this.log(!deq(a, b), 'notDeepEqual', msg, {
     actual: isPrimitive(a) ? a : a.slice ? a.slice() : Object.assign({}, a),
     expected: isPrimitive(b) ? b : b.slice ? b.slice() : Object.assign({}, b)
+  })
+}
+
+export function deepEqualAny(a, ...args) {
+  let msg = typeof args[args.length - 1] === 'string' ? args.pop() : 'should deep equal any'
+  this.log(args.some(b => deq(a, b)), 'deepEqualAny', msg, {
+    actual: isPrimitive(a) ? a : a.slice ? a.slice() : Object.assign({}, a),
+    expected: new (class Any extends Array {})(...args.map(b =>
+      isPrimitive(b) ? b : b.slice ? b.slice() : Object.assign({}, b)
+    ))
   })
 }
 

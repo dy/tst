@@ -5,15 +5,17 @@
 * `t.todo`, `t.fixme` for broken / unfinished tests
 * `t.node`, `t.browser`, `t.require`, `t.import` - environment conditional tests
 * `t.demo` - demo-run (can fail)
+* `t.equalAny(a, b, c, ..., msg)`, `t.deepEqualAny(a, b, c, ..., msg)`
 * `console.group` in browser
 * inspectable errors
 * correct stacktrace with sourcemaps
-* `t.is` for generic comparison <!-- almost, same -->
+* `t.is` as generic assert `t.equal` for primitives and `t.deepEqual` for objects/arrays
 * muted skipped
 * better colors
 * multiple `only` tests
 * run by `idle`
 * ES export
+<!-- almost, same -->
 
 ## Install
 
@@ -24,6 +26,8 @@ or
 ```js
 import t from 'https://unpkg.com/tst?module'
 ```
+
+## Asserts
 
 ## Use
 

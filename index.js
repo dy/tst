@@ -77,7 +77,7 @@ export function createTest(test) {
       only: false,
       demo: false,
       end: () => { },
-      log: (ok, operator, msg, info = {}) => {
+      log: (ok, operator, msg, info) => {
         assertIndex += 1
         if (ok) {
           isNode ?
@@ -90,9 +90,11 @@ export function createTest(test) {
         } else {
           isNode ? (
             console.log(`${RED}✖ ${assertIndex} — ${msg}`),
-            console.info(`actual:${RESET}`, typeof info.actual === 'string' ? JSON.stringify(info.actual) : info.actual, RED),
-            console.info(`expected:${RESET}`, typeof info.expected === 'string' ? JSON.stringify(info.expected) : info.expected, RED),
-            console.error(new Error, RESET)
+            info && (
+              console.info(`actual:${RESET}`, typeof info.actual === 'string' ? JSON.stringify(info.actual) : info.actual, RED),
+              console.info(`expected:${RESET}`, typeof info.expected === 'string' ? JSON.stringify(info.expected) : info.expected, RED),
+              console.error(new Error, RESET)
+            )
           ) :
             console.assert(false, `${assertIndex} — ${msg}${RESET}`, info, new Error)
           if (!test.demo) {
