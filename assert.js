@@ -90,6 +90,7 @@ export function oneOf(a, list, msg = 'should be one of') {
     ))
   })
 }
+export const any = oneOf
 
 export function almost (a, b, eps, msg = 'should almost equal') {
   this.log(isPrimitive(a) || isPrimitive(b) ? almostEqual(a, b, eps) :
