@@ -50,6 +50,7 @@ t('fails', t => {
 
 t('async fail', async t => {
   await new Promise(ok => setTimeout(ok))
+  // t.fail('test failed')
   throw Error('xxx')
 })
 

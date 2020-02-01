@@ -54,18 +54,20 @@ export function createTest(test) {
   if (test.skip) {
     queue = queue.then(() => {
       skipped++
-      if (only && !test.only) return
+      if (only && !test.only) return test
       isNode ?
-        console.log(`${CYAN}≫ ${test.name}${test.tag ? ` (${test.tag})` : ''}${RESET}`) :
+        console.log(`${CYAN}» ${test.name}${test.tag ? ` (${test.tag})` : ''}${RESET}`) :
         console.log(`%c${test.name} ≫` + (test.tag ? ` (${test.tag})` : ''), 'color: #dadada')
+      return test
     })
   }
 
   else if (test.todo) {
     queue = queue.then(() => {
-      if (only && !test.only) { skipped++; return }
-      isNode ? console.log(`${CYAN}≫ ${test.name}${test.tag ? ` (${test.tag})` : ''}${RESET}`) :
+      if (only && !test.only) { skipped++; return test }
+      isNode ? console.log(`${CYAN}» ${test.name}${test.tag ? ` (${test.tag})` : ''}${RESET}`) :
         console.log(`%c${test.name} 🚧` + (test.tag ? ` (${test.tag})` : ''), 'color: #dadada')
+      return test
     })
   }
 
@@ -81,7 +83,7 @@ export function createTest(test) {
         assertIndex += 1
         if (ok) {
           isNode ?
-            console.log(`${GREEN}✔ ${assertIndex} — ${msg}${RESET}`) :
+            console.log(`${GREEN}√ ${assertIndex} — ${msg}${RESET}`) :
             console.log(`%c✔ ${assertIndex} — ${msg}`, 'color: #229944')
           if (!test.demo) {
             test.assertion.push({ idx: assertIndex, msg })
@@ -89,7 +91,7 @@ export function createTest(test) {
           }
         } else {
           isNode ? (
-            console.log(`${RED}✖ ${assertIndex} — ${msg}`),
+            console.log(`${RED}× ${assertIndex} — ${msg}`),
             info && (
               console.info(`actual:${RESET}`, typeof info.actual === 'string' ? JSON.stringify(info.actual) : info.actual, RED),
               console.info(`expected:${RESET}`, typeof info.expected === 'string' ? JSON.stringify(info.expected) : info.expected, RED),
@@ -106,10 +108,10 @@ export function createTest(test) {
       }
     }, test, assert)
 
-    queue = queue.then(async () => {
-      if (only && !test.only) { skipped++; return }
+    queue = queue.then(async (prev) => {
+      if (only && !test.only) { skipped++; return test }
 
-      isNode ? console.log(`▶ ${test.name}${test.tag ? ` (${test.tag})` : ''}`) :
+      isNode ? console.log(`${RESET}${prev && (prev.skip || prev.todo) ? '\n' : ''}► ${test.name}${test.tag ? ` (${test.tag})` : ''}`) :
         console.group(test.name + (test.tag ? ` (${test.tag})` : ''))
 
       let result
@@ -119,14 +121,16 @@ export function createTest(test) {
       }
       catch (e) {
         failed += 1
+
         // FIXME: this syntax is due to chrome not always able to grasp the stack trace from source maps
-        console.error(e.stack)
+        console.error(RED + e.stack, RESET)
       }
       finally {
         if (!isNode) console.groupEnd()
+        else console.log()
       }
 
-      return result
+      return test
     })
   }
 }
@@ -141,7 +145,7 @@ Promise.all([
   await queue
 
   // summary
-  console.log(`---`)
+  console.log(`\n---\n`)
   const total = passed + failed + skipped
   if (only) console.log(`# only ${only} cases`)
   console.log(`# total ${total}`)
