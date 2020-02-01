@@ -145,7 +145,7 @@ Promise.all([
   await queue
 
   // summary
-  console.log(`\n---\n`)
+  console.log(`---\n`)
   const total = passed + failed + skipped
   if (only) console.log(`# only ${only} cases`)
   console.log(`# total ${total}`)
