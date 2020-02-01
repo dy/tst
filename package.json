@@ -1,7 +1,7 @@
 {
   "name": "tst",
   "description": "Tape-compatible test runner",
-  "version": "5.3.0",
+  "version": "5.3.1",
   "repository": "dy/tst",
   "author": "Dmitry Yv",
   "main": "index.js",
