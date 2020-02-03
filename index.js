@@ -51,22 +51,13 @@ test.import = function (name, fn) {
 export function createTest(test) {
   test.index = index++
 
-  if (test.skip) {
+  if (test.skip || test.todo) {
     queue = queue.then(() => {
       skipped++
       if (only && !test.only) return test
       isNode ?
         console.log(`${CYAN}» ${test.name}${test.tag ? ` (${test.tag})` : ''}${RESET}`) :
-        console.log(`%c${test.name} ≫` + (test.tag ? ` (${test.tag})` : ''), 'color: #dadada')
-      return test
-    })
-  }
-
-  else if (test.todo) {
-    queue = queue.then(() => {
-      if (only && !test.only) { skipped++; return test }
-      isNode ? console.log(`${CYAN}» ${test.name}${test.tag ? ` (${test.tag})` : ''}${RESET}`) :
-        console.log(`%c${test.name} 🚧` + (test.tag ? ` (${test.tag})` : ''), 'color: #dadada')
+        console.log(`%c${test.name} ${test.todo ? '🚧' : '≫'}` + (test.tag ? ` (${test.tag})` : ''), 'color: #dadada')
       return test
     })
   }
@@ -99,7 +90,7 @@ export function createTest(test) {
             )
           ) :
             info ? console.assert(false, `${assertIndex} — ${msg}${RESET}`, info, new Error) :
-                  console.assert(false, `${assertIndex} — ${msg}${RESET}`, new Error)
+              console.assert(false, `${assertIndex} — ${msg}${RESET}`, new Error)
           if (!test.demo) {
             test.assertion.push({ idx: assertIndex, msg, info, error: new Error() })
             failed += 1
