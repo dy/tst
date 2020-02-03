@@ -120,7 +120,7 @@ export function createTest(test) {
         result = await test.fn(test)
       }
       catch (e) {
-        failed += 1
+        if (!test.demo) failed += 1
 
         // FIXME: this syntax is due to chrome not always able to grasp the stack trace from source maps
         console.error(RED + e.stack, RESET)
