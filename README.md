@@ -6,8 +6,8 @@
 * `t.node`, `t.browser`, `t.require`, `t.import` - environment conditional tests
 * `t.demo` - demo-run (can fail)
 * `t.is` - assert with `t.equal` for primitives and `t.deepEqual` for other
-* `t.oneOf(item, list, msg)` - assert optional results
-* `t.almost(a, b, eps, msg)` - assert approx value/array
+* `t.any(item, list, msg)` - assert optional results
+* `t.almost(a, b, eps, msg)` - assert approximate value/array
 * `t.same(listA, listB, msg)` - assert same members
 * `console.group` in browser
 * inspectable errors
@@ -15,9 +15,8 @@
 * muted skipped
 * better colors
 * multiple `only` tests
-* run by `idle`
+* start by `idle` event
 * ES export
-<!-- same -->
 
 ## Install
 
