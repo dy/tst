@@ -1,5 +1,9 @@
 # tst
 
+Tests without efforts.
+
+## Gems
+
 * tape-compatible
 * async functions support
 * `t.todo`, `t.fixme` for broken / unfinished tests
