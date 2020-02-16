@@ -109,6 +109,8 @@ export function createTest(test) {
 
       try {
         result = await test.fn(test)
+        // let all planned errors to log
+        await new Promise(r => setTimeout(r))
       }
       catch (e) {
         if (!test.demo) failed += 1
