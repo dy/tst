@@ -9,15 +9,17 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
+    "build": "rollup -c rollup.config.es.js",
     "test": "node -r esm test.js",
     "start": "es-dev-server --node-resolve --dedupe"
   },
   "devDependencies": {
     "es-dev-server": "^1.32.0",
-    "esm": "^3.2.25"
+    "esm": "^3.2.25",
+    "rollup": "^2.6.1",
+    "@rollup/plugin-node-resolve": "^7.1.3"
   },
   "dependencies": {
-    "dequal": "^1.0.0",
-    "wait-please": "^2.0.1"
+    "dequal": "^1.0.0"
   }
 }
