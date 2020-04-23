@@ -18,16 +18,6 @@ Tests without <em>e</em>fforts.
 * `test.demo` - demo-run (can fail)
 * `console.group` in browser
 
-## Assertions
-
-* `t.ok(a, b, msg?)` − generic truthfulness assert
-* `t.is(a, b, msg?)` − assert with `equal` for primitives and `deepEqual` for other
-* `t.any(a, [a, b, c], msg?)` − assert with optional results
-* `t.almost(a, b, eps, msg?)` − assert approximate value/array
-* `t.same(listA, listB, msg?)` − assert same members
-* `t.throws(fn, msg?)` − fn must throw
-* `t.pass(msg)`, `t.fail(msf)` − pass or fail the whole test.
-
 ## Install
 
 [![npm install tst](https://nodei.co/npm/tst.png?mini=true)](https://npmjs.org/package/tst/)
@@ -72,6 +62,17 @@ t.skip('this test will not run', t => {
 Creates output in console:
 
 ![preview](./preview.png)
+
+
+## Assertions
+
+* `t.ok(a, b, msg?)` − generic truthfulness assert
+* `t.is(a, b, msg?)` − assert with `equal` for primitives and `deepEqual` for other
+* `t.any(a, [a, b, c], msg?)` − assert with optional results
+* `t.almost(a, b, eps, msg?)` − assert approximate value/array
+* `t.same(listA, listB, msg?)` − assert same members
+* `t.throws(fn, msg?)` − fn must throw
+* `t.pass(msg)`, `t.fail(msf)` − pass or fail the whole test.
 
 ### Neighbors
 
