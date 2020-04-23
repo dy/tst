@@ -1,6 +1,6 @@
 # tst
 
-Tests without _e_fforts.
+Tests without <em>e</em>fforts.
 
 ## Gems
 
