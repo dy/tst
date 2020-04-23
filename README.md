@@ -25,6 +25,7 @@ Tests without _e_fforts.
 * `t.any(a, [a, b, c], msg?)` − assert with optional results
 * `t.almost(a, b, eps, msg?)` − assert approximate value/array
 * `t.same(listA, listB, msg?)` − assert same members
+* `t.throws(fn, msg?)` − fn must throw
 
 ## Install
 
