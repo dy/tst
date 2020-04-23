@@ -1,13 +1,14 @@
 {
   "name": "tst",
-  "description": "Tape-compatible test runner",
+  "description": "Tests without efforts",
   "version": "5.3.3",
   "repository": "dy/tst",
-  "author": "Dmitry Yv",
+  "author": "Dmitry Iv.",
   "main": "index.js",
   "module": "index.js",
   "type": "module",
   "license": "MIT",
+  "files": ["index.js", "assert.js"],
   "scripts": {
     "test": "node test.js",
     "start": "es-dev-server --node-resolve --dedupe"
@@ -15,7 +16,5 @@
   "devDependencies": {
     "es-dev-server": "^1.32.0",
     "wait-please": "^2.0.1"
-  },
-  "dependencies": {
   }
 }
