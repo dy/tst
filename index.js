@@ -1,7 +1,6 @@
 import * as assert from './assert.js'
 
 const isNode = typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]'
-const hasImport = typeof require === 'undefined'
 const GREEN = '\u001b[32m', RED = '\u001b[31m', YELLOW = '\u001b[33m', RESET = '\u001b[0m', CYAN = '\u001b[36m'
 
 let assertIndex = 0
@@ -39,12 +38,6 @@ test.browser = function (name, fn) {
 }
 test.demo = function (name, fn) {
   return createTest({ name, fn, demo: true, tag: 'demo' })
-}
-test.require = function (name, fn) {
-  return createTest({ name, fn, skip: hasImport, tag: 'require' })
-}
-test.import = function (name, fn) {
-  return createTest({ name, fn, skip: !hasImport, tag: 'import' })
 }
 
 

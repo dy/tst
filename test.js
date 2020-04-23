@@ -1,9 +1,9 @@
 import t from './index.js'
 
 t('assertions', t => {
-  t.equal(1, 1)
-  t.notEqual(1, 2)
-  t.deepEqual([1], [1])
+  t.is(1, 1)
+  // t.notEqual(1, 2)
+  t.is([1], [1])
   t.pass('passed')
 })
 
@@ -12,17 +12,17 @@ t('passes', t => {
   t.ok(true, 'this time with an optional message');
   t.ok('not true, but truthy enough');
 
-  t.equal(1 + 1, 2);
-  t.equal(Math.max(1, 2, 3), 3);
+  t.is(1 + 1, 2);
+  t.is(Math.max(1, 2, 3), 3);
 
   t.throws(() => {
     throw new Error('oh no!');
   }, /oh no!/);
 
-  t.equalAny(3, [1, 2, 3])
-  t.equalAny(1, [1, 2, 3], 'equals any msg')
-  t.oneOf(1, [1, 2, 3], 'one of')
-  t.deepEqualAny(['b'], [['a'], ['b']])
+  t.any(3, [1, 2, 3])
+  t.any(1, [1, 2, 3], 'equals any msg')
+  t.any(1, [1, 2, 3], 'one of')
+  t.any(['b'], [['a'], ['b']])
 
   t.almost(0.1, new Float32Array([0.1])[0])
   t.almost([0.1], new Float32Array([0.1]))
@@ -33,12 +33,12 @@ t('passes', t => {
 })
 
 t('fails', t => {
-  t.equal(42, '42');
-  t.equal({}, {});
-  t.deepEqual([1,2,3], [4,5,6])
+  t.is(42, '42');
+  t.is({}, {});
+  t.is([1,2,3], [4,5,6])
 
-  t.equalAny(1, [2, 3])
-  t.deepEqualAny(['a'], [['b'], ['c']])
+  t.any(1, [2, 3])
+  t.any(['a'], [['b'], ['c']])
 
   t.almost(0.11, new Float32Array([0.1])[0])
   t.almost([0.11], new Float32Array([0.1]))

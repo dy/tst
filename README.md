@@ -1,19 +1,11 @@
 # tst
 
-Tests without efforts.
+Tests without _e_fforts.
 
 ## Gems
 
-* tape-compatible
+* tape-like
 * async functions support
-* `t.todo`, `t.fixme` for broken / unfinished tests
-* `t.node`, `t.browser`, `t.require`, `t.import` - environment conditional tests
-* `t.demo` - demo-run (can fail)
-* `t.is` - assert with `t.equal` for primitives and `t.deepEqual` for other
-* `t.any(item, list, msg)` - assert optional results
-* `t.almost(a, b, eps, msg)` - assert approximate value/array
-* `t.same(listA, listB, msg)` - assert same members
-* `console.group` in browser
 * inspectable errors
 * correct stacktrace with sourcemaps
 * muted skipped
@@ -21,6 +13,18 @@ Tests without efforts.
 * multiple `only` tests
 * start by `idle` event
 * ES export
+* `test.todo`, `test.fixme` for broken / unfinished tests
+* `test.node`, `test.browser` - environment conditional tests
+* `test.demo` - demo-run (can fail)
+* `console.group` in browser
+
+## Assertions
+
+* `t.ok(a, b, msg?)` − generic truthfulness assert
+* `t.is(a, b, msg?)` − assert with `equal` for primitives and `deepEqual` for other
+* `t.any(a, [a, b, c], msg?)` − assert with optional results
+* `t.almost(a, b, eps, msg?)` − assert approximate value/array
+* `t.same(listA, listB, msg?)` − assert same members
 
 ## Install
 
@@ -31,8 +35,6 @@ or
 ```js
 import t from 'https://unpkg.com/tst?module'
 ```
-
-## Asserts
 
 ## Use
 
@@ -65,9 +67,11 @@ t.skip('this test will not run', t => {
 })
 ```
 
-### Neighbor art
+![preview](./preview.png)
+
+### Neighbors
 
 * [tape-modern](https://ghub.io/tape-modern)
 * [@goto-bus-stop/tape-modern](https://github.com/goto-bus-stop/tape-modern#readme)
 
-<p align="right">HK</p>
+<p align="right">🕉️</p>
