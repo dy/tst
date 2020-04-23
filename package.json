@@ -1,14 +1,17 @@
 {
   "name": "tst",
   "description": "Tests without efforts",
-  "version": "5.3.3",
+  "version": "6.0.0",
   "repository": "dy/tst",
   "author": "Dmitry Iv.",
   "main": "index.js",
   "module": "index.js",
   "type": "module",
   "license": "MIT",
-  "files": ["index.js", "assert.js"],
+  "files": [
+    "index.js",
+    "assert.js"
+  ],
   "scripts": {
     "test": "node test.js",
     "start": "es-dev-server --node-resolve --dedupe"
