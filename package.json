@@ -17,7 +17,6 @@
     "start": "es-dev-server --node-resolve --dedupe"
   },
   "devDependencies": {
-    "es-dev-server": "^1.32.0",
-    "wait-please": "^2.0.1"
+    "es-dev-server": "^1.32.0"
   }
 }
