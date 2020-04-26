@@ -80,12 +80,12 @@ function deq (a, b) {
     if (a.constructor === b.constructor) {
       if (a.constructor === RegExp) return a.toString() === b.toString()
       if (a.constructor === Date) return a.getTime() === b.getTime()
-      if (a.constructor === Array) return a.length === b.length && a.every((a, i) => a === b[i])
-      if (a.constructor === Object) return Object.keys(a).length === Object.keys(b).length && Object.keys(a).every(key => a[key] === b[key])
+      if (a.constructor === Array) return a.length === b.length && a.every((a, i) => deq(a, b[i]))
+      if (a.constructor === Object) return Object.keys(a).length === Object.keys(b).length && Object.keys(a).every(key => deq(a[key], b[key]))
     }
-    if (a[Symbol.iterator] && b[Symbol.iterator]) return deq([...a], [...b])
+    if (!isPrimitive(a) && a[Symbol.iterator] && b[Symbol.iterator]) return deq([...a], [...b])
   }
-  return a !== b && b !== a
+  return a !== a && b !== b
 }
 
 function isPrimitive(val) {
