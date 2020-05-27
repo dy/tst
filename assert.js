@@ -15,8 +15,16 @@ export function ok(value, msg = 'should be truthy') {
 
 export function is(a, b, msg = 'should be the same') {
   this.log(isPrimitive(a) || isPrimitive(b) ? Object.is(a, b) : deq(a, b), 'is', msg, {
-    actual: isPrimitive(a) ? a : a.slice ? a.slice() : Object.assign({}, a),
-    expected: isPrimitive(b) ? b : b.slice ? b.slice() : Object.assign({}, b)
+    actual: slice(a),
+    expected: slice(b)
+  })
+}
+
+export function not(a, b, msg = 'should be different') {
+  const C = class Not extends b.constructor {}
+  this.log(isPrimitive(a) || isPrimitive(b) ? !Object.is(a, b) : !deq(a, b), 'is not', msg, {
+    actual: slice(a),
+    expected: Array.isArray(b) ? new C(...b) : isPrimitive(b) ? new C(b) : Object.assign(new C, b)
   })
 }
 
@@ -31,10 +39,8 @@ export function any(a, list, msg = 'should be one of') {
   this.log(list.some(b =>
     isPrimitive(a) || isPrimitive(b) ? Object.is(a, b) : deq(a, b)
   ), 'any', msg, {
-    actual: isPrimitive(a) ? a : a.slice ? a.slice() : Object.assign({}, a),
-    expected: new (class Any extends Array { })(...list.map(b =>
-      isPrimitive(b) ? b : b.slice ? b.slice() : Object.assign({}, b)
-    ))
+    actual: slice(a),
+    expected: new (class Any extends Array { })(...list.map(b => slice(b)))
   })
 }
 
@@ -42,8 +48,8 @@ export function almost (a, b, eps, msg = 'should almost equal') {
   this.log(isPrimitive(a) || isPrimitive(b) ? almostEqual(a, b, eps) :
     Array.prototype.slice.call(a).every((a0, i) => a0 === b[i] || almostEqual(a0, b[i], eps)),
     'almost', msg, {
-    actual: isPrimitive(a) ? a : a.slice ? a.slice() : Object.assign({}, a),
-    expected: isPrimitive(b) ? b : b.slice ? b.slice() : Object.assign({}, b)
+    actual: slice(a),
+    expected: slice(b)
   })
 }
 
@@ -129,3 +135,5 @@ function sameMembers(a, b) {
 
   return true;
 }
+
+const slice = a => isPrimitive(a) ? a : a.slice ? a.slice() : Object.assign({}, a)

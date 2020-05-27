@@ -30,6 +30,10 @@ t('passes', t => {
 
   t.same([0, 1], [1, 0])
 
+  t.not([0, 1], [0, 2])
+  t.not(1,2)
+  t.not({x:1},{x:2})
+
   t.pass('ok')
 })
 
@@ -45,6 +49,10 @@ t('fails', t => {
   t.almost([0.11], new Float32Array([0.1]))
 
   t.same([0, 1], [1, 0, 1])
+
+  t.not([0, 1], [0, 1])
+  t.not(1,1)
+  t.not({x:1},{x:1})
 
   t.fail('test failed')
 })
