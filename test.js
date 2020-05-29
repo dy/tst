@@ -33,6 +33,8 @@ t('passes', t => {
   t.not([0, 1], [0, 2])
   t.not(1,2)
   t.not({x:1},{x:2})
+  t.not(document.createElement('a'),document.createElement('a'))
+  t.not(new Date,new Date(1))
 
   t.pass('ok')
 })

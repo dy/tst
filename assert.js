@@ -21,10 +21,9 @@ export function is(a, b, msg = 'should be the same') {
 }
 
 export function not(a, b, msg = 'should be different') {
-  const C = class Not extends b.constructor {}
   this.log(isPrimitive(a) || isPrimitive(b) ? !Object.is(a, b) : !deq(a, b), 'is not', msg, {
     actual: slice(a),
-    expected: Array.isArray(b) ? new C(...b) : isPrimitive(b) ? new C(b) : Object.assign(new C, b)
+    expected: new class Not { constructor(a){this.actual = a}  }(a)
   })
 }
 
