@@ -4,58 +4,45 @@ Tests without <em>e</em>fforts.
 
 ## Gems
 
-* tape-like
+* no tooling steps, vanilla ESM
+* works with any assert library: [assert](https://www.npmjs.com/package/assert), [chai](https://www.npmjs.com/package/chai) etc.
 * async functions support
 * inspectable errors
 * correct stacktrace with sourcemaps
-* muted skipped
-* better colors
-* multiple `only` tests
-* start by `idle` event
-* ES export
-* `test.todo`, `test.fixme` for broken / unfinished tests
-* `test.node`, `test.browser` - environment conditional tests
-* `test.demo` - demo-run (can fail)
-* `console.group` in browser
+* better look & feel in console
 
-## Install
+## Usage
 
 [![npm install tst](https://nodei.co/npm/tst.png?mini=true)](https://npmjs.org/package/tst/)
 
-or
-
 ```js
-import t from 'https://unpkg.com/tst?module'
-```
+import test, {ok,is,not,throws} from 'tst.js'
 
-## Use
+test('these tests will all pass', () => {
+	ok(true);
+	ok(true, 'this time with an optional message');
+	ok('not true, but truthy enough');
 
-```js
-t('these tests will all pass', t => {
-	t.ok(true);
-	t.ok(true, 'this time with an optional message');
-	t.ok('not true, but truthy enough');
+	is(1 + 1, 2);
+	is(Math.max(1, 2, 3), 3);
+	is({}, {})
 
-	t.is(1 + 1, 2);
-	t.is(Math.max(1, 2, 3), 3);
-	t.is({}, {})
-
-	t.throws(() => {
+	throws(() => {
 		throw new Error('oh no!');
 	}, /oh no!/);
-
-	t.pass('ok')
 })
 
-t('these tests will not pass', t => {
-	t.is(42, '42');
-	t.is({}, {x:1});
-
-	t.fail('nok')
+test('these tests will not pass', () => {
+	is(42, '42');
+	is({}, {x:1});
 })
 
-t.skip('this test will not run', t => {
-	t.pass('ok')
+test.skip('this test will not run', () => {
+
+})
+
+test.browser('browser-only test', () => {
+
 })
 ```
 
@@ -63,22 +50,30 @@ Creates output in console:
 
 ![preview](./preview.png)
 
+## test types
 
-## Assertions
+* `test.skip` − bypass test, mutes output
+* `test.only` − run only the indicated test, can be multiple
+* `test.todo` − bypass test, indicate WIP sign
+* `test.node` − run test in node/deno only env.
+* `test.browser` − run test in browser only test.
+<!-- * `test.demo` − demo run, ignores  doesn't count. -->
 
-* `t.ok(a, b, msg?)` − generic truthfulness assert
-* `t.is(a, b, msg?)` − assert with `equal` for primitives and `deepEqual` for objects
-* `t.not(a, b, msg?)` - assert with `equal` for primitives and `deepEqual` for objects
-* `t.any(a, [a, b, c], msg?)` − assert with optional results
-* `t.almost(a, b, eps, msg?)` − assert approximate value/array
-* `t.same(listA, listB, msg?)` − assert same members of a list/set/map/object
-* `t.throws(fn, msg?)` − fn must throw
-* `t.pass(msg)`, `t.fail(msf)` − pass or fail the whole test.
+## assertions
+
+* `ok(a, msg?)` − generic truthfulness assert
+* `is(a, b, msg?)` − assert with `equal` for primitives and `deepEqual` for objects
+* `not(a, b, msg?)` - assert with `equal` for primitives and `deepEqual` for objects
+* `any(a, [a, b, c], msg?)` − assert with optional results
+* `almost(a, b, eps, msg?)` − assert approximate value/array
+* `same(listA, listB, msg?)` − assert same members of a list/set/map/object
+* `throws(fn, msg?)` − fn must throw
+* `pass(msg)`, `fail(msf)` − pass or fail the whole test.
 
 ### Neighbors
 
+* [uvu](https://github.com/lukeed/uvu)
 * [tape-modern](https://ghub.io/tape-modern)
 * [@goto-bus-stop/tape-modern](https://github.com/goto-bus-stop/tape-modern#readme)
-* [uvu](https://github.com/lukeed/uvu)
 
 <p align="right">🕉️</p>
