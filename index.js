@@ -59,22 +59,29 @@ function createTest(test) {
       only: false,
       demo: false,
       pass(arg) {
-        if (typeof arg === 'string') arg = {message: arg}
+        if (typeof arg === 'string') return isNode ?
+          console.log(`${GREEN}(pass) ${arg}${RESET}`) :
+          console.log(`%c(pass) ${arg}`, 'color: #229944')
+
         let {operator: op, message: msg} = arg;
 
         assertIndex += 1
         isNode ?
           console.log(`${GREEN}√ ${assertIndex} ${op && `(${op})`} — ${msg}${RESET}`) :
           console.log(`%c✔ ${assertIndex} ${op && `(${op})`} — ${msg}`, 'color: #229944')
-        if (!this.demo) {
-          this.assertion.push({ idx: assertIndex, msg })
-          passed += 1
-        }
+        // if (!this.demo) {
+        test.assertion.push({ idx: assertIndex, msg })
+        passed += 1
+        // }
       },
       fail(arg) {
         // FIXME: this syntax is due to chrome not always able to grasp the stack trace from source maps
         // console.error(RED + arg.stack, RESET)
-        if (typeof arg === 'string') arg = {message: arg}
+        if (typeof arg === 'string') return console.error(arg)
+
+        // when error is not assertion
+        else if (arg.name !== 'Assertion') return console.error(arg)
+
         let {operator: op, message: msg, ...info} = arg;
 
         isNode ? (
@@ -87,12 +94,15 @@ function createTest(test) {
         ) :
           info ? console.assert(false, `${assertIndex} — ${msg}${RESET}`, info) :
             console.assert(false, `${assertIndex} — ${msg}${RESET}`)
-        if (!this.demo) {
-          this.assertion.push({ idx: assertIndex, msg, info, error: new Error() })
-          failed += 1
-        }
+        // if (!this.demo) {
+        test.assertion.push({ idx: assertIndex, msg, info, error: new Error() })
+        failed += 1
+        // }
       }
     }, test)
+
+    // simple back-compatibility
+    test.pass.pass = test.pass, test.pass.fail = test.fail
 
     queue = queue.then(async (prev) => {
       if (only && !test.only) { skipped++; return test }
@@ -104,7 +114,7 @@ function createTest(test) {
       let result
       try {
         current = test
-        result = await test.run(test)
+        result = await test.run(test.pass, test.fail)
         // let all planned errors to log
         await new Promise(r => setTimeout(r))
       }
@@ -114,8 +124,7 @@ function createTest(test) {
       }
       finally {
         current = null
-        if (!isNode) console.groupEnd()
-        else console.log()
+        if (!isNode) console.groupEnd(); else console.log()
       }
 
       return test
@@ -137,7 +146,7 @@ Promise.all([
   const total = passed + failed + skipped
   if (only) console.log(`# only ${only} cases`)
   console.log(`# total ${total}`)
-  if (passed) console.log(`# pass ${passed}`)
+  if (passed) console.log(`%c# pass ${passed}`, 'color: #229944')
   if (failed) console.log(`# fail ${failed}`)
   if (skipped) console.log(`# skip ${skipped}`)
 

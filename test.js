@@ -3,15 +3,15 @@ import * as assert from './assert.js'
 
 
 
-t('assertions', t => {
+t('assertions', (pass, fail) => {
   assert.ok(true)
   assert.is(1, 1)
   // assert.notEqual(1, 2)
   assert.is([1], [1])
-  // assert.pass('passed')
+  pass('passed')
 })
 
-t.only('passes', t => {
+t('passes', (pass) => {
   assert.ok(true);
   assert.ok(true, 'this time with an optional message');
   assert.ok('not true, but truthy enough');
@@ -40,10 +40,10 @@ t.only('passes', t => {
   assert.not(document.createElement('a'),document.createElement('a'))
   assert.not(new Date,new Date(1))
 
-  // assert.pass('ok')
+  pass('ok')
 })
 
-t.demo('fails', t => {
+t('fails', function (pass, fail) {
   assert.is(42, '42');
   assert.is({}, {x:1});
   assert.is([1,2,3], [4,5,6], 'arrs')
@@ -60,51 +60,51 @@ t.demo('fails', t => {
   assert.not(1,1)
   assert.not({x:1},{x:1})
 
-  assert.fail('test failed')
+  fail('test failed')
 })
 
-t.only('async fail', async t => {
+t('async fail', async (pass, fail) => {
   await new Promise(ok => setTimeout(ok))
   // assert.fail('test failed')
   throw Error('xxx')
 })
 
 
-t.node('node-only', t => {
+t.node('node-only', (pass, fail) => {
   assert.is(1, 1)
   assert.ok(true)
 })
 
-t.browser('browser-only', t => {
+t.browser('browser-only', (pass, fail) => {
   assert.is(1, 1)
   assert.ok(true)
 })
 
-t('async ok', async t => {
+t('async ok', async (pass, fail) => {
   await new Promise(ok => setTimeout(ok, 500))
-  assert.pass('ok')
+  pass('ok')
 })
 
-t.demo('demo-run', t => {
+t.skip('demo-run', (pass, fail) => {
   assert.is(1, 1)
   assert.ok(false)
 })
 
-t.skip('this is skipped', t => {
-  assert.pass('ok')
+t.skip('this is skipped', (pass, fail) => {
+  pass('ok')
 })
 
-t.todo('to be done', t => {
+t.todo('to be done', (pass, fail) => {
   assert.is(1, 1)
   assert.ok(true)
 })
 
-t.skip('to be fixed', t => {
+t.skip('to be fixed', (pass, fail) => {
   assert.is(1, 1)
   assert.ok(false)
 })
 
-t('async end', async t => {
+t('async end', async (pass, fail) => {
   await new Promise(ok => setTimeout(ok, 500))
-  t.pass('ok')
+  pass('ok')
 })

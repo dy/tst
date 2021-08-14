@@ -4,21 +4,19 @@ Tests without <em>e</em>fforts.
 
 ## Gems
 
-* works in browser without tooling steps
+* no tooling steps, vanilla ESM
 * works with any assert library: [assert](https://www.npmjs.com/package/assert), [chai](https://www.npmjs.com/package/chai) etc.
 * async functions support
 * inspectable errors
 * correct stacktrace with sourcemaps
-* better look & feel
-* ESM
+* better look & feel in console
 
 ## Usage
 
 [![npm install tst](https://nodei.co/npm/tst.png?mini=true)](https://npmjs.org/package/tst/)
 
 ```js
-import test from 'tst'
-import { is, ok, throws, pass, fail } from 'tst/assert'
+import test, {ok,is,not,throws} from 'tst.js'
 
 test('these tests will all pass', () => {
 	ok(true);
@@ -32,19 +30,15 @@ test('these tests will all pass', () => {
 	throws(() => {
 		throw new Error('oh no!');
 	}, /oh no!/);
-
-	pass('ok')
 })
 
 test('these tests will not pass', () => {
 	is(42, '42');
 	is({}, {x:1});
-
-	fail('nok')
 })
 
 test.skip('this test will not run', () => {
-	pass('ok')
+
 })
 
 test.browser('browser-only test', () => {
@@ -61,11 +55,11 @@ Creates output in console:
 * `test.skip` − bypass test, mutes output
 * `test.only` − run only the indicated test, can be multiple
 * `test.todo` − bypass test, indicate WIP sign
-* `test.demo` − demo run, fail doesn't count.
 * `test.node` − run test in node/deno only env.
 * `test.browser` − run test in browser only test.
+<!-- * `test.demo` − demo run, ignores  doesn't count. -->
 
-## `tst/assert.js`
+## assertions
 
 * `ok(a, msg?)` − generic truthfulness assert
 * `is(a, b, msg?)` − assert with `equal` for primitives and `deepEqual` for objects
