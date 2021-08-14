@@ -1,103 +1,107 @@
 import t from './index.js'
+import * as assert from './assert.js'
+
+
 
 t('assertions', t => {
-  t.is(1, 1)
-  // t.notEqual(1, 2)
-  t.is([1], [1])
-  t.pass('passed')
+  assert.ok(true)
+  assert.is(1, 1)
+  // assert.notEqual(1, 2)
+  assert.is([1], [1])
+  // assert.pass('passed')
 })
 
-t('passes', t => {
-  t.ok(true);
-  t.ok(true, 'this time with an optional message');
-  t.ok('not true, but truthy enough');
+t.only('passes', t => {
+  assert.ok(true);
+  assert.ok(true, 'this time with an optional message');
+  assert.ok('not true, but truthy enough');
 
-  t.is(1 + 1, 2);
-  t.is(Math.max(1, 2, 3), 3);
-  t.is([1, {x: 2, y: { z: 3 }}], [1, {y: { z: 3 }, x: 2}]);
+  assert.is(1 + 1, 2);
+  assert.is(Math.max(1, 2, 3), 3);
+  assert.is([1, {x: 2, y: { z: 3 }}], [1, {y: { z: 3 }, x: 2}]);
 
-  t.throws(() => {
+  assert.throws(() => {
     throw new Error('oh no!');
   }, /oh no!/);
 
-  t.any(3, [1, 2, 3])
-  t.any(1, [1, 2, 3], 'equals any msg')
-  t.any(1, [1, 2, 3], 'one of')
-  t.any(['b'], [['a'], ['b']])
+  assert.any(3, [1, 2, 3])
+  assert.any(1, [1, 2, 3], 'equals any msg')
+  assert.any(1, [1, 2, 3], 'one of')
+  assert.any(['b'], [['a'], ['b']])
 
-  t.almost(0.1, new Float32Array([0.1])[0])
-  t.almost([0.1], new Float32Array([0.1]))
+  assert.almost(0.1, new Float32Array([0.1])[0])
+  assert.almost([0.1], new Float32Array([0.1]))
 
-  t.same([0, 1], [1, 0])
+  assert.same([0, 1], [1, 0])
 
-  t.not([0, 1], [0, 2])
-  t.not(1,2)
-  t.not({x:1},{x:2})
-  t.not(document.createElement('a'),document.createElement('a'))
-  t.not(new Date,new Date(1))
+  assert.not([0, 1], [0, 2])
+  assert.not(1,2)
+  assert.not({x:1},{x:2})
+  assert.not(document.createElement('a'),document.createElement('a'))
+  assert.not(new Date,new Date(1))
 
-  t.pass('ok')
+  // assert.pass('ok')
 })
 
-t('fails', t => {
-  t.is(42, '42');
-  t.is({}, {x:1});
-  t.is([1,2,3], [4,5,6], 'arrs')
+t.demo('fails', t => {
+  assert.is(42, '42');
+  assert.is({}, {x:1});
+  assert.is([1,2,3], [4,5,6], 'arrs')
 
-  t.any(1, [2, 3])
-  t.any(['a'], [['b'], ['c']])
+  assert.any(1, [2, 3])
+  assert.any(['a'], [['b'], ['c']])
 
-  t.almost(0.11, new Float32Array([0.1])[0])
-  t.almost([0.11], new Float32Array([0.1]))
+  assert.almost(0.11, new Float32Array([0.1])[0])
+  assert.almost([0.11], new Float32Array([0.1]))
 
-  t.same([0, 1], [1, 0, 1])
+  assert.same([0, 1], [1, 0, 1])
 
-  t.not([0, 1], [0, 1])
-  t.not(1,1)
-  t.not({x:1},{x:1})
+  assert.not([0, 1], [0, 1])
+  assert.not(1,1)
+  assert.not({x:1},{x:1})
 
-  t.fail('test failed')
+  assert.fail('test failed')
 })
 
-t('async fail', async t => {
+t.only('async fail', async t => {
   await new Promise(ok => setTimeout(ok))
-  // t.fail('test failed')
+  // assert.fail('test failed')
   throw Error('xxx')
 })
 
 
 t.node('node-only', t => {
-  t.is(1, 1)
-  t.ok(true)
+  assert.is(1, 1)
+  assert.ok(true)
 })
 
 t.browser('browser-only', t => {
-  t.is(1, 1)
-  t.ok(true)
+  assert.is(1, 1)
+  assert.ok(true)
 })
 
 t('async ok', async t => {
   await new Promise(ok => setTimeout(ok, 500))
-  t.pass('ok')
+  assert.pass('ok')
 })
 
 t.demo('demo-run', t => {
-  t.is(1, 1)
-  t.ok(false)
+  assert.is(1, 1)
+  assert.ok(false)
 })
 
 t.skip('this is skipped', t => {
-  t.pass('ok')
+  assert.pass('ok')
 })
 
 t.todo('to be done', t => {
-  t.is(1, 1)
-  t.ok(true)
+  assert.is(1, 1)
+  assert.ok(true)
 })
 
-t.fixme('to be fixed', t => {
-  t.is(1, 1)
-  t.ok(false)
+t.skip('to be fixed', t => {
+  assert.is(1, 1)
+  assert.ok(false)
 })
 
 t('async end', async t => {
