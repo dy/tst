@@ -4,12 +4,12 @@
   "version": "6.1.1",
   "repository": "dy/tst",
   "author": "Dmitry Iv.",
-  "main": "index.js",
-  "module": "index.js",
+  "main": "tst.js",
+  "module": "tst.js",
   "type": "module",
   "license": "MIT",
   "files": [
-    "index.js",
+    "tst.js",
     "assert.js"
   ],
   "scripts": {

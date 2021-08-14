@@ -1,4 +1,4 @@
-import {current} from './index.js'
+import {current} from './tst.js'
 
 export function ok(value, msg = 'should be truthy') {
   if (Boolean(value)) return current?.pass({operator: 'ok', message: msg})

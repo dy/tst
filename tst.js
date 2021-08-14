@@ -1,4 +1,4 @@
-const GREEN = '\u001b[32m', RED = '\u001b[31m', YELLOW = '\u001b[33m', RESET = '\u001b[0m', CYAN = '\u001b[36m'
+const GREEN = '\u001b[32m', RED = '\u001b[31m', YELLOW = '\u001b[33m', RESET = '\u001b[0m', CYAN = '\u001b[36m', GRAY = '\u001b[30m'
 const isNode = typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]'
 
 let assertIndex = 0
@@ -152,3 +152,5 @@ Promise.all([
 
   if (isNode) process.exit(failed ? 1 : 0)
 })
+
+export * from './assert.js'

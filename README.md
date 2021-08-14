@@ -1,19 +1,17 @@
 # tst
 
-Tests without <em>e</em>fforts.
+Test without <em>e</em>fforts.
 
 ## Gems
 
-* no tooling steps, vanilla ESM
-* works with any assert library: [assert](https://www.npmjs.com/package/assert), [chai](https://www.npmjs.com/package/chai) etc.
+* no tooling, vanilla ESM
+* works with any [assert](https://www.npmjs.com/package/assert), [chai](https://www.npmjs.com/package/chai) etc.
 * async functions support
 * inspectable errors
 * correct stacktrace with sourcemaps
-* better look & feel in console
+* better look & feel
 
 ## Usage
-
-[![npm install tst](https://nodei.co/npm/tst.png?mini=true)](https://npmjs.org/package/tst/)
 
 ```js
 import test, {ok,is,not,throws} from 'tst.js'
@@ -76,4 +74,4 @@ Creates output in console:
 * [tape-modern](https://ghub.io/tape-modern)
 * [@goto-bus-stop/tape-modern](https://github.com/goto-bus-stop/tape-modern#readme)
 
-<p align="right">🕉️</p>
+<p align="center">🕉️</p>

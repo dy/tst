@@ -1,5 +1,4 @@
-import t from './index.js'
-import * as assert from './assert.js'
+import t, * as assert from './tst.js'
 
 
 
@@ -37,7 +36,7 @@ t('passes', (pass) => {
   assert.not([0, 1], [0, 2])
   assert.not(1,2)
   assert.not({x:1},{x:2})
-  assert.not(document.createElement('a'),document.createElement('a'))
+  if (typeof document !== 'undefined') assert.not(document.createElement('a'),document.createElement('a'))
   assert.not(new Date,new Date(1))
 
   pass('ok')
