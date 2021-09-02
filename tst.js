@@ -96,7 +96,7 @@ function createTest(test) {
             console.assert(false, `${assertIndex} — ${msg}${RESET}`)
         // if (!this.demo) {
         test.assertion.push({ idx: assertIndex, msg, info, error: new Error() })
-        failed += 1
+        // failed += 1
         // }
       }
     }, test)
@@ -133,6 +133,7 @@ function createTest(test) {
 }
 
 // tests called via import() cause network delay, hopefully 100ms is ok
+// TODO: do run? with silent=false flag?
 Promise.all([
   new Promise(resolve => (typeof setImmediate !== 'undefined' ? setImmediate : requestIdleCallback)(resolve)),
   new Promise(resolve => setTimeout(resolve, 100))

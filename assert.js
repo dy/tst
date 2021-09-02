@@ -57,7 +57,7 @@ export function any(a, list, msg = 'should be one of') {
   })
 }
 
-export function almost (a, b, eps, msg = 'should almost equal') {
+export function almost (a, b, eps = 1.19209290e-7, msg = 'should almost equal') {
   if (
     isPrimitive(a) || isPrimitive(b) ? almostEqual(a, b, eps) :
     [...a].every((a0, i) => a0 === b[i] || almostEqual(a0, b[i], eps))
@@ -78,7 +78,7 @@ export function throws(fn, expects, msg = 'should throw') {
   } catch (err) {
     if (expects instanceof Error) {
       if (err.name === expects.name) return current?.pass({operator: 'throws', message: msg})
-      throw Assertion({
+      throw new Assertion({
         operator: 'throws',
         message: msg,
         actual: err.name,
@@ -86,7 +86,7 @@ export function throws(fn, expects, msg = 'should throw') {
       })
     } else if (expects instanceof RegExp) {
       if (expects.test(err.toString())) return current?.pass({operator: 'throws', message: msg})
-      throw Assertion({
+      throw new Assertion({
         operator: 'throws',
         message: msg,
         actual: err.toString(),
@@ -94,10 +94,17 @@ export function throws(fn, expects, msg = 'should throw') {
       })
     } else if (typeof expects === 'function') {
       if (expects(err)) return current?.pass({operator: 'throws', message: msg})
-      throw Assertion({
+      throw new Assertion({
         operator: 'throws',
         message: msg,
         actual: err
+      })
+    }
+    else if (expects == null) {
+      throw new Assertion({
+        operator: 'throws',
+        message: msg,
+        expects: 'throw',
       })
     }
     return current?.pass({operator: 'throws', message: msg})
