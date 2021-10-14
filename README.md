@@ -74,5 +74,6 @@ Creates output in console:
 * [uvu](https://github.com/lukeed/uvu)
 * [tape-modern](https://ghub.io/tape-modern)
 * [@goto-bus-stop/tape-modern](https://github.com/goto-bus-stop/tape-modern#readme)
+* [brittle](https://github.com/davidmarkclements/brittle)
 
 <p align="center">🕉️</p>
