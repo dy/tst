@@ -100,13 +100,6 @@ export function throws(fn, expects, msg = 'should throw') {
         actual: err
       })
     }
-    else if (expects == null) {
-      throw new Assertion({
-        operator: 'throws',
-        message: msg,
-        expects: 'throw',
-      })
-    }
     return current?.pass({operator: 'throws', message: msg})
   }
 }
