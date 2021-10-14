@@ -9,7 +9,8 @@ Test without <em>e</em>fforts.
 * async functions support
 * inspectable errors
 * correct stacktrace with sourcemaps
-* better look & feel
+* nice look & feel in browser/node
+* tiny bundle, 0dep
 
 ## Usage
 
