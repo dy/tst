@@ -1,5 +1,7 @@
 # Plan
 
+* [ ] Make `run` a separate trigger
+
 * [ ] Independent assert
   Now assert
   👎🏼 doesn't show passed test outside of test
@@ -12,10 +14,12 @@
   ? who needs message? Message is conveyed by test itself, isn't it? Or if test needs marking - it comes first, not last argument.
 
 * [ ] imbalanced pass/fail
-  If we count assertions, we should not block on first fail.
-  If we count cases, we should ignore passes.
-  Otherwise if there's 1 fail, it blocks further N (maybe hundred) assertions, else if there's no fails, it counts hundreds of passes.
+  . If we count assertions, we should not block on first fail.
+  . If we count cases, we should ignore assertions.
+  . Otherwise if there's 1 fail, it blocks further N (maybe hundred) assertions, else if there's no fails, it counts hundreds of passes.
   ? should we just count passed/failed tests, not assertions?
+    + that solves independent assert issue (no need exporting current)
+    + that reduces the number of expected
 
 * [ ] t.warn
   ? what's use case?
