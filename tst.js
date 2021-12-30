@@ -1,17 +1,18 @@
 const GREEN = '\u001b[32m', RED = '\u001b[31m', YELLOW = '\u001b[33m', RESET = '\u001b[0m', CYAN = '\u001b[36m', GRAY = '\u001b[30m'
 const isNode = typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]'
 
-let assertIndex = 0
-let index = 1
-let passed = 0
-let failed = 0
-let skipped = 0
-let only = 0
-let current = null
+let assertIndex = 0,
+    index = 1,
+    passed = 0,
+    failed = 0,
+    skipped = 0,
+    only = 0,
+    current = null,
+    start,
+    queue = new Promise(resolve => start = resolve)
+
 export {current}
 
-let start
-let queue = new Promise(resolve => start = resolve)
 
 export default function test(name, run) {
   if (!run) return test.todo(name)
