@@ -89,7 +89,7 @@ function createTest(test) {
 
         isNode ? (
           console.log(`${RED}× ${assertIndex} — ${msg}`),
-          (info?.actual ?? info?.expects ?? info?.expected) && (
+          (info && 'actual' in info) && (
             console.info(`actual:${RESET}`, typeof info.actual === 'string' ? JSON.stringify(info.actual) : info.actual, RED),
             console.info(`expects:${RESET}`, typeof (info.expects ?? info.expected) === 'string' ? JSON.stringify(info.expects ?? info.expected) : (info.expects ?? info.expected), RED),
             console.error(new Error, RESET)
