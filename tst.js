@@ -2,16 +2,16 @@ const GREEN = '\u001b[32m', RED = '\u001b[31m', YELLOW = '\u001b[33m', RESET = '
 const isNode = typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]'
 
 let assertIndex = 0,
-    index = 1,
-    passed = 0,
-    failed = 0,
-    skipped = 0,
-    only = 0,
-    current = null,
-    start,
-    queue = new Promise(resolve => start = resolve)
+  index = 1,
+  passed = 0,
+  failed = 0,
+  skipped = 0,
+  only = 0,
+  current = null,
+  start,
+  queue = new Promise(resolve => start = resolve)
 
-export {current}
+export { current }
 
 
 export default function test(name, run) {
@@ -30,12 +30,6 @@ test.only = function (name, run) {
 }
 test.demo = function (name, run) {
   return createTest({ name, run, demo: true, tag: 'demo' })
-}
-test.node = function (name, run) {
-  return createTest({ name, run, skip: !isNode, tag: 'node' })
-}
-test.browser = function (name, run) {
-  return createTest({ name, run, skip: isNode, tag: 'browser' })
 }
 
 function createTest(test) {
@@ -64,7 +58,7 @@ function createTest(test) {
           console.log(`${GREEN}(pass) ${arg}${RESET}`) :
           console.log(`%c(pass) ${arg}`, 'color: #229944')
 
-        let {operator: op, message: msg} = arg;
+        let { operator: op, message: msg } = arg;
 
         assertIndex++
         isNode ?
@@ -85,7 +79,7 @@ function createTest(test) {
         // when error is not assertion
         else if (arg.name !== 'Assertion') return console.error(arg)
 
-        let {operator: op, message: msg, ...info} = arg;
+        let { operator: op, message: msg, ...info } = arg;
 
         isNode ? (
           console.log(`${RED}× ${assertIndex} — ${msg}`),

@@ -17,7 +17,7 @@ t('passes', (pass) => {
 
   assert.is(1 + 1, 2);
   assert.is(Math.max(1, 2, 3), 3);
-  assert.is([1, {x: 2, y: { z: 3 }}], [1, {y: { z: 3 }, x: 2}]);
+  assert.is([1, { x: 2, y: { z: 3 } }], [1, { y: { z: 3 }, x: 2 }]);
 
   assert.throws(() => {
     throw new Error('oh no!');
@@ -34,18 +34,18 @@ t('passes', (pass) => {
   assert.same([0, 1], [1, 0])
 
   assert.not([0, 1], [0, 2])
-  assert.not(1,2)
-  assert.not({x:1},{x:2})
-  if (typeof document !== 'undefined') assert.not(document.createElement('a'),document.createElement('a'))
-  assert.not(new Date,new Date(1))
+  assert.not(1, 2)
+  assert.not({ x: 1 }, { x: 2 })
+  if (typeof document !== 'undefined') assert.not(document.createElement('a'), document.createElement('a'))
+  assert.not(new Date, new Date(1))
 
   pass('ok')
 })
 
 t('fails', function (pass, fail) {
   assert.is(42, '42');
-  assert.is({}, {x:1});
-  assert.is([1,2,3], [4,5,6], 'arrs')
+  assert.is({}, { x: 1 });
+  assert.is([1, 2, 3], [4, 5, 6], 'arrs')
 
   assert.any(1, [2, 3])
   assert.any(['a'], [['b'], ['c']])
@@ -56,8 +56,8 @@ t('fails', function (pass, fail) {
   assert.same([0, 1], [1, 0, 1])
 
   assert.not([0, 1], [0, 1])
-  assert.not(1,1)
-  assert.not({x:1},{x:1})
+  assert.not(1, 1)
+  assert.not({ x: 1 }, { x: 1 })
 
   fail('test failed')
 })
@@ -69,15 +69,15 @@ t('async fail', async (pass, fail) => {
 })
 
 
-t.node('node-only', (pass, fail) => {
-  assert.is(1, 1)
-  assert.ok(true)
-})
+// t.node('node-only', (pass, fail) => {
+//   assert.is(1, 1)
+//   assert.ok(true)
+// })
 
-t.browser('browser-only', (pass, fail) => {
-  assert.is(1, 1)
-  assert.ok(true)
-})
+// t.browser('browser-only', (pass, fail) => {
+//   assert.is(1, 1)
+//   assert.ok(true)
+// })
 
 t('async ok', async (pass, fail) => {
   await new Promise(ok => setTimeout(ok, 500))
