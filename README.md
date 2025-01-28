@@ -4,19 +4,20 @@ Test without <em>e</em>fforts.
 
 * tape API
 * no tooling, vanilla ESM
+* works both node/browser
 * async functions support
 * inspectable errors
-* correct stacktrace with sourcemaps
-* good l&f in browser/node
+* stacktrace with sourcemaps
+* clean l&f in browser/node
 * supports [assert](https://www.npmjs.com/package/assert), [chai](https://www.npmjs.com/package/chai) etc.
-* tiny bundle, 0dep
+* minimal, 0dep
 
 ## usage
 
 ```js
 import test, { ok, is, not, throws } from 'tst.js'
 
-test('pass', () => {
+test('tst demo test', () => {
 	ok(true);
 	ok(true, 'this time with an optional message');
 	ok('not true, but truthy enough');
@@ -29,22 +30,14 @@ test('pass', () => {
 		throw new Error('oh no!');
 	}, /oh no!/);
 })
-
-test('fail', () => {
-	is(42, '42');
-	is({}, {x:1});
-})
 ```
-
-Creates output in console:
-
-![preview](./preview.png)
 
 ## api
 
-* `test.skip` − bypass test, mutes output
-* `test.only` − run only the indicated test, can be multiple
-* `test.todo` − bypass test, indicate WIP sign
+* `test.only` − run only selected test(s)
+* `test.mute` − run test, mute assertions
+* `test.skip` − bypass test(s)
+* `test.todo` − bypass test(s), mark as WIP
 * `test.demo` − demo run, skips failed assertions.
 
 ## assert
@@ -53,7 +46,6 @@ Creates output in console:
 * `is(a, b, msg?)` − assert with `Object.is` for primitives and `deepEqual` for objects
 * `not(a, b, msg?)` - assert with `!Object.is` for primitives and `!deepEqual` for objects
 * `any(a, [a, b, c], msg?)` − assert with optional results
-* `almost(a, b, eps, msg?)` − assert approximate value/array
 * `same(listA, listB, msg?)` − assert same members of a list/set/map/object
 * `throws(fn, msg?)` − fn must throw
 * `pass(msg)`, `fail(msf)` − pass or fail the whole test.

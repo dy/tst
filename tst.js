@@ -1,7 +1,7 @@
 const GREEN = '\u001b[32m', RED = '\u001b[31m', YELLOW = '\u001b[33m', RESET = '\u001b[0m', CYAN = '\u001b[36m', GRAY = '\u001b[30m'
 const isNode = typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]'
 
-let assertIndex = 0,
+let assertc = 0,
   index = 1,
   passed = 0,
   failed = [],
@@ -40,7 +40,7 @@ function createTest(test) {
       skipped++
       if (only && !test.only) return test
       isNode ?
-        console.log(`${CYAN}» ${test.name}${test.tag ? ` (${test.tag})` : ''}${RESET}`) :
+        console.log(`${test.todo ? YELLOW : CYAN}» ${test.name}${test.tag ? ` (${test.tag})` : ''}${RESET}`) :
         console.log(`%c${test.name} ${test.todo ? '🚧' : '≫'}` + (test.tag ? ` (${test.tag})` : ''), 'color: #dadada')
       return test
     })
@@ -60,17 +60,17 @@ function createTest(test) {
 
         let { operator: op, message: msg } = arg;
 
-        assertIndex++
+        assertc++
         isNode ?
-          console.log(`${GREEN}√ ${assertIndex} ${op && `(${op})`} — ${msg}${RESET}`) :
-          console.log(`%c✔ ${assertIndex} ${op && `(${op})`} — ${msg}`, 'color: #229944')
+          console.log(`${GREEN}√ ${assertc} ${op && `(${op})`} — ${msg}${RESET}`) :
+          console.log(`%c✔ ${assertc} ${op && `(${op})`} — ${msg}`, 'color: #229944')
         // if (!this.demo) {
-        test.assertion.push({ idx: assertIndex, msg })
+        test.assertion.push({ idx: assertc, msg })
         passed += 1
         // }
       },
       fail(arg) {
-        assertIndex++
+        assertc++
 
         // FIXME: this syntax is due to chrome not always able to grasp the stack trace from source maps
         // console.error(RED + arg.stack, RESET)
@@ -82,16 +82,16 @@ function createTest(test) {
         let { operator: op, message: msg, ...info } = arg;
 
         isNode ? (
-          console.log(`${RED}× ${assertIndex} — ${msg}`),
+          console.log(`${RED}× ${assertc} — ${msg}`),
           (info && 'actual' in info) && (
             console.info(`actual:${RESET}`, typeof info.actual === 'string' ? JSON.stringify(info.actual) : info.actual, RED),
             console.info(`expect:${RESET}`, typeof (info.expect ?? info.expected) === 'string' ? JSON.stringify(info.expect ?? info.expected) : (info.expect ?? info.expected), RED),
             console.error(new Error, RESET)
           )
         ) :
-          info ? console.assert(false, `${assertIndex} — ${msg}${RESET}`, info) :
-            console.assert(false, `${assertIndex} — ${msg}${RESET}`)
-        test.assertion.push({ idx: assertIndex, msg, info, error: new Error() })
+          info ? console.assert(false, `${assertc} — ${msg}${RESET}`, info) :
+            console.assert(false, `${assertc} — ${msg}${RESET}`)
+        test.assertion.push({ idx: assertc, msg, info, error: new Error() })
       }
     }, test)
 
@@ -137,7 +137,7 @@ Promise.all([
   await queue
 
   // summary
-  console.log(`---\n`)
+  console.log(`───`)
   const total = passed + failed.length + skipped
   if (only) console.log(`# only ${only} cases`)
   console.log(`# total ${total}`)

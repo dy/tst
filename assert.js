@@ -57,20 +57,6 @@ export function any(a, list, msg = 'should be one of') {
   })
 }
 
-export function almost(a, b, eps = 1.19209290e-7, msg = 'should almost equal') {
-  if (
-    isPrimitive(a) || isPrimitive(b) ? almostEqual(a, b, eps) :
-      [...a].every((a0, i) => a0 === b[i] || almostEqual(a0, b[i], eps))
-  ) return current?.pass({ operator: 'almost', message: msg })
-
-  throw new Assertion({
-    operator: 'almost',
-    message: msg,
-    actual: slice(a),
-    expect: slice(b)
-  })
-}
-
 export function throws(fn, expect, msg = 'should throw') {
   try {
     fn()

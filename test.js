@@ -28,8 +28,8 @@ t('passes', (pass) => {
   assert.any(1, [1, 2, 3], 'one of')
   assert.any(['b'], [['a'], ['b']])
 
-  assert.almost(0.1, new Float32Array([0.1])[0])
-  assert.almost([0.1], new Float32Array([0.1]))
+  // assert.almost(0.1, new Float32Array([0.1])[0])
+  // assert.almost([0.1], new Float32Array([0.1]))
 
   assert.same([0, 1], [1, 0])
 
@@ -50,8 +50,8 @@ t('fails', function (pass, fail) {
   assert.any(1, [2, 3])
   assert.any(['a'], [['b'], ['c']])
 
-  assert.almost(0.11, new Float32Array([0.1])[0])
-  assert.almost([0.11], new Float32Array([0.1]))
+  // assert.almost(0.11, new Float32Array([0.1])[0])
+  // assert.almost([0.11], new Float32Array([0.1]))
 
   assert.same([0, 1], [1, 0, 1])
 
