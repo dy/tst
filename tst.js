@@ -4,7 +4,7 @@ const isNode = typeof process !== 'undefined' && Object.prototype.toString.call(
 let assertIndex = 0,
   index = 1,
   passed = 0,
-  failed = 0,
+  failed = [],
   skipped = 0,
   only = 0,
   current = null,
@@ -91,10 +91,7 @@ function createTest(test) {
         ) :
           info ? console.assert(false, `${assertIndex} — ${msg}${RESET}`, info) :
             console.assert(false, `${assertIndex} — ${msg}${RESET}`)
-        // if (!this.demo) {
         test.assertion.push({ idx: assertIndex, msg, info, error: new Error() })
-        // failed += 1
-        // }
       }
     }, test)
 
@@ -117,7 +114,7 @@ function createTest(test) {
       }
       catch (e) {
         test.fail(e)
-        if (!test.demo) failed += 1
+        if (!test.demo) failed.push([e.message, test])
       }
       finally {
         current = null
@@ -141,11 +138,14 @@ Promise.all([
 
   // summary
   console.log(`---\n`)
-  const total = passed + failed + skipped
+  const total = passed + failed.length + skipped
   if (only) console.log(`# only ${only} cases`)
   console.log(`# total ${total}`)
   if (passed) console.log(`%c# pass ${passed}`, 'color: #229944')
-  if (failed) console.log(`# fail ${failed}`)
+  if (failed.length === 1) {
+    let [msg, t] = failed[0]
+    console.log(`# fail ${failed.length} (${t.name} → ${msg}) ${failed.length > 1 ? `... ${failed.length} more` : ''}`)
+  }
   if (skipped) console.log(`# skip ${skipped}`)
 
   if (isNode) process.exit(failed ? 1 : 0)
