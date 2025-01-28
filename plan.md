@@ -1,8 +1,6 @@
-# Plan
-
 * [ ] Make `run` a separate trigger
 
-* [ ] Independent assert
+* [x] Independent assert
   Now assert
   👎🏼 doesn't show passed test outside of test
   👎🏼 depends on tst.js
@@ -10,7 +8,7 @@
   I wonder how much sense it makes to follow uvu pattern in that regard, or maybe easier to just make it separate.
   Or use brittle pattern where assert is returned by test.
 
-* [ ] assertions expect message arg, but it is almost never used, same time clutter args namespace making problematic props
+* [x] ~~assertions expect message arg, but it is almost never used, same time clutter args namespace making problematic props~~ -> we need message
   ? who needs message? Message is conveyed by test itself, isn't it? Or if test needs marking - it comes first, not last argument.
 
 * [ ] imbalanced pass/fail
@@ -26,7 +24,7 @@
 * [ ] t.warn
   ? what's use case?
 
-* [ ] t.silent
+* [x] t.silent -> t.mute
   * show collapsed unless errors
 
 * [ ] t().times(5)
