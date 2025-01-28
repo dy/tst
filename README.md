@@ -35,10 +35,10 @@ test('tst demo test', () => {
 ## api
 
 * `test.only` − run only selected test(s)
-* `test.mute` − run test, mute assertions
+* `test.mute` − run test(s), mute assertions
 * `test.skip` − bypass test(s)
 * `test.todo` − bypass test(s), mark as WIP
-* `test.demo` − demo run, skips failed assertions.
+* `test.demo` − demo run, skip failed assertions.
 
 ## assert
 
@@ -56,11 +56,5 @@ Testing should not involve maintaining test runner.<br/>
 It should be simple as [tap/tape](https://ghub.io/tape), working in browser/node, ESM, with nice l&f, done in a straightforward way.<br/>
 I wasn't able to find such test runner that so I had to create one.
 
-### similar
-
-* [uvu](https://github.com/lukeed/uvu)
-* [tape-modern](https://ghub.io/tape-modern)
-* [@goto-bus-stop/tape-modern](https://github.com/goto-bus-stop/tape-modern#readme)
-* [brittle](https://github.com/davidmarkclements/brittle)
 
 <p align="center"><a href="https://github.com/krishnized/license">🕉️</a></p>
