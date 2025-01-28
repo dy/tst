@@ -32,6 +32,10 @@ test.demo = function (name, run) {
   return createTest({ name, run, demo: true, tag: 'demo' })
 }
 
+test.mute = function (name, run) {
+  return createTest({ name, run, mute: true })
+}
+
 function createTest(test) {
   test.index = index++
 
@@ -41,7 +45,7 @@ function createTest(test) {
       if (only && !test.only) return test
       isNode ?
         console.log(`${test.todo ? YELLOW : CYAN}» ${test.name}${test.tag ? ` (${test.tag})` : ''}${RESET}`) :
-        console.log(`%c${test.name} ${test.todo ? '🚧' : '≫'}` + (test.tag ? ` (${test.tag})` : ''), 'color: #dadada')
+        console.log(`%c${test.name} ${test.todo ? '🚧' : '≫'}` + (test.tag ? ` (${test.tag})` : ''), 'color: gainsboro')
       return test
     })
   }
@@ -53,6 +57,8 @@ function createTest(test) {
       todo: false,
       only: false,
       demo: false,
+      mute: false,
+
       pass(arg) {
         if (typeof arg === 'string') return isNode ?
           console.log(`${GREEN}(pass) ${arg}${RESET}`) :
@@ -69,6 +75,7 @@ function createTest(test) {
         passed += 1
         // }
       },
+
       fail(arg) {
         assertc++
 
@@ -103,7 +110,7 @@ function createTest(test) {
 
       isNode ?
         console.log(`${RESET}${prev && (prev.skip || prev.todo) ? '\n' : ''}► ${test.name}${test.tag ? ` (${test.tag})` : ''}`) :
-        console.group(test.name + (test.tag ? ` (${test.tag})` : ''))
+        test.mute ? console.groupCollapsed(test.name + (test.tag ? ` (${test.tag})` : '')) : console.group(test.name + (test.tag ? ` (${test.tag})` : ''))
 
       let result
       try {
@@ -142,9 +149,9 @@ Promise.all([
   if (only) console.log(`# only ${only} cases`)
   console.log(`# total ${total}`)
   if (passed) console.log(`%c# pass ${passed}`, 'color: #229944')
-  if (failed.length === 1) {
+  if (failed.length) {
     let [msg, t] = failed[0]
-    console.log(`# fail ${failed.length} (${t.name} → ${msg}) ${failed.length > 1 ? `... ${failed.length} more` : ''}`)
+    console.log(`# fail ${failed.length} (${t.name} → ${msg})${failed.length > 1 ? `, ${failed.length -1} more...` : ''}`)
   }
   if (skipped) console.log(`# skip ${skipped}`)
 
