@@ -155,7 +155,7 @@ Promise.all([
   }
   if (skipped) console.log(`# skip ${skipped}`)
 
-  if (isNode) process.exit(failed ? 1 : 0)
+  if (isNode) process.exit(failed.length ? 1 : 0)
 })
 
 export * from './assert.js'
