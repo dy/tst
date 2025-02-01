@@ -1,7 +1,7 @@
 {
   "name": "tst",
   "description": "Tests without efforts",
-  "version": "8.0.1",
+  "version": "8.0.2",
   "repository": "dy/tst",
   "author": "Dmitry Iv.",
   "main": "tst.js",
