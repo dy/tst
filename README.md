@@ -56,6 +56,7 @@ Testing should not involve maintaining test runner.<br/>
 It should be simple as [tap/tape](https://ghub.io/tape), working in browser/node, ESM, with nice l&f, done in a straightforward way.<br/>
 I wasn't able to find such test runner that so I had to create one.
 
+* [testra](https://github.com/eliot-akira/testra)
 * [tape-modern](https://ghub.io/tape-modern)
 * [@goto-bus-stop/tape-modern](https://github.com/goto-bus-stop/tape-modern#readme)
 * [brittle](https://github.com/davidmarkclements/brittle)
