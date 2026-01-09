@@ -1,8 +1,8 @@
 * [x] importing a module like binaryen - that loads longer than 100ms causing tests to fail.
   - ✅ Fixed: auto-run now polls every 50ms until tests stabilize for 100ms (max 5s wait)
 
-* [ ] Make `run` a separate trigger
-  - `run()` is now exported, can be called explicitly
+* [x] Make `run` a separate trigger
+  - ✅ `run()` exported, can be called explicitly
   - Auto-run preserved for backward compat
 
 * [x] Error inside the test (not failure) doesn't get red color in terminal
@@ -25,21 +25,17 @@
   - ✅ Fixed: assertion numbers now reset per test (each test counts 1, 2, 3...)
   - Summary counts tests (pass/fail), not assertions
 
-* [ ] t.warn
-  ? what's use case?
+* ~~t.warn~~ - not planned (just use console.warn)
 
 * [x] t.silent -> t.mute
   * show collapsed unless errors
   - ✅ Fixed: `test.mute('name', fn)` suppresses output unless test fails
 
-* [ ] t().times(5)
-  * can be useful for benchmarks
+* ~~t().times(5)~~ - not planned (use dedicated benchmark tools)
 
-* [ ] t.deprecate()
-  Many tests are deprecated due to some reason. It's not always desirable to delete them, better have them around as evidence of wrong solutions. They're like, indicators of how API should not be organized, like, fail.
+* ~~t.deprecate()~~ - not planned (use test.skip with comment)
 
-* [ ] t.fork()
-  Some tests needs to be run independent of current deps stack - for eg. cross-tab testing
+* ~~t.fork()~~ - not planned (out of scope)
 
 ---
 
@@ -77,19 +73,23 @@
 * [x] Test filtering via CLI
   - ✅ Already exists: `TST_GREP=pattern node test.js` or `?grep=pattern` in browser
 
-* [x] Reporter interface
-  - ✅ Fixed: pluggable reporters via `run({ reporter })`
-  - `defaultReporter` - pretty colored output (default)
-  - `tapReporter` - TAP format for CI (`TST_TAP=1` or `?tap`)
-  - Custom: implement `testStart`, `testSkip`, `assertion`, `testPass`, `testFail`, `summary`
+* [x] Output format interface
+  - ✅ Fixed: pluggable formats via `run({ format })` or `TST_FORMAT=tap`
+  - `pretty` - colored output (default)
+  - `tap` - TAP format for CI, pipeable to faucet/tap-spec
+  - Custom: `formats.myFormat = { testStart, testSkip, assertion, testPass, testFail, summary }`
 
-* [ ] `t.plan(n)` - tape's assertion planning
+* ~~`t.plan(n)`~~ - not planned (async/await makes this less necessary)
 
-* [ ] Nested tests/subtests hierarchy
+* ~~Nested tests/subtests~~ - not planned (against minimal philosophy)
 
 ## Vision
 
-1. **Decouple** assert ↔ runner ↔ reporter (orthogonal design) ✅
+1. **Decouple** assert ↔ runner ↔ format (orthogonal design) ✅
 2. **Explicit** `run()` trigger instead of magic 100ms timeout ✅
 3. **Stateless assertions** that work anywhere ✅
-4. **Composable** hooks and plugins
+4. **Composable** hooks and plugins ✅
+
+---
+
+**Done.** Ship it. 🚀
