@@ -87,12 +87,12 @@
     <a href="?mute">?mute</a>
     <a href="?bail">?bail</a>
     <a href="?grep=async">?grep=async</a>
-    <a href="?grep=pass">?grep=pass</a>
+    <a href="?format=tap">?format=tap</a>
   </div>
 
   <p class="hint">
-    💡 URL params: <code>?grep=pattern</code> <code>?mute</code> <code>?bail</code><br>
-    💡 Node env: <code>TST_GREP=pattern</code> <code>TST_MUTE=1</code> <code>TST_BAIL=1</code>
+    💡 URL params: <code>?grep=pattern</code> <code>?mute</code> <code>?bail</code> <code>?format=tap</code><br>
+    💡 Node env: <code>TST_GREP=pattern</code> <code>TST_MUTE=1</code> <code>TST_BAIL=1</code> <code>TST_FORMAT=tap</code>
   </p>
 
   <div>
@@ -100,25 +100,25 @@
       <div class="cheat-section">
         <h4>Assertions</h4>
         <ul>
-          <li><code>ok(value)</code> — truthy</li>
-          <li><code>is(a, b)</code> — deep equal</li>
-          <li><code>not(a, b)</code> — not equal</li>
-          <li><code>same(a, b)</code> — same members</li>
-          <li><code>any(val, [...])</code> — one of</li>
-          <li><code>throws(fn)</code> — throws error</li>
-          <li><code>almost(a, b, ε)</code> — ~equal</li>
+          <li><code>ok(value)</code> — value is truthy</li>
+          <li><code>is(a, b)</code> — a equals b (deep)</li>
+          <li><code>not(a, b)</code> — a differs from b</li>
+          <li><code>same(a, b)</code> — arrays have same items</li>
+          <li><code>any(val, list)</code> — value is in list</li>
+          <li><code>throws(fn, match?)</code> — function throws</li>
+          <li><code>almost(a, b, eps?)</code> — floats are close</li>
         </ul>
       </div>
       <div class="cheat-section mod">
         <h4>Modifiers</h4>
         <ul>
-          <li><code>test(name, fn)</code> — basic test</li>
-          <li><code>test.skip(name, fn)</code> — skip</li>
-          <li><code>test.only(name, fn)</code> — only this</li>
-          <li><code>test.todo(name)</code> — placeholder</li>
-          <li><code>test.mute(name, fn)</code> — quiet</li>
-          <li><code>test.demo(name, fn)</code> — no fail</li>
-          <li><code>test.run({ timeout })</code> — run all</li>
+          <li><code>test(name, fn)</code> — define a test</li>
+          <li><code>test.skip(name, fn)</code> — skip this test</li>
+          <li><code>test.only(name, fn)</code> — run exclusively</li>
+          <li><code>test.todo(name, fn?)</code> — mark as planned</li>
+          <li><code>test.mute(name, fn)</code> — suppress output</li>
+          <li><code>test.demo(name, fn)</code> — ignore failures</li>
+          <li><code>test.run({ timeout, ...options })</code> — manually run tests</li>
         </ul>
       </div>
     </div>

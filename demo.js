@@ -1,10 +1,10 @@
 /**
  * Demo: shows tst API usage
- * Run: node demo.js (or open demo.html in browser)
+ * Run: node demo.js (or open index.html in browser)
  *
  * This is NOT the test suite - see test.js for actual tests.
  */
-import test, { ok, is, not, any, same, throws } from './tst.js'
+import test, { ok, is, not, any, same, throws, formats } from './tst.js'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Basic assertions

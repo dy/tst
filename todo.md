@@ -77,9 +77,11 @@
 * [x] Test filtering via CLI
   - ✅ Already exists: `TST_GREP=pattern node test.js` or `?grep=pattern` in browser
 
-* [ ] Reporter interface
-  - Currently locked into console output
-  - TAP output for CI integration
+* [x] Reporter interface
+  - ✅ Fixed: pluggable reporters via `run({ reporter })`
+  - `defaultReporter` - pretty colored output (default)
+  - `tapReporter` - TAP format for CI (`TST_TAP=1` or `?tap`)
+  - Custom: implement `testStart`, `testSkip`, `assertion`, `testPass`, `testFail`, `summary`
 
 * [ ] `t.plan(n)` - tape's assertion planning
 
@@ -87,7 +89,7 @@
 
 ## Vision
 
-1. **Decouple** assert ↔ runner ↔ reporter (orthogonal design)
-2. **Explicit** `run()` trigger instead of magic 100ms timeout
-3. **Stateless assertions** that work anywhere
+1. **Decouple** assert ↔ runner ↔ reporter (orthogonal design) ✅
+2. **Explicit** `run()` trigger instead of magic 100ms timeout ✅
+3. **Stateless assertions** that work anywhere ✅
 4. **Composable** hooks and plugins

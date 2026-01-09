@@ -10,7 +10,7 @@ Test without <em>e</em>fforts.
 * minimal, 0dep
 
 
-[**Demo**](https://dy.github.io/tst/demo.html)
+[**Demo**](https://dy.github.io/tst/)
 
 ## usage
 
@@ -66,7 +66,8 @@ await test.run({ grep: /api/, bail: true, mute: true, timeout: 10000 })
 ```bash
 TST_GREP=pattern node test.js  # filter by name
 TST_BAIL=1 node test.js        # stop on first failure
-TST_MUTE=1 node test.js        # hide passing tests, show only failures
+TST_MUTE=1 node test.js        # hide passing tests
+TST_FORMAT=tap node test.js    # TAP output (pipeable)
 ```
 
 **Browser** (URL params):
@@ -74,6 +75,36 @@ TST_MUTE=1 node test.js        # hide passing tests, show only failures
 test.html?grep=pattern
 test.html?bail
 test.html?mute
+test.html?format=tap
+```
+
+## output formats
+
+Default is `pretty` (colored). Use `tap` for CI or piping:
+
+```bash
+# TAP output
+TST_FORMAT=tap node test.js
+
+# Pipe to formatters
+TST_FORMAT=tap node test.js | npx faucet
+TST_FORMAT=tap node test.js | npx tap-spec
+```
+
+Custom formats:
+```js
+import test, { formats } from 'tst.js'
+
+formats.minimal = {
+  testStart() {},
+  testSkip(name) { console.log(`skip: ${name}`) },
+  assertion() {},
+  testPass(name) { console.log(`✓ ${name}`) },
+  testFail(name) { console.log(`✗ ${name}`) },
+  summary(s) { console.log(`${s.passed}/${s.passed + s.failed.length}`) }
+}
+
+await test.run({ format: 'minimal' })
 ```
 
 ## auto-run vs manual
