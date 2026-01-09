@@ -87,9 +87,9 @@ test.mute('muted test (assertions hidden)', () => {
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Manual pass/fail callbacks (legacy API)
+// Demo mode - failures don't affect exit code
 // ─────────────────────────────────────────────────────────────────────────────
 
-test('pass callback', (pass) => {
-  pass('custom pass message')
+test.demo('experimental feature', () => {
+  ok(true)  // this runs, failures here won't fail the whole suite
 })

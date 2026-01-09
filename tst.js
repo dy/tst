@@ -7,7 +7,7 @@
  * - Pluggable output formats (pretty, tap)
  */
 
-import { setReporter, Assertion } from './assert.js'
+import { onPass, Assertion } from './assert.js'
 
 const GREEN = '\x1b[32m', RED = '\x1b[31m', YELLOW = '\x1b[33m', RESET = '\x1b[0m', CYAN = '\x1b[36m', GRAY = '\x1b[90m'
 const isNode = typeof process !== 'undefined' && process.versions?.node
@@ -159,7 +159,7 @@ export default function test(name, fn, opts) {
 test.skip = (name, fn) => tests.push({ name, fn, type: 'skip' })
 test.todo = (name, fn) => tests.push({ name, fn, type: 'todo' })
 test.only = (name, fn, opts) => tests.push({ name, fn, opts, type: 'only' })
-test.demo = (name, fn, opts) => tests.push({ name, fn, opts, type: 'demo' })
+test.demo = (name, fn, opts) => tests.push({ name, fn, opts, type: 'demo' })  // demo: runs but failures don't affect exit code
 test.mute = (name, fn, opts) => tests.push({ name, fn, opts, type: 'mute' })
 test.run = (opts) => run(opts)
 
@@ -209,38 +209,32 @@ export async function run(opts = {}) {
 
     if (!mute) fmt.testStart(t.name, t.type, muted)
 
-    // Format captures assertion passes
-    setReporter(({ operator, message }) => {
+    // Hook assertion passes
+    onPass(({ operator, message }) => {
       state.assertCount++
       testAssertCount++
       if (!muted) fmt.assertion(testAssertCount, operator, message)
     })
 
-    // Backward-compat pass/fail callbacks
-    const pass = msg => msg && !muted && (isNode ? console.log(`${GREEN}(pass) ${msg}${RESET}`) : console.log(`%c(pass) ${msg}`, 'color: #229944'))
-    const fail = msg => msg && console.error(msg)
-
     const testTimeout = t.opts?.timeout ?? globalTimeout
-    let error = null
 
     try {
       await Promise.race([
-        t.fn(pass, fail),
+        t.fn(),
         new Promise((_, reject) => setTimeout(() => reject(new Error(`timeout after ${testTimeout}ms`)), testTimeout))
       ])
       state.passed++
       fmt.testPass(t.name, t.type, testAssertCount, muted)
       await new Promise(r => setTimeout(r))
     } catch (e) {
-      error = e
       state.assertCount++
       testAssertCount++
-      state.failed.push([e.message, t])
+      if (t.type !== 'demo') state.failed.push([e.message, t])  // demo failures don't affect exit code
       fmt.testFail(t.name, e, testAssertCount, muted)
 
-      if (bail) break
+      if (bail && t.type !== 'demo') break
     } finally {
-      setReporter(null)
+      onPass(null)
     }
   }
 

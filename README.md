@@ -53,6 +53,7 @@ test.skip('ignored', () => {})     // skip test
 test.todo('future feature')        // mark as todo
 test.only('focus', () => {})       // run only this
 test.mute('quiet', () => {})       // hide assertions, show summary
+test.demo('example', () => {})     // run but don't fail exit code
 ```
 
 ## config

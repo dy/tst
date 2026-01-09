@@ -155,6 +155,19 @@ await run('test.todo marks as todo', `
 })
 
 // =============================================================================
+// CORE: test.demo (failures don't affect exit code)
+// =============================================================================
+
+await run('test.demo failure does not fail run', `
+  import test, { ok } from './tst.js'
+  test.demo('demo fail', () => { ok(false) })
+  test('normal', () => { ok(true) })
+`, {
+  exitCode: 0,
+  stdout: ['demo fail', 'demo', '# pass 1']  // demo not counted in pass/fail
+})
+
+// =============================================================================
 // CORE: test without callback = todo
 // =============================================================================
 
@@ -386,14 +399,6 @@ await run('test.mute collapses output', `
 `, {
   exitCode: 0,
   stdout: ['# pass 1']
-})
-
-await run('pass() and fail() callbacks work', `
-  import test from './tst.js'
-  test('manual', (pass) => { pass('done') })
-`, {
-  exitCode: 0,
-  stdout: ['pass', 'done']
 })
 
 // =============================================================================

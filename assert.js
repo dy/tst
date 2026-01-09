@@ -18,14 +18,17 @@ export class Assertion extends Error {
 }
 Assertion.prototype.name = 'Assertion'
 
-// Reporter hook - test runner sets this to capture passes
-let reporter = null
-export function setReporter(fn) { reporter = fn }
+// Hook for test runner to capture passes
+let hook = null
+export function onPass(fn) { hook = fn }
 
-function report(operator, message) {
-  reporter?.({ operator, message })
+function report(op, msg) {
+  hook?.({ operator: op, message: msg })
   return true
 }
+
+// Deep or primitive equality
+const eq = (a, b) => isPrimitive(a) || isPrimitive(b) ? Object.is(a, b) : deq(a, b)
 
 export function ok(value, msg = 'should be truthy') {
   if (Boolean(value)) return report('ok', msg)
@@ -33,12 +36,12 @@ export function ok(value, msg = 'should be truthy') {
 }
 
 export function is(a, b, msg = 'should be equal') {
-  if (isPrimitive(a) || isPrimitive(b) ? Object.is(a, b) : deq(a, b)) return report('is', msg)
+  if (eq(a, b)) return report('is', msg)
   throw new Assertion({ operator: 'is', message: msg, actual: slice(a), expected: slice(b) })
 }
 
 export function not(a, b, msg = 'should differ') {
-  if (isPrimitive(a) || isPrimitive(b) ? !Object.is(a, b) : !deq(a, b)) return report('not', msg)
+  if (!eq(a, b)) return report('not', msg)
   throw new Assertion({ operator: 'not', message: msg, actual: slice(a), expected: slice(b) })
 }
 
@@ -48,8 +51,7 @@ export function same(a, b, msg = 'should have same members') {
 }
 
 export function any(a, list, msg = 'should be one of') {
-  if (list.some(b => isPrimitive(a) || isPrimitive(b) ? Object.is(a, b) : deq(a, b)))
-    return report('any', msg)
+  if (list.some(b => eq(a, b))) return report('any', msg)
   throw new Assertion({ operator: 'any', message: msg, actual: slice(a), expected: list.map(slice) })
 }
 
