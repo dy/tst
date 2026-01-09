@@ -54,7 +54,7 @@ function execute(code) {
     const cleanEnv = { ...process.env, FORCE_COLOR: '0' }
     delete cleanEnv.TST_GREP
     delete cleanEnv.TST_BAIL
-    delete cleanEnv.TST_QUIET
+    delete cleanEnv.TST_MUTE
 
     const child = spawn('node', ['--input-type=module', '-e', code], {
       cwd: __dirname,
@@ -494,25 +494,25 @@ await run('grep filters tests by name', `
 })
 
 // =============================================================================
-// NEW: Quiet mode (only show failures)
+// NEW: Mute mode (only show failures)
 // =============================================================================
 
-await run('quiet mode hides passing tests', `
+await run('mute mode hides passing tests', `
   import test, { ok } from './tst.js'
   test('pass1', () => ok(true))
   test('pass2', () => ok(true))
-  test.run({ quiet: true })
+  test.run({ mute: true })
 `, {
   exitCode: 0,
   stdout: ['# pass 2'],
   notStdout: ['pass1', 'pass2', '√']
 })
 
-await run('quiet mode shows failures', `
+await run('mute mode shows failures', `
   import test, { ok } from './tst.js'
   test('passes', () => ok(true))
   test('fails', () => ok(false))
-  test.run({ quiet: true })
+  test.run({ mute: true })
 `, {
   exitCode: 1,
   stdout: ['fails', '# fail 1'],

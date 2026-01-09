@@ -17,7 +17,7 @@ function getConfig() {
     return {
       grep: process.env.TST_GREP,
       bail: process.env.TST_BAIL === '1',
-      quiet: process.env.TST_QUIET === '1'
+      mute: process.env.TST_MUTE === '1'
     }
   }
   if (typeof location !== 'undefined') {
@@ -25,7 +25,7 @@ function getConfig() {
     return {
       grep: params.get('grep'),
       bail: params.has('bail'),
-      quiet: params.has('quiet')
+      mute: params.has('mute')
     }
   }
   return {}
@@ -61,7 +61,7 @@ export async function run(opts = {}) {
     timeout: globalTimeout = 5000,
     grep = config.grep ? new RegExp(config.grep, 'i') : null,
     bail = config.bail,
-    quiet = config.quiet
+    mute = config.mute
   } = opts
 
   state = { assertCount: 0, passed: 0, failed: [], skipped: 0 }
@@ -82,7 +82,7 @@ export async function run(opts = {}) {
 
     if (t.type === 'skip' || t.type === 'todo') {
       state.skipped++
-      if (!quiet) {
+      if (!mute) {
         isNode
           ? console.log(`${t.type === 'todo' ? YELLOW : CYAN}» ${t.name} (${t.type})${RESET}`)
           : console.log(`%c${t.name} ${t.type === 'todo' ? '🚧' : '≫'} (${t.type})`, 'color: gainsboro')
@@ -91,12 +91,14 @@ export async function run(opts = {}) {
     }
 
     // Mute mode: suppress assertion output, show summary
-    const muted = t.type === 'mute' || quiet
+    // In browser, test.mute uses collapsed group (still shows assertions)
+    // Global mute hides everything
+    const muted = mute || (isNode && t.type === 'mute')
     let testAssertCount = 0
     let groupOpened = false
 
-    // Header (skip in quiet mode unless it fails - we'll print retroactively)
-    if (!quiet) {
+    // Header (skip in mute mode unless it fails - we'll print retroactively)
+    if (!mute) {
       if (isNode) {
         console.log(`${RESET}► ${t.name}${t.type !== 'test' ? ` (${t.type})` : ''}`)
       } else {
@@ -111,8 +113,8 @@ export async function run(opts = {}) {
       testAssertCount++
       if (!muted) {
         isNode
-          ? console.log(`${GREEN}√ ${state.assertCount} (${operator}) — ${message}${RESET}`)
-          : console.log(`%c✔ ${state.assertCount} (${operator}) — ${message}`, 'color: #229944')
+          ? console.log(`${GREEN}√ ${testAssertCount} (${operator}) — ${message}${RESET}`)
+          : console.log(`%c✔ ${testAssertCount} (${operator}) — ${message}`, 'color: #229944')
       }
     })
 
@@ -133,6 +135,7 @@ export async function run(opts = {}) {
     } catch (e) {
       error = e
       state.assertCount++
+      testAssertCount++
       state.failed.push([e.message, t])
     } finally {
       setReporter(null)
@@ -140,21 +143,24 @@ export async function run(opts = {}) {
 
     // Output handling
     if (error) {
-      // Print test name if we were quiet
-      if (quiet && isNode) console.log(`${RESET}► ${t.name}`)
+      // Print test name if we were muted
+      if (mute && isNode) console.log(`${RESET}► ${t.name}`)
 
       const { message, actual, expected } = error
       if (error instanceof Assertion || error.name === 'Assertion') {
         isNode ? (
-          console.log(`${RED}× ${state.assertCount} — ${message}`),
+          console.log(`${RED}× ${testAssertCount} — ${message}`),
           actual !== undefined && (
             console.info(`actual:${RESET}`, typeof actual === 'string' ? JSON.stringify(actual) : actual, RED),
             console.info(`expected:${RESET}`, typeof expected === 'string' ? JSON.stringify(expected) : expected, RED),
             console.error(new Error, RESET)
           )
-        ) : console.assert(false, `${state.assertCount} — ${message}`, { actual, expected })
+        ) : console.assert(false, `${testAssertCount} — ${message}`, { actual, expected })
       } else {
-        isNode ? console.log(`${RED}× ${state.assertCount} — ${error.message}${RESET}`) : console.error(error)
+        // Regular error (not assertion) - show in red with stack
+        isNode
+          ? (console.log(`${RED}× ${testAssertCount} — ${error.message}${RESET}`), console.error(error))
+          : console.error(error)
       }
 
       // Bail on first failure
@@ -166,8 +172,8 @@ export async function run(opts = {}) {
 
     // Close group in browser, newline in node
     if (isNode) {
-      if (!quiet || error) console.log()
-      // Show mute summary only for explicit test.mute, not quiet mode
+      if (!mute || error) console.log()
+      // Show mute summary only for explicit test.mute, not global mute
       if (t.type === 'mute' && !error) console.log(`${GREEN}► ${t.name} (${testAssertCount} assertions)${RESET}\n`)
     } else if (groupOpened) {
       console.groupEnd()
@@ -182,10 +188,19 @@ export async function run(opts = {}) {
   console.log(`# total ${total}`)
   if (state.passed) isNode ? console.log(`${GREEN}# pass ${state.passed}${RESET}`) : console.log(`%c# pass ${state.passed}`, 'color: #229944')
 
-  // Show ALL failures
+  // Show failures (truncate if too many: first 3 + last)
   if (state.failed.length) {
     isNode ? console.log(`${RED}# fail ${state.failed.length}${RESET}`) : console.log(`%c# fail ${state.failed.length}`, 'color: #cc3300')
-    for (const [msg, t] of state.failed) {
+    const maxShow = 3
+    const truncate = state.failed.length > maxShow + 2  // Only truncate if skipping 2+
+    const shown = truncate ? state.failed.slice(0, maxShow) : state.failed
+    for (const [msg, t] of shown) {
+      isNode ? console.log(`${RED}  ✗ ${t.name}: ${msg}${RESET}`) : console.log(`%c  ✗ ${t.name}: ${msg}`, 'color: #cc3300')
+    }
+    if (truncate) {
+      const skipped = state.failed.length - maxShow - 1
+      isNode ? console.log(`${RED}  ⋮ ${skipped} more${RESET}`) : console.log(`%c  ⋮ ${skipped} more`, 'color: #cc3300')
+      const [msg, t] = state.failed[state.failed.length - 1]
       isNode ? console.log(`${RED}  ✗ ${t.name}: ${msg}${RESET}`) : console.log(`%c  ✗ ${t.name}: ${msg}`, 'color: #cc3300')
     }
   }
@@ -207,14 +222,14 @@ function scheduleAutoRun() {
   let lastCount = 0, waited = 0
   const check = () => {
     if (hasRun) return  // Manual run() was called, skip auto-run
-    waited += 50
-    if (tests.length === 0 && waited > 500) return  // No tests, exit
+    waited += 10
+    if (tests.length === 0 && waited > 200) return  // No tests, exit
     if (tests.length > 0 && tests.length === lastCount) { run(); return }  // Stable, run
     lastCount = tests.length
-    if (waited < 5000) setTimeout(check, 50)
+    if (waited < 5000) setTimeout(check, 10)
     else if (tests.length > 0) run()
   }
-  setTimeout(check, 50)
+  setTimeout(check, 10)
 }
 
 scheduleAutoRun()

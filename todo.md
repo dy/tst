@@ -5,7 +5,8 @@
   - `run()` is now exported, can be called explicitly
   - Auto-run preserved for backward compat
 
-* [ ] Error inside the test (not failure) doesn't get red color in terminal
+* [x] Error inside the test (not failure) doesn't get red color in terminal
+  - ✅ Fixed: errors now show in red with stack trace
 
 * [x] Independent assert
   Now assert
@@ -18,21 +19,18 @@
 * [x] ~~assertions expect message arg, but it is almost never used, same time clutter args namespace making problematic props~~ -> we need message
   ? who needs message? Message is conveyed by test itself, isn't it? Or if test needs marking - it comes first, not last argument.
 
-* [ ] imbalanced pass/fail
+* [x] imbalanced pass/fail
   - If there's 1 fail, it blocks further N (maybe hundred) assertions, else if there's no fails, it counts hundreds of passes.
   - This way assertion numeration is screwed due to previous fails
-  . If we count assertions, we should not block on first fail.
-  . If we count cases, we should ignore assertions.
-  ? should we just count passed/failed tests, not assertions?
-    + that solves independent assert issue (no need exporting current)
-    + that reduces the number of expected
-    - very dull output, no much point in having grouping
+  - ✅ Fixed: assertion numbers now reset per test (each test counts 1, 2, 3...)
+  - Summary counts tests (pass/fail), not assertions
 
 * [ ] t.warn
   ? what's use case?
 
 * [x] t.silent -> t.mute
   * show collapsed unless errors
+  - ✅ Fixed: `test.mute('name', fn)` suppresses output unless test fails
 
 * [ ] t().times(5)
   * can be useful for benchmarks
@@ -56,9 +54,11 @@
   - Assertions can't be used standalone without test runner
   - ✅ Fixed: assertions standalone, use `setReporter()` hook for integration
 
-* [ ] No test isolation
+* [x] No test isolation
   - Tests share same global environment
   - No beforeEach/afterEach hooks for setup/cleanup
+  - ✅ Not needed: explicit `run()` allows `await setup(); await run(); await cleanup()`
+  - `beforeEach` is just calling a function inside test body
 
 * [x] Silent assertion failures outside tests
   - If `current` is `null`, `ok(true)` returns `undefined` - no feedback
@@ -70,11 +70,12 @@
   - ✅ Fixed: `test('name', { timeout: 1000 }, fn)` or `run({ timeout: 5000 })`
   - Default: 5000ms
 
-* [ ] Setup/teardown hooks
+* [x] Setup/teardown hooks
   - `test.before()`, `test.after()`, `test.beforeEach()`, `test.afterEach()`
+  - ✅ Not needed: explicit `run()` makes this trivial: `setup(); await run(); cleanup()`
 
-* [ ] Test filtering via CLI
-  - `node test.js --grep "async"` or similar
+* [x] Test filtering via CLI
+  - ✅ Already exists: `TST_GREP=pattern node test.js` or `?grep=pattern` in browser
 
 * [ ] Reporter interface
   - Currently locked into console output

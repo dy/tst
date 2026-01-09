@@ -9,52 +9,85 @@
       max-width: 800px;
       margin: 40px auto;
       padding: 0 20px;
-      background: #1a1a2e;
-      color: #eee;
+      background: #fafafa;
+      color: #333;
     }
-    h1 { color: #fff; margin-bottom: 10px; }
-    .subtitle { color: #888; margin-bottom: 30px; }
+    h1 { color: #111; margin-bottom: 10px; }
+    .subtitle { color: #666; margin-bottom: 30px; }
+    .github {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      margin: 0;
+    }
+    .github a {
+      color: #ccc;
+      text-decoration: none;
+      font-size: 18px;
+    }
+    .github a:hover { color: #999; }
     .options {
-      background: #252540;
+      background: #fff;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        0 4px 12px rgba(0, 0, 0, 0.06);
       padding: 15px 20px;
       border-radius: 8px;
       margin-bottom: 20px;
     }
     .options a {
-      color: #6cf;
+      color: #0066cc;
       text-decoration: none;
       margin-right: 20px;
     }
     .options a:hover { text-decoration: underline; }
     .options code {
-      background: #333;
+      background: #f0f0f0;
       padding: 2px 6px;
       border-radius: 3px;
       font-size: 13px;
     }
     .hint {
-      color: #888;
+      color: #666;
       font-size: 13px;
       margin-top: 20px;
     }
+    .footer {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      margin: 0;
+    }
+    .footer a {
+      color: #ccc;
+      text-decoration: none;
+      font-size: 18px;
+    }
+    .footer a:hover { color: #999; }
   </style>
 </head>
 <body>
   <h1>tst</h1>
+  <p class="github"><a href="https://github.com/dy/tst" title="GitHub">⎇</a></p>
   <p class="subtitle">Minimal test runner — open DevTools console to see results</p>
 
   <div class="options">
     <strong>Options:</strong><br><br>
     <a href="?">Default</a>
-    <a href="?quiet">?quiet</a>
+    <a href="?mute">?mute</a>
     <a href="?bail">?bail</a>
     <a href="?grep=async">?grep=async</a>
     <a href="?grep=pass">?grep=pass</a>
   </div>
 
   <p class="hint">
-    💡 URL params: <code>?grep=pattern</code> <code>?quiet</code> <code>?bail</code><br>
-    💡 Node env: <code>TST_GREP=pattern</code> <code>TST_QUIET=1</code> <code>TST_BAIL=1</code>
+    💡 URL params: <code>?grep=pattern</code> <code>?mute</code> <code>?bail</code><br>
+    💡 Node env: <code>TST_GREP=pattern</code> <code>TST_MUTE=1</code> <code>TST_BAIL=1</code>
+  </p>
+
+  <p class="footer">
+    <a href="https://github.com/krishnized/license" title="Krishnized License">ॐ</a>
   </p>
 
   <script type="module" src="./demo.js"></script>

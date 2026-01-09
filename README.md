@@ -9,6 +9,9 @@ Test without <em>e</em>fforts.
 * clean output in browser/node
 * minimal, 0dep
 
+
+[**Demo**](https://dy.github.io/tst/demo.html)
+
 ## usage
 
 ```js
@@ -52,27 +55,44 @@ test.only('focus', () => {})       // run only this
 test.mute('quiet', () => {})       // hide assertions, show summary
 ```
 
-## configuration
+## config
+
+```js
+import test from 'tst.js'
+await test.run({ grep: /api/, bail: true, mute: true, timeout: 10000 })
+```
 
 **Node.js** (env vars):
 ```bash
 TST_GREP=pattern node test.js  # filter by name
 TST_BAIL=1 node test.js        # stop on first failure
-TST_QUIET=1 node test.js       # hide passing tests
+TST_MUTE=1 node test.js        # hide passing tests, show only failures
 ```
 
 **Browser** (URL params):
 ```
 test.html?grep=pattern
 test.html?bail
-test.html?quiet
+test.html?mute
 ```
 
-**Programmatic**:
+## auto-run vs manual
+
+By default, tests **auto-run** after imports settle:
+
 ```js
-import { run } from 'tst.js'
-await run({ grep: /api/, bail: true, quiet: true, timeout: 10000 })
+import test, { ok } from 'tst.js'
+test('auto', () => ok(true))  // runs automatically
 ```
+
+For manual control, call `test.run()` explicitly:
+
+```js
+import test, { ok } from 'tst.js'
+test('manual', () => ok(true))
+await test.run({ bail: true })  // disables auto-run
+```
+
 
 ## standalone assertions
 
@@ -104,4 +124,4 @@ It should be simple as [tap/tape](https://ghub.io/tape), working in browser/node
 * [pitesti](https://github.com/bengl/pitesti)
 -->
 
-<p align="center"><a href="https://github.com/krishnized/license">🕉️</a></p>
+<p align="center"><a href="https://github.com/krishnized/license">ॐ</a></p>
