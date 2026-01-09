@@ -1,118 +1,150 @@
 /**
- * tst - test runner
+ * tst - minimal test runner
  *
- * Architecture:
- * - No global mutable state (all state in closure)
- * - Decoupled from assertions (assertions work standalone)
- * - Explicit run() trigger (no magic timeouts)
+ * - Standalone assertions (assert.js works anywhere)
  * - Works in Node.js and browser
+ * - Async/await support with per-test timeout
  */
 
 import { setReporter, Assertion } from './assert.js'
 
-const GREEN = '\u001b[32m', RED = '\u001b[31m', YELLOW = '\u001b[33m', RESET = '\u001b[0m', CYAN = '\u001b[36m'
-const isNode = typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]'
+const GREEN = '\x1b[32m', RED = '\x1b[31m', YELLOW = '\x1b[33m', RESET = '\x1b[0m', CYAN = '\x1b[36m', GRAY = '\x1b[90m'
+const isNode = typeof process !== 'undefined' && process.versions?.node
 
-// ─────────────────────────────────────────────────────────────────────────────
-// State (encapsulated, reset on each run)
-// ─────────────────────────────────────────────────────────────────────────────
-
-let tests = []
-let state = null
-
-function resetState() {
-  state = {
-    assertCount: 0,
-    passed: 0,
-    failed: [],
-    skipped: 0,
-    only: 0
+// Config from env (node) or URL params (browser)
+function getConfig() {
+  if (isNode) {
+    return {
+      grep: process.env.TST_GREP,
+      bail: process.env.TST_BAIL === '1',
+      quiet: process.env.TST_QUIET === '1'
+    }
   }
+  if (typeof location !== 'undefined') {
+    const params = new URLSearchParams(location.search)
+    return {
+      grep: params.get('grep'),
+      bail: params.has('bail'),
+      quiet: params.has('quiet')
+    }
+  }
+  return {}
 }
+
+// State
+let tests = [], state
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Test registration
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default function test(name, fn) {
+export default function test(name, fn, opts) {
+  if (typeof fn === 'object') [fn, opts] = [opts, fn]
   if (!fn) return test.todo(name)
-  tests.push({ name, fn, type: 'test' })
+  tests.push({ name, fn, opts, type: 'test' })
 }
 
 test.skip = (name, fn) => tests.push({ name, fn, type: 'skip' })
 test.todo = (name, fn) => tests.push({ name, fn, type: 'todo' })
-test.only = (name, fn) => { tests.push({ name, fn, type: 'only' }); state && state.only++ }
-test.demo = (name, fn) => tests.push({ name, fn, type: 'demo' })
-test.mute = (name, fn) => tests.push({ name, fn, type: 'mute' })
+test.only = (name, fn, opts) => tests.push({ name, fn, opts, type: 'only' })
+test.demo = (name, fn, opts) => tests.push({ name, fn, opts, type: 'demo' })
+test.mute = (name, fn, opts) => tests.push({ name, fn, opts, type: 'mute' })
+test.run = (opts) => run(opts)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Test execution
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function run(opts = {}) {
-  resetState()
+  const config = getConfig()
+  const {
+    timeout: globalTimeout = 5000,
+    grep = config.grep ? new RegExp(config.grep, 'i') : null,
+    bail = config.bail,
+    quiet = config.quiet
+  } = opts
 
-  // Count only tests
-  state.only = tests.filter(t => t.type === 'only').length
-
-  let prev = null
+  state = { assertCount: 0, passed: 0, failed: [], skipped: 0 }
+  const only = tests.filter(t => t.type === 'only').length
 
   for (const t of tests) {
-    // Skip non-only tests if there are only tests
-    if (state.only && t.type !== 'only' && t.type !== 'skip' && t.type !== 'todo') {
+    // Skip non-only tests if there are .only tests
+    if (only && t.type !== 'only' && t.type !== 'skip' && t.type !== 'todo') {
+      state.skipped++
+      continue
+    }
+
+    // Grep filter
+    if (grep && !grep.test(t.name)) {
       state.skipped++
       continue
     }
 
     if (t.type === 'skip' || t.type === 'todo') {
       state.skipped++
-      const icon = t.type === 'todo' ? (isNode ? YELLOW : '🚧') : (isNode ? CYAN : '≫')
-      isNode
-        ? console.log(`${t.type === 'todo' ? YELLOW : CYAN}» ${t.name} (${t.type})${RESET}`)
-        : console.log(`%c${t.name} ${t.type === 'todo' ? '🚧' : '≫'} (${t.type})`, 'color: gainsboro')
-      prev = t
+      if (!quiet) {
+        isNode
+          ? console.log(`${t.type === 'todo' ? YELLOW : CYAN}» ${t.name} (${t.type})${RESET}`)
+          : console.log(`%c${t.name} ${t.type === 'todo' ? '🚧' : '≫'} (${t.type})`, 'color: gainsboro')
+      }
       continue
     }
 
-    // Print test header
-    isNode
-      ? console.log(`${RESET}${prev && (prev.type === 'skip' || prev.type === 'todo') ? '\n' : ''}► ${t.name}${t.type !== 'test' ? ` (${t.type})` : ''}`)
-      : t.type === 'mute'
-        ? console.groupCollapsed(t.name)
-        : console.group(t.name)
+    // Mute mode: suppress assertion output, show summary
+    const muted = t.type === 'mute' || quiet
+    let testAssertCount = 0
+    let groupOpened = false
 
-    // Set up reporter to capture passes
-    const testState = { assertCount: 0 }
-    setReporter(({ operator, message }) => {
-      testState.assertCount++
-      state.assertCount++
-      isNode
-        ? console.log(`${GREEN}√ ${state.assertCount} (${operator}) — ${message}${RESET}`)
-        : console.log(`%c✔ ${state.assertCount} (${operator}) — ${message}`, 'color: #229944')
-    })
-
-    // Create pass/fail callbacks for backward compatibility
-    const pass = (msg) => {
-      if (typeof msg === 'string') {
-        isNode
-          ? console.log(`${GREEN}(pass) ${msg}${RESET}`)
-          : console.log(`%c(pass) ${msg}`, 'color: #229944')
+    // Header (skip in quiet mode unless it fails - we'll print retroactively)
+    if (!quiet) {
+      if (isNode) {
+        console.log(`${RESET}► ${t.name}${t.type !== 'test' ? ` (${t.type})` : ''}`)
+      } else {
+        t.type === 'mute' ? console.groupCollapsed(t.name) : console.group(t.name)
+        groupOpened = true
       }
     }
-    const fail = (msg) => {
-      if (typeof msg === 'string') console.error(msg)
-    }
+
+    // Reporter captures assertion passes
+    setReporter(({ operator, message }) => {
+      state.assertCount++
+      testAssertCount++
+      if (!muted) {
+        isNode
+          ? console.log(`${GREEN}√ ${state.assertCount} (${operator}) — ${message}${RESET}`)
+          : console.log(`%c✔ ${state.assertCount} (${operator}) — ${message}`, 'color: #229944')
+      }
+    })
+
+    // Backward-compat pass/fail callbacks
+    const pass = msg => msg && !muted && (isNode ? console.log(`${GREEN}(pass) ${msg}${RESET}`) : console.log(`%c(pass) ${msg}`, 'color: #229944'))
+    const fail = msg => msg && console.error(msg)
+
+    const testTimeout = t.opts?.timeout ?? globalTimeout
+    let error = null
 
     try {
-      await t.fn(pass, fail)
+      await Promise.race([
+        t.fn(pass, fail),
+        new Promise((_, reject) => setTimeout(() => reject(new Error(`timeout after ${testTimeout}ms`)), testTimeout))
+      ])
       state.passed++
-      // Let any scheduled errors log
       await new Promise(r => setTimeout(r))
     } catch (e) {
+      error = e
       state.assertCount++
+      state.failed.push([e.message, t])
+    } finally {
+      setReporter(null)
+    }
 
-      if (e instanceof Assertion || e.name === 'Assertion') {
-        const { operator, message, actual, expected } = e
+    // Output handling
+    if (error) {
+      // Print test name if we were quiet
+      if (quiet && isNode) console.log(`${RESET}► ${t.name}`)
+
+      const { message, actual, expected } = error
+      if (error instanceof Assertion || error.name === 'Assertion') {
         isNode ? (
           console.log(`${RED}× ${state.assertCount} — ${message}`),
           actual !== undefined && (
@@ -120,58 +152,71 @@ export async function run(opts = {}) {
             console.info(`expected:${RESET}`, typeof expected === 'string' ? JSON.stringify(expected) : expected, RED),
             console.error(new Error, RESET)
           )
-        ) : (
-          console.assert(false, `${state.assertCount} — ${message}`, { actual, expected })
-        )
+        ) : console.assert(false, `${state.assertCount} — ${message}`, { actual, expected })
       } else {
-        isNode
-          ? console.log(`${RED}× ${state.assertCount} — ${e.message}${RESET}`)
-          : console.error(e)
+        isNode ? console.log(`${RED}× ${state.assertCount} — ${error.message}${RESET}`) : console.error(error)
       }
 
-      if (t.type !== 'demo') {
-        state.failed.push([e.message, t])
+      // Bail on first failure
+      if (bail) {
+        if (!isNode && groupOpened) console.groupEnd()
+        break
       }
-    } finally {
-      setReporter(null)
-      if (!isNode) console.groupEnd()
-      else console.log()
     }
 
-    prev = t
+    // Close group in browser, newline in node
+    if (isNode) {
+      if (!quiet || error) console.log()
+      // Show mute summary only for explicit test.mute, not quiet mode
+      if (t.type === 'mute' && !error) console.log(`${GREEN}► ${t.name} (${testAssertCount} assertions)${RESET}\n`)
+    } else if (groupOpened) {
+      console.groupEnd()
+    }
   }
 
   // Summary
   console.log(`───`)
   const total = state.passed + state.failed.length + state.skipped
-  if (state.only) console.log(`# only ${state.only} cases`)
+  if (grep) console.log(`${isNode ? GRAY : ''}# grep /${grep.source}/${grep.flags}${isNode ? RESET : ''}`)
+  if (only) console.log(`# only ${only} cases`)
   console.log(`# total ${total}`)
-  if (state.passed) console.log(`%c# pass ${state.passed}`, 'color: #229944')
+  if (state.passed) isNode ? console.log(`${GREEN}# pass ${state.passed}${RESET}`) : console.log(`%c# pass ${state.passed}`, 'color: #229944')
+
+  // Show ALL failures
   if (state.failed.length) {
-    const [msg, t] = state.failed[0]
-    console.log(`# fail ${state.failed.length} (${t.name} → ${msg})${state.failed.length > 1 ? `, ${state.failed.length - 1} more...` : ''}`)
+    isNode ? console.log(`${RED}# fail ${state.failed.length}${RESET}`) : console.log(`%c# fail ${state.failed.length}`, 'color: #cc3300')
+    for (const [msg, t] of state.failed) {
+      isNode ? console.log(`${RED}  ✗ ${t.name}: ${msg}${RESET}`) : console.log(`%c  ✗ ${t.name}: ${msg}`, 'color: #cc3300')
+    }
   }
-  if (state.skipped) console.log(`# skip ${state.skipped}`)
+  if (state.skipped) isNode ? console.log(`${GRAY}# skip ${state.skipped}${RESET}`) : console.log(`%c# skip ${state.skipped}`, 'color: gray')
 
-  // Clear tests for potential re-run
   tests = []
-
+  hasRun = true
   if (isNode) process.exit(state.failed.length ? 1 : 0)
-
   return state
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Auto-run (preserves backward compatibility)
-// Waits for imports to settle, then runs if tests were registered
+// Auto-run: wait for imports to settle, then run (skips if run() called manually)
 // ─────────────────────────────────────────────────────────────────────────────
 
-Promise.all([
-  new Promise(resolve => (typeof setImmediate !== 'undefined' ? setImmediate : requestIdleCallback)(resolve)),
-  new Promise(resolve => setTimeout(resolve, 100))
-]).then(() => {
-  if (tests.length > 0) run()
-})
+let hasRun = false
 
-// Re-export assertions for convenience
+function scheduleAutoRun() {
+  let lastCount = 0, waited = 0
+  const check = () => {
+    if (hasRun) return  // Manual run() was called, skip auto-run
+    waited += 50
+    if (tests.length === 0 && waited > 500) return  // No tests, exit
+    if (tests.length > 0 && tests.length === lastCount) { run(); return }  // Stable, run
+    lastCount = tests.length
+    if (waited < 5000) setTimeout(check, 50)
+    else if (tests.length > 0) run()
+  }
+  setTimeout(check, 50)
+}
+
+scheduleAutoRun()
+
 export * from './assert.js'

@@ -14,6 +14,6 @@
   ],
   "scripts": {
     "test": "node test.js",
-    "test:meta": "node test-runner.js"
+    "demo": "node demo.js"
   }
 }

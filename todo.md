@@ -1,6 +1,9 @@
-* [ ] importing a module like binaryen - that loads longer than 100ms causing tests to fail.
+* [x] importing a module like binaryen - that loads longer than 100ms causing tests to fail.
+  - ✅ Fixed: auto-run now polls every 50ms until tests stabilize for 100ms (max 5s wait)
 
 * [ ] Make `run` a separate trigger
+  - `run()` is now exported, can be called explicitly
+  - Auto-run preserved for backward compat
 
 * [ ] Error inside the test (not failure) doesn't get red color in terminal
 
@@ -63,9 +66,9 @@
 
 ## Missing Features
 
-* [ ] Test timeout per test
-  - A hanging test blocks everything forever
-  - `test('slow', { timeout: 5000 }, async () => { ... })`
+* [x] Test timeout per test
+  - ✅ Fixed: `test('name', { timeout: 1000 }, fn)` or `run({ timeout: 5000 })`
+  - Default: 5000ms
 
 * [ ] Setup/teardown hooks
   - `test.before()`, `test.after()`, `test.beforeEach()`, `test.afterEach()`

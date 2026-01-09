@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>tst demo</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background: #1a1a2e;
+      color: #eee;
+    }
+    h1 { color: #fff; margin-bottom: 10px; }
+    .subtitle { color: #888; margin-bottom: 30px; }
+    .options {
+      background: #252540;
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .options a {
+      color: #6cf;
+      text-decoration: none;
+      margin-right: 20px;
+    }
+    .options a:hover { text-decoration: underline; }
+    .options code {
+      background: #333;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 13px;
+    }
+    .hint {
+      color: #888;
+      font-size: 13px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>tst</h1>
+  <p class="subtitle">Minimal test runner — open DevTools console to see results</p>
+
+  <div class="options">
+    <strong>Options:</strong><br><br>
+    <a href="?">Default</a>
+    <a href="?quiet">?quiet</a>
+    <a href="?bail">?bail</a>
+    <a href="?grep=async">?grep=async</a>
+    <a href="?grep=pass">?grep=pass</a>
+  </div>
+
+  <p class="hint">
+    💡 URL params: <code>?grep=pattern</code> <code>?quiet</code> <code>?bail</code><br>
+    💡 Node env: <code>TST_GREP=pattern</code> <code>TST_QUIET=1</code> <code>TST_BAIL=1</code>
+  </p>
+
+  <script type="module" src="./demo.js"></script>
+</body>
+</html>

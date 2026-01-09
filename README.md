@@ -5,57 +5,92 @@ Test without <em>e</em>fforts.
 * no tooling, vanilla ESM
 * works both node/browser
 * async functions support
-* inspectable errors
-* stacktrace with sourcemaps
-* clean l&f in browser/node
-* supports [assert](https://www.npmjs.com/package/assert), [chai](https://www.npmjs.com/package/chai) etc.
+* per-test timeout
+* clean output in browser/node
 * minimal, 0dep
-* tape API
 
 ## usage
 
 ```js
-import test, { ok, is, not, throws } from 'tst.js'
+import test, { ok, is, not, throws, same, any } from 'tst.js'
 
-test('tst demo test', () => {
-	ok(true);
-	ok(true, 'this time with an optional message');
-	ok('not true, but truthy enough');
+test('basic', () => {
+  ok(true)
+  is(1 + 1, 2)
+  is({a: 1}, {a: 1})  // deep equality
+})
 
-	is(1 + 1, 2);
-	is(Math.max(1, 2, 3), 3);
-	is({}, {})
+test('async', async () => {
+  await fetch('/api')
+  ok(true)
+})
 
-	throws(() => {
-		throw new Error('oh no!');
-	}, /oh no!/);
+test('with timeout', { timeout: 1000 }, async () => {
+  // fails if takes >1s
 })
 ```
 
-## api
+## assertions
 
-* `test.only` − run only selected test(s)
-* `test.mute` − run test(s), mute assertions
-* `test.skip` − bypass test(s)
-* `test.todo` − bypass test(s), mark as WIP
-* `test.demo` − demo run, skip failed assertions.
+| Function | Description |
+|----------|-------------|
+| `ok(a, msg?)` | Assert truthy |
+| `is(a, b, msg?)` | Assert equal (`Object.is` for primitives, deep equal for objects) |
+| `not(a, b, msg?)` | Assert not equal |
+| `any(a, [x,y,z], msg?)` | Assert value is one of options |
+| `same(a, b, msg?)` | Assert same members (order-independent) |
+| `throws(fn, match?, msg?)` | Assert fn throws (optionally matching regex/class) |
+| `almost(a, b, eps?, msg?)` | Assert approximate equality |
+| `pass(msg)` / `fail(msg)` | Explicit pass/fail |
 
-## assert
+## test modifiers
 
-* `ok(a, msg?)` − generic truthfulness assert
-* `is(a, b, msg?)` − assert with `Object.is` for primitives and `deepEqual` for objects
-* `not(a, b, msg?)` - assert with `!Object.is` for primitives and `!deepEqual` for objects
-* `any(a, [a, b, c], msg?)` − assert with optional results
-* `same(listA, listB, msg?)` − assert same members of a list/set/map/object
-* `throws(fn, msg?)` − fn must throw
-* `pass(msg)`, `fail(msf)` − pass or fail the whole test.
+```js
+test.skip('ignored', () => {})     // skip test
+test.todo('future feature')        // mark as todo
+test.only('focus', () => {})       // run only this
+test.mute('quiet', () => {})       // hide assertions, show summary
+```
+
+## configuration
+
+**Node.js** (env vars):
+```bash
+TST_GREP=pattern node test.js  # filter by name
+TST_BAIL=1 node test.js        # stop on first failure
+TST_QUIET=1 node test.js       # hide passing tests
+```
+
+**Browser** (URL params):
+```
+test.html?grep=pattern
+test.html?bail
+test.html?quiet
+```
+
+**Programmatic**:
+```js
+import { run } from 'tst.js'
+await run({ grep: /api/, bail: true, quiet: true, timeout: 10000 })
+```
+
+## standalone assertions
+
+Assertions work without the test runner:
+
+```js
+import { ok, is } from 'tst/assert.js'
+
+ok(condition)  // returns true or throws Assertion error
+is(a, b)       // returns true or throws
+```
 
 ## why?
 
 Testing should not involve maintaining test runner.<br/>
-It should be simple as [tap/tape](https://ghub.io/tape), working in browser/node, ESM, with nice l&f, done in a straightforward way.<br/>
-I wasn't able to find such test runner that so I had to create one.
+It should be simple as [tap/tape](https://ghub.io/tape), working in browser/node, ESM, with nice output, done straightforwardly.
 
+<!--
 * [testra](https://github.com/eliot-akira/testra)
 * [tape-modern](https://ghub.io/tape-modern)
 * [@goto-bus-stop/tape-modern](https://github.com/goto-bus-stop/tape-modern#readme)
@@ -67,5 +102,6 @@ I wasn't able to find such test runner that so I had to create one.
 * [tape-es](https://github.com/vanillaes/tape-es)
 * [uvu](https://github.com/lukeed/uvu)
 * [pitesti](https://github.com/bengl/pitesti)
+-->
 
 <p align="center"><a href="https://github.com/krishnized/license">🕉️</a></p>

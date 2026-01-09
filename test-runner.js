@@ -419,11 +419,56 @@ await run('assertions work standalone (throw on fail)', `
 })
 
 await run('run() is exported', `
-  import { run } from './tst.js'
-  console.log('run type:', typeof run)
+  // Check that run is a function by importing and checking type
+  const mod = await import('./tst.js')
+  console.log('run type:', typeof mod.run)
+  // Exit immediately to prevent auto-run from executing
+  process.exit(typeof mod.run === 'function' ? 0 : 1)
 `, {
   exitCode: 0,
   stdout: ['run type: function']
+})
+
+// =============================================================================
+// NEW: Test timeout
+// =============================================================================
+
+await run('test timeout triggers on slow test', `
+  import test, { run } from './tst.js'
+  test('slow', { timeout: 50 }, async () => {
+    await new Promise(r => setTimeout(r, 200))
+  })
+`, {
+  exitCode: 1,
+  stdout: ['timeout after 50ms', '# fail 1']
+})
+
+await run('test completes before timeout', `
+  import test from './tst.js'
+  test('fast', { timeout: 1000 }, async () => {
+    await new Promise(r => setTimeout(r, 10))
+  })
+`, {
+  exitCode: 0,
+  stdout: ['# pass 1']
+})
+
+// =============================================================================
+// NEW: Slow imports (auto-run waits for test registration to stabilize)
+// =============================================================================
+
+await run('auto-run waits for slow imports', `
+  import test, { ok } from './tst.js'
+
+  // Simulate slow import with top-level await
+  await new Promise(r => setTimeout(r, 200))
+
+  test('after slow import', () => {
+    ok(true)
+  })
+`, {
+  exitCode: 0,
+  stdout: ['after slow import', '# pass 1']
 })
 
 // =============================================================================
