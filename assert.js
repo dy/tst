@@ -1,112 +1,95 @@
-import { current } from './tst.js'
+/**
+ * Standalone assertions - no dependency on test runner
+ *
+ * Each assertion:
+ * - Returns true on success
+ * - Throws Assertion error on failure
+ * - Works anywhere (inside or outside tests)
+ */
 
+export class Assertion extends Error {
+  constructor(opts = {}) {
+    super(opts.message)
+    if (Error.captureStackTrace) Error.captureStackTrace(this, this.constructor)
+    this.operator = opts.operator
+    this.expected = opts.expected
+    this.actual = opts.actual
+  }
+}
+Assertion.prototype.name = 'Assertion'
+
+// Reporter hook - test runner sets this to capture passes
+let reporter = null
+export function setReporter(fn) { reporter = fn }
+
+function report(operator, message) {
+  reporter?.({ operator, message })
+  return true
+}
 
 export function ok(value, msg = 'should be truthy') {
-  if (Boolean(value)) return current?.pass({ operator: 'ok', message: msg })
-
-  throw new Assertion({
-    operator: 'ok',
-    message: msg,
-    actual: value,
-    expect: true
-  })
+  if (Boolean(value)) return report('ok', msg)
+  throw new Assertion({ operator: 'ok', message: msg, actual: value, expected: true })
 }
 
-export function is(a, b, msg = 'should be the same') {
-  if (isPrimitive(a) || isPrimitive(b) ? Object.is(a, b) : deq(a, b)) return current?.pass({ operator: 'is', message: msg })
-
-  throw new Assertion({
-    operator: 'is',
-    message: msg,
-    actual: slice(a),
-    expect: slice(b)
-  })
+export function is(a, b, msg = 'should be equal') {
+  if (isPrimitive(a) || isPrimitive(b) ? Object.is(a, b) : deq(a, b)) return report('is', msg)
+  throw new Assertion({ operator: 'is', message: msg, actual: slice(a), expected: slice(b) })
 }
 
-export function not(a, b, msg = 'should be different') {
-  if (isPrimitive(a) || isPrimitive(b) ? !Object.is(a, b) : !deq(a, b)) return current?.pass({ operator: 'not', message: msg })
-
-  throw new Assertion({
-    operator: 'is not',
-    message: msg,
-    actual: slice(a),
-    // this contraption makes chrome debugger display nicer
-    expect: new class Not { constructor(a) { this.actual = a } }(a)
-  })
+export function not(a, b, msg = 'should differ') {
+  if (isPrimitive(a) || isPrimitive(b) ? !Object.is(a, b) : !deq(a, b)) return report('not', msg)
+  throw new Assertion({ operator: 'not', message: msg, actual: slice(a), expected: slice(b) })
 }
 
 export function same(a, b, msg = 'should have same members') {
-  if (sameMembers(a, b)) return current?.pass({ operator: 'same', message: msg })
-
-  throw new Assertion({
-    operator: 'same',
-    message: msg,
-    actual: a,
-    expect: b
-  })
+  if (sameMembers(a, b)) return report('same', msg)
+  throw new Assertion({ operator: 'same', message: msg, actual: a, expected: b })
 }
 
 export function any(a, list, msg = 'should be one of') {
   if (list.some(b => isPrimitive(a) || isPrimitive(b) ? Object.is(a, b) : deq(a, b)))
-    return current?.pass({ operator: 'any', message: msg })
-
-  throw new Assertion({
-    operator: 'any',
-    message: msg,
-    actual: slice(a),
-    expect: new (class Any extends Array { })(...list.map(b => slice(b)))
-  })
+    return report('any', msg)
+  throw new Assertion({ operator: 'any', message: msg, actual: slice(a), expected: list.map(slice) })
 }
 
-export function throws(fn, expect, msg = 'should throw') {
+export function throws(fn, expected, msg = 'should throw') {
   try {
     fn()
-    throw new Assertion({ operator: 'throws', message: msg, expect })
+    throw new Assertion({ operator: 'throws', message: msg, expected })
   } catch (err) {
-    if (err instanceof Assertion) throw err;
+    if (err instanceof Assertion) throw err
 
-    if (expect instanceof Error) {
-      if (err.name === expect.name) return current?.pass({ operator: 'throws', message: msg })
-      throw new Assertion({
-        operator: 'throws',
-        message: msg,
-        actual: err.name,
-        expect: expect.name
-      })
-    } else if (expect instanceof RegExp) {
-      if (expect.test(err.toString())) return current?.pass({ operator: 'throws', message: msg })
-      throw new Assertion({
-        operator: 'throws',
-        message: msg,
-        actual: err.toString(),
-        expect: expect
-      })
-    } else if (typeof expect === 'function') {
-      if (expect(err)) return current?.pass({ operator: 'throws', message: msg })
-      throw new Assertion({
-        operator: 'throws',
-        message: msg,
-        actual: err
-      })
+    if (expected instanceof Error) {
+      if (err.name === expected.name) return report('throws', msg)
+      throw new Assertion({ operator: 'throws', message: msg, actual: err.name, expected: expected.name })
     }
-
-    return current?.pass({ operator: 'throws', message: msg })
+    if (expected instanceof RegExp) {
+      if (expected.test(err.toString())) return report('throws', msg)
+      throw new Assertion({ operator: 'throws', message: msg, actual: err.toString(), expected })
+    }
+    if (typeof expected === 'function') {
+      if (expected(err)) return report('throws', msg)
+      throw new Assertion({ operator: 'throws', message: msg, actual: err })
+    }
+    return report('throws', msg)
   }
 }
 
 export function almost(a, b, eps = 1.19209290e-7, msg = 'should almost equal') {
-  if (
-    isPrimitive(a) || isPrimitive(b) ? almostEqual(a, b, eps) :
-      [...a].every((a0, i) => a0 === b[i] || almostEqual(a0, b[i], eps))
-  ) return current?.pass({ operator: 'almost', message: msg })
-  throw new Assertion({
-    operator: 'almost',
-    message: msg,
-    actual: slice(a),
-    expect: slice(b)
-  })
+  if (isPrimitive(a) || isPrimitive(b) ? almostEqual(a, b, eps) :
+    [...a].every((a0, i) => a0 === b[i] || almostEqual(a0, b[i], eps)))
+    return report('almost', msg)
+  throw new Assertion({ operator: 'almost', message: msg, actual: slice(a), expected: slice(b) })
 }
 
+// Convenience: explicit pass/fail
+export function pass(msg) { return report('pass', msg) }
+export function fail(msg) { throw new Assertion({ operator: 'fail', message: msg }) }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
 
 function deq(a, b) {
   if (a === b) return true
@@ -123,56 +106,30 @@ function deq(a, b) {
 }
 
 function isPrimitive(val) {
-  if (typeof val === 'object') {
-    return val === null;
-  }
-  return typeof val !== 'function';
+  if (typeof val === 'object') return val === null
+  return typeof val !== 'function'
 }
 
 function almostEqual(a, b, eps) {
   if (eps === undefined) {
-    eps = Math.min(
-      Math.max(
-        Math.abs(a - new Float32Array([a])[0]),
-        Math.abs(b - new Float32Array([b])[0])
-      ),
-      1.19209290e-7
-    )
+    eps = Math.min(Math.max(
+      Math.abs(a - new Float32Array([a])[0]),
+      Math.abs(b - new Float32Array([b])[0])
+    ), 1.19209290e-7)
   }
-
-  var d = Math.abs(a - b)
-
-  if (d <= eps) return true
-
-  return a === b
+  return Math.abs(a - b) <= eps || a === b
 }
 
 function sameMembers(a, b) {
-  a = Array.from(a), b = Array.from(b)
-
-  if (a.length !== b.length) return false;
-
-  if (!b.every(function (item) {
-    var idx = a.indexOf(item);
-    if (idx < 0) return false;
-    a.splice(idx, 1);
-    return true;
-  })) return false;
-
-  if (a.length) return false;
-
-  return true;
+  a = Array.from(a)
+  b = Array.from(b)
+  if (a.length !== b.length) return false
+  for (const item of b) {
+    const idx = a.indexOf(item)
+    if (idx < 0) return false
+    a.splice(idx, 1)
+  }
+  return a.length === 0
 }
 
 const slice = a => isPrimitive(a) ? a : a.slice ? a.slice() : Object.assign({}, a)
-
-export class Assertion extends Error {
-  constructor(opts = {}) {
-    super(opts.message);
-    if (Error.captureStackTrace) Error.captureStackTrace(this, this.constructor);
-    this.operator = opts.operator;
-    this.expect = opts.expect;
-    this.actual = opts.actual;
-  }
-}
-Assertion.prototype.name = 'Assertion'

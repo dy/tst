@@ -13,6 +13,7 @@
     "assert.js"
   ],
   "scripts": {
-    "test": "node test.js"
+    "test": "node test.js",
+    "test:meta": "node test-runner.js"
   }
 }

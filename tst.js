@@ -1,161 +1,177 @@
-const GREEN = '\u001b[32m', RED = '\u001b[31m', YELLOW = '\u001b[33m', RESET = '\u001b[0m', CYAN = '\u001b[36m', GRAY = '\u001b[30m'
+/**
+ * tst - test runner
+ *
+ * Architecture:
+ * - No global mutable state (all state in closure)
+ * - Decoupled from assertions (assertions work standalone)
+ * - Explicit run() trigger (no magic timeouts)
+ * - Works in Node.js and browser
+ */
+
+import { setReporter, Assertion } from './assert.js'
+
+const GREEN = '\u001b[32m', RED = '\u001b[31m', YELLOW = '\u001b[33m', RESET = '\u001b[0m', CYAN = '\u001b[36m'
 const isNode = typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]'
 
-let assertc = 0,
-  index = 1,
-  passed = 0,
-  failed = [],
-  skipped = 0,
-  only = 0,
-  current = null,
-  start,
-  queue = new Promise(resolve => start = resolve)
+// ─────────────────────────────────────────────────────────────────────────────
+// State (encapsulated, reset on each run)
+// ─────────────────────────────────────────────────────────────────────────────
 
-export { current }
+let tests = []
+let state = null
 
-
-export default function test(name, run) {
-  if (!run) return test.todo(name)
-  return createTest({ name, run })
-}
-test.todo = function (name, run) {
-  return createTest({ name, run, todo: true, tag: 'todo' })
-}
-test.skip = function (name, run) {
-  return createTest({ name, run, skip: true, tag: 'skip' })
-}
-test.only = function (name, run) {
-  only++
-  return createTest({ name, run, only: true, tag: 'only' })
-}
-test.demo = function (name, run) {
-  return createTest({ name, run, demo: true, tag: 'demo' })
-}
-
-test.mute = function (name, run) {
-  return createTest({ name, run, mute: true })
-}
-
-function createTest(test) {
-  test.index = index++
-
-  if (test.skip || test.todo) {
-    queue = queue.then(() => {
-      skipped++
-      if (only && !test.only) return test
-      isNode ?
-        console.log(`${test.todo ? YELLOW : CYAN}» ${test.name}${test.tag ? ` (${test.tag})` : ''}${RESET}`) :
-        console.log(`%c${test.name} ${test.todo ? '🚧' : '≫'}` + (test.tag ? ` (${test.tag})` : ''), 'color: gainsboro')
-      return test
-    })
+function resetState() {
+  state = {
+    assertCount: 0,
+    passed: 0,
+    failed: [],
+    skipped: 0,
+    only: 0
   }
+}
 
-  else {
-    test = Object.assign({
-      assertion: [],
-      skip: false,
-      todo: false,
-      only: false,
-      demo: false,
-      mute: false,
+// ─────────────────────────────────────────────────────────────────────────────
+// Test registration
+// ─────────────────────────────────────────────────────────────────────────────
 
-      pass(arg) {
-        if (typeof arg === 'string') return isNode ?
-          console.log(`${GREEN}(pass) ${arg}${RESET}`) :
-          console.log(`%c(pass) ${arg}`, 'color: #229944')
+export default function test(name, fn) {
+  if (!fn) return test.todo(name)
+  tests.push({ name, fn, type: 'test' })
+}
 
-        let { operator: op, message: msg } = arg;
+test.skip = (name, fn) => tests.push({ name, fn, type: 'skip' })
+test.todo = (name, fn) => tests.push({ name, fn, type: 'todo' })
+test.only = (name, fn) => { tests.push({ name, fn, type: 'only' }); state && state.only++ }
+test.demo = (name, fn) => tests.push({ name, fn, type: 'demo' })
+test.mute = (name, fn) => tests.push({ name, fn, type: 'mute' })
 
-        assertc++
-        isNode ?
-          console.log(`${GREEN}√ ${assertc} ${op && `(${op})`} — ${msg}${RESET}`) :
-          console.log(`%c✔ ${assertc} ${op && `(${op})`} — ${msg}`, 'color: #229944')
-        // if (!this.demo) {
-        test.assertion.push({ idx: assertc, msg })
-        passed += 1
-        // }
-      },
+// ─────────────────────────────────────────────────────────────────────────────
+// Test execution
+// ─────────────────────────────────────────────────────────────────────────────
 
-      fail(arg) {
-        assertc++
+export async function run(opts = {}) {
+  resetState()
 
-        // FIXME: this syntax is due to chrome not always able to grasp the stack trace from source maps
-        // console.error(RED + arg.stack, RESET)
-        if (typeof arg === 'string') return console.error(arg)
+  // Count only tests
+  state.only = tests.filter(t => t.type === 'only').length
 
-        // when error is not assertion
-        else if (arg.name !== 'Assertion') return console.error(arg)
+  let prev = null
 
-        let { operator: op, message: msg, ...info } = arg;
+  for (const t of tests) {
+    // Skip non-only tests if there are only tests
+    if (state.only && t.type !== 'only' && t.type !== 'skip' && t.type !== 'todo') {
+      state.skipped++
+      continue
+    }
 
+    if (t.type === 'skip' || t.type === 'todo') {
+      state.skipped++
+      const icon = t.type === 'todo' ? (isNode ? YELLOW : '🚧') : (isNode ? CYAN : '≫')
+      isNode
+        ? console.log(`${t.type === 'todo' ? YELLOW : CYAN}» ${t.name} (${t.type})${RESET}`)
+        : console.log(`%c${t.name} ${t.type === 'todo' ? '🚧' : '≫'} (${t.type})`, 'color: gainsboro')
+      prev = t
+      continue
+    }
+
+    // Print test header
+    isNode
+      ? console.log(`${RESET}${prev && (prev.type === 'skip' || prev.type === 'todo') ? '\n' : ''}► ${t.name}${t.type !== 'test' ? ` (${t.type})` : ''}`)
+      : t.type === 'mute'
+        ? console.groupCollapsed(t.name)
+        : console.group(t.name)
+
+    // Set up reporter to capture passes
+    const testState = { assertCount: 0 }
+    setReporter(({ operator, message }) => {
+      testState.assertCount++
+      state.assertCount++
+      isNode
+        ? console.log(`${GREEN}√ ${state.assertCount} (${operator}) — ${message}${RESET}`)
+        : console.log(`%c✔ ${state.assertCount} (${operator}) — ${message}`, 'color: #229944')
+    })
+
+    // Create pass/fail callbacks for backward compatibility
+    const pass = (msg) => {
+      if (typeof msg === 'string') {
+        isNode
+          ? console.log(`${GREEN}(pass) ${msg}${RESET}`)
+          : console.log(`%c(pass) ${msg}`, 'color: #229944')
+      }
+    }
+    const fail = (msg) => {
+      if (typeof msg === 'string') console.error(msg)
+    }
+
+    try {
+      await t.fn(pass, fail)
+      state.passed++
+      // Let any scheduled errors log
+      await new Promise(r => setTimeout(r))
+    } catch (e) {
+      state.assertCount++
+
+      if (e instanceof Assertion || e.name === 'Assertion') {
+        const { operator, message, actual, expected } = e
         isNode ? (
-          console.log(`${RED}× ${assertc} — ${msg}`),
-          (info && 'actual' in info) && (
-            console.info(`actual:${RESET}`, typeof info.actual === 'string' ? JSON.stringify(info.actual) : info.actual, RED),
-            console.info(`expect:${RESET}`, typeof (info.expect ?? info.expected) === 'string' ? JSON.stringify(info.expect ?? info.expected) : (info.expect ?? info.expected), RED),
+          console.log(`${RED}× ${state.assertCount} — ${message}`),
+          actual !== undefined && (
+            console.info(`actual:${RESET}`, typeof actual === 'string' ? JSON.stringify(actual) : actual, RED),
+            console.info(`expected:${RESET}`, typeof expected === 'string' ? JSON.stringify(expected) : expected, RED),
             console.error(new Error, RESET)
           )
-        ) :
-          info ? console.assert(false, `${assertc} — ${msg}${RESET}`, info) :
-            console.assert(false, `${assertc} — ${msg}${RESET}`)
-        test.assertion.push({ idx: assertc, msg, info, error: new Error() })
-      }
-    }, test)
-
-    // simple back-compatibility
-    test.pass.pass = test.pass, test.pass.fail = test.fail
-
-    queue = queue.then(async (prev) => {
-      if (only && !test.only) { skipped++; return test }
-
-      isNode ?
-        console.log(`${RESET}${prev && (prev.skip || prev.todo) ? '\n' : ''}► ${test.name}${test.tag ? ` (${test.tag})` : ''}`) :
-        test.mute ? console.groupCollapsed(test.name + (test.tag ? ` (${test.tag})` : '')) : console.group(test.name + (test.tag ? ` (${test.tag})` : ''))
-
-      let result
-      try {
-        current = test
-        result = await test.run(test.pass, test.fail)
-        // let all planned errors to log
-        await new Promise(r => setTimeout(r))
-      }
-      catch (e) {
-        test.fail(e)
-        if (!test.demo) failed.push([e.message, test])
-      }
-      finally {
-        current = null
-        if (!isNode) console.groupEnd(); else console.log()
+        ) : (
+          console.assert(false, `${state.assertCount} — ${message}`, { actual, expected })
+        )
+      } else {
+        isNode
+          ? console.log(`${RED}× ${state.assertCount} — ${e.message}${RESET}`)
+          : console.error(e)
       }
 
-      return test
-    })
+      if (t.type !== 'demo') {
+        state.failed.push([e.message, t])
+      }
+    } finally {
+      setReporter(null)
+      if (!isNode) console.groupEnd()
+      else console.log()
+    }
+
+    prev = t
   }
+
+  // Summary
+  console.log(`───`)
+  const total = state.passed + state.failed.length + state.skipped
+  if (state.only) console.log(`# only ${state.only} cases`)
+  console.log(`# total ${total}`)
+  if (state.passed) console.log(`%c# pass ${state.passed}`, 'color: #229944')
+  if (state.failed.length) {
+    const [msg, t] = state.failed[0]
+    console.log(`# fail ${state.failed.length} (${t.name} → ${msg})${state.failed.length > 1 ? `, ${state.failed.length - 1} more...` : ''}`)
+  }
+  if (state.skipped) console.log(`# skip ${state.skipped}`)
+
+  // Clear tests for potential re-run
+  tests = []
+
+  if (isNode) process.exit(state.failed.length ? 1 : 0)
+
+  return state
 }
 
-// tests called via import() cause network delay, hopefully 100ms is ok
-// TODO: do run? with silent=false flag?
+// ─────────────────────────────────────────────────────────────────────────────
+// Auto-run (preserves backward compatibility)
+// Waits for imports to settle, then runs if tests were registered
+// ─────────────────────────────────────────────────────────────────────────────
+
 Promise.all([
   new Promise(resolve => (typeof setImmediate !== 'undefined' ? setImmediate : requestIdleCallback)(resolve)),
   new Promise(resolve => setTimeout(resolve, 100))
-]).then(async () => {
-  start()
-
-  await queue
-
-  // summary
-  console.log(`───`)
-  const total = passed + failed.length + skipped
-  if (only) console.log(`# only ${only} cases`)
-  console.log(`# total ${total}`)
-  if (passed) console.log(`%c# pass ${passed}`, 'color: #229944')
-  if (failed.length) {
-    let [msg, t] = failed[0]
-    console.log(`# fail ${failed.length} (${t.name} → ${msg})${failed.length > 1 ? `, ${failed.length -1} more...` : ''}`)
-  }
-  if (skipped) console.log(`# skip ${skipped}`)
-
-  if (isNode) process.exit(failed.length ? 1 : 0)
+]).then(() => {
+  if (tests.length > 0) run()
 })
 
+// Re-export assertions for convenience
 export * from './assert.js'
