@@ -2,11 +2,11 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>tst demo</title>
+  <title>tst — minimal test runner</title>
   <style>
     body {
       font-family: system-ui, sans-serif;
-      max-width: 800px;
+      max-width: 900px;
       margin: 40px auto;
       padding: 0 20px;
       background: #fafafa;
@@ -26,31 +26,40 @@
       font-size: 18px;
     }
     .github a:hover { color: #999; }
-    .options {
+    .card {
       background: #fff;
       border: 1px solid rgba(0, 0, 0, 0.08);
       box-shadow:
         0 1px 2px rgba(0, 0, 0, 0.04),
         0 4px 12px rgba(0, 0, 0, 0.06);
-      padding: 15px 20px;
+      padding: 20px 20px;
       border-radius: 8px;
       margin-bottom: 20px;
     }
+    .card h3 { margin: 0 0 12px 0; color: #444; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .options h4 { margin: 0 0 10px 0; color: #666; font-size: 12px; text-transform: uppercase; }
     .options a {
       color: #0066cc;
       text-decoration: none;
       margin-right: 20px;
     }
     .options a:hover { text-decoration: underline; }
-    .options code {
+    code {
       background: #f0f0f0;
       padding: 2px 6px;
       border-radius: 3px;
       font-size: 13px;
     }
+    .cheat { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 600px) { .cheat { grid-template-columns: 1fr; } }
+    .cheat-section { margin-top: 20px;}
+    .cheat-section h4 { margin: 0 0 10px 0; color: #666; font-size: 12px; text-transform: uppercase; }
+    .cheat-section ul { margin: 0; padding: 0; list-style: none; }
+    .cheat-section li { margin: 10px 0; font-size: 13px; }
     .hint {
       color: #666;
       font-size: 13px;
+      line-height: 1.6;
       margin-top: 20px;
     }
     .footer {
@@ -72,8 +81,8 @@
   <p class="github"><a href="https://github.com/dy/tst" title="GitHub">⎇</a></p>
   <p class="subtitle">Minimal test runner — open DevTools console to see results</p>
 
-  <div class="options">
-    <strong>Options:</strong><br><br>
+  <div class="card options">
+    <h4>Options</h4>
     <a href="?">Default</a>
     <a href="?mute">?mute</a>
     <a href="?bail">?bail</a>
@@ -86,8 +95,37 @@
     💡 Node env: <code>TST_GREP=pattern</code> <code>TST_MUTE=1</code> <code>TST_BAIL=1</code>
   </p>
 
+  <div>
+    <div class="cheat">
+      <div class="cheat-section">
+        <h4>Assertions</h4>
+        <ul>
+          <li><code>ok(value)</code> — truthy</li>
+          <li><code>is(a, b)</code> — deep equal</li>
+          <li><code>not(a, b)</code> — not equal</li>
+          <li><code>same(a, b)</code> — same members</li>
+          <li><code>any(val, [...])</code> — one of</li>
+          <li><code>throws(fn)</code> — throws error</li>
+          <li><code>almost(a, b, ε)</code> — ~equal</li>
+        </ul>
+      </div>
+      <div class="cheat-section mod">
+        <h4>Modifiers</h4>
+        <ul>
+          <li><code>test(name, fn)</code> — basic test</li>
+          <li><code>test.skip(name, fn)</code> — skip</li>
+          <li><code>test.only(name, fn)</code> — only this</li>
+          <li><code>test.todo(name)</code> — placeholder</li>
+          <li><code>test.mute(name, fn)</code> — quiet</li>
+          <li><code>test.demo(name, fn)</code> — no fail</li>
+          <li><code>test.run({ timeout })</code> — run all</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
   <p class="footer">
-    <a href="https://github.com/krishnized/license" title="Krishnized License">ॐ</a>
+    <a href="https://github.com/nicefold/license" title="Nicefold License">ॐ</a>
   </p>
 
   <script type="module" src="./demo.js"></script>
