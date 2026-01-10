@@ -27,10 +27,6 @@ test('async', async () => {
   await fetch('/api')
   ok(true)
 })
-
-test('with timeout', { timeout: 1000 }, async () => {
-  // fails if takes >1s
-})
 ```
 
 ## assertions
@@ -46,7 +42,7 @@ test('with timeout', { timeout: 1000 }, async () => {
 | `almost(a, b, eps?, msg?)` | Assert approximate equality |
 | `pass(msg)` / `fail(msg)` | Explicit pass/fail |
 
-## test modifiers
+## modifiers
 
 ```js
 test.skip('ignored', () => {})     // skip test
@@ -58,12 +54,21 @@ test.demo('example', () => {})     // run but don't fail exit code
 
 ## config
 
+Manual run (disables auto-run):
+
 ```js
 import test from 'tst.js'
-await test.run({ grep: /api/, bail: true, mute: true, timeout: 10000 })
+await test.run({
+  grep: /api/,       // filter by name
+  bail: true,        // stop on first failure
+  mute: true,        // hide passing tests
+  timeout: 10000,    // fail if takes >10s
+  format: 'tap'      // pretty (default), tap or custom object
+})
 ```
 
-**Node.js** (env vars):
+Or env vars:
+
 ```bash
 TST_GREP=pattern node test.js  # filter by name
 TST_BAIL=1 node test.js        # stop on first failure
@@ -71,7 +76,7 @@ TST_MUTE=1 node test.js        # hide passing tests
 TST_FORMAT=tap node test.js    # TAP output (pipeable)
 ```
 
-**Browser** (URL params):
+Or URL params (browser):
 ```
 test.html?grep=pattern
 test.html?bail
@@ -79,63 +84,6 @@ test.html?mute
 test.html?format=tap
 ```
 
-## output formats
-
-Default is `pretty` (colored). Use `tap` for CI or piping:
-
-```bash
-# TAP output
-TST_FORMAT=tap node test.js
-
-# Pipe to formatters
-TST_FORMAT=tap node test.js | npx faucet
-TST_FORMAT=tap node test.js | npx tap-spec
-```
-
-Custom formats:
-```js
-import test, { formats } from 'tst.js'
-
-formats.minimal = {
-  testStart() {},
-  testSkip(name) { console.log(`skip: ${name}`) },
-  assertion() {},
-  testPass(name) { console.log(`✓ ${name}`) },
-  testFail(name) { console.log(`✗ ${name}`) },
-  summary(s) { console.log(`${s.passed}/${s.passed + s.failed.length}`) }
-}
-
-await test.run({ format: 'minimal' })
-```
-
-## auto-run vs manual
-
-By default, tests **auto-run** after imports settle:
-
-```js
-import test, { ok } from 'tst.js'
-test('auto', () => ok(true))  // runs automatically
-```
-
-For manual control, call `test.run()` explicitly:
-
-```js
-import test, { ok } from 'tst.js'
-test('manual', () => ok(true))
-await test.run({ bail: true })  // disables auto-run
-```
-
-
-## standalone assertions
-
-Assertions work without the test runner:
-
-```js
-import { ok, is } from 'tst/assert.js'
-
-ok(condition)  // returns true or throws Assertion error
-is(a, b)       // returns true or throws
-```
 
 ## why?
 
