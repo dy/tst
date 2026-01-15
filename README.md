@@ -1,4 +1,4 @@
-# tst
+# [tst](](https://dy.github.io/tst/))
 
 Test without <em>e</em>fforts.
 
@@ -7,8 +7,6 @@ Test without <em>e</em>fforts.
 * standalone assertions
 * async, timeouts, TAP
 * 0 deps, ~400 LOC
-
-[**Demo**](https://dy.github.io/tst/)
 
 ## usage
 
