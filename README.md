@@ -1,4 +1,4 @@
-# [tst](](https://dy.github.io/tst/))
+# [tst](https://dy.github.io/tst/)
 
 Test without <em>e</em>fforts.
 
