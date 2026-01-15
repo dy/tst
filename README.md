@@ -30,7 +30,7 @@ test('async', async ({ ok }) => {
 ```
 
 > [!TIP]
-> Assertions also exported as `{ ok, is, not, any, same, throws, almost, pass, fail }` for standalone use.
+> Assertions also exported as `{ ok, is, not, any, same, throws, rejects, almost, pass, fail }` for standalone use.
 
 ## assertions
 
@@ -42,6 +42,7 @@ test('async', async ({ ok }) => {
 | `any(a, [x,y,z], msg?)` | Assert value is one of options |
 | `same(a, b, msg?)` | Assert same members (order-independent) |
 | `throws(fn, match?, msg?)` | Assert fn throws (optionally matching regex/class) |
+| `rejects(fn, match?, msg?)` | Assert async fn rejects (optionally matching regex/class) |
 | `almost(a, b, eps?, msg?)` | Assert approximate equality |
 | `pass(msg)` / `fail(msg)` | Explicit pass/fail |
 

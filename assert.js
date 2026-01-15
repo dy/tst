@@ -78,6 +78,29 @@ export function throws(fn, expected, msg = 'should throw') {
   }
 }
 
+export async function rejects(fn, expected, msg = 'should reject') {
+  try {
+    await fn()
+    throw new Assertion({ operator: 'rejects', message: msg, expected })
+  } catch (err) {
+    if (err instanceof Assertion) throw err
+
+    if (expected instanceof Error) {
+      if (err.name === expected.name) return report('rejects', msg)
+      throw new Assertion({ operator: 'rejects', message: msg, actual: err.name, expected: expected.name })
+    }
+    if (expected instanceof RegExp) {
+      if (expected.test(err.toString())) return report('rejects', msg)
+      throw new Assertion({ operator: 'rejects', message: msg, actual: err.toString(), expected })
+    }
+    if (typeof expected === 'function') {
+      if (expected(err)) return report('rejects', msg)
+      throw new Assertion({ operator: 'rejects', message: msg, actual: err })
+    }
+    return report('rejects', msg)
+  }
+}
+
 export function almost(a, b, eps = 1.19209290e-7, msg = 'should almost equal') {
   if (isPrimitive(a) || isPrimitive(b) ? almostEqual(a, b, eps) :
     [...a].every((a0, i) => a0 === b[i] || almostEqual(a0, b[i], eps)))

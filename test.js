@@ -335,6 +335,40 @@ await run('throws() matches regex', `
 })
 
 // =============================================================================
+// ASSERTIONS: rejects
+// =============================================================================
+
+await run('rejects() passes when async fn rejects', `
+  import test, { rejects } from './tst.js'
+  test('rejects', async () => {
+    await rejects(async () => { throw new Error('x') })
+  })
+`, {
+  exitCode: 0,
+  stdout: ['# pass 1']
+})
+
+await run('rejects() fails when async fn resolves', `
+  import test, { rejects } from './tst.js'
+  test('rejects', async () => {
+    await rejects(async () => {})
+  })
+`, {
+  exitCode: 1,
+  stdout: ['# fail 1']
+})
+
+await run('rejects() matches regex', `
+  import test, { rejects } from './tst.js'
+  test('rejects', async () => {
+    await rejects(async () => { throw new Error('hello world') }, /hello/)
+  })
+`, {
+  exitCode: 0,
+  stdout: ['# pass 1']
+})
+
+// =============================================================================
 // ASSERTIONS: any
 // =============================================================================
 
