@@ -2,13 +2,11 @@
 
 Test without <em>e</em>fforts.
 
-* no tooling, vanilla ESM
-* works both node/browser
-* async functions support
-* per-test timeout
-* clean output in browser/node
-* minimal, 0dep
-
+* vanilla ESM — no build, no tooling
+* node + browser
+* standalone assertions
+* async, timeouts, TAP
+* 0 deps, ~400 LOC
 
 [**Demo**](https://dy.github.io/tst/)
 
@@ -93,8 +91,13 @@ test.html?format=tap
 
 ## why?
 
-Testing should not involve maintaining test runner.<br/>
-It should be simple as [tap/tape](https://ghub.io/tape), working in browser/node, ESM, with nice output, done straightforwardly.
+You want to test `add(1, 2) === 3`.
+
+Jest wants `jest.config.js`, `babel.config.js`, 200MB node_modules, transformation pipelines, mock systems.
+
+Testing should be: write test, run file, see result. No ceremony. No maintenance. No build step.
+
+Spiritual successor to [tape](https://ghub.io/tape) — works in browser, works in node, ESM-native, async-native, clean output.
 
 <!--
 * [testra](https://github.com/eliot-akira/testra)
