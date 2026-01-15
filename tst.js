@@ -159,11 +159,11 @@ export default function test(name, fn, opts) {
 
 test.skip = (name, fn) => tests.push({ name, fn, type: 'skip' })
 test.todo = (name, fn) => tests.push({ name, fn, type: 'todo' })
-test.only = (name, fn, opts) => tests.push({ name, fn, opts, type: 'only' })
-test.demo = (name, fn, opts) => tests.push({ name, fn, opts, type: 'demo' })  // demo: runs but failures don't affect exit code
-test.mute = (name, fn, opts) => tests.push({ name, fn, opts, type: 'mute' })
+test.only = (name, fn, opts) => { if (typeof fn === 'object') [fn, opts] = [opts, fn]; tests.push({ name, fn, opts, type: 'only' }) }
+test.demo = (name, fn, opts) => { if (typeof fn === 'object') [fn, opts] = [opts, fn]; tests.push({ name, fn, opts, type: 'demo' }) }
+test.mute = (name, fn, opts) => { if (typeof fn === 'object') [fn, opts] = [opts, fn]; tests.push({ name, fn, opts, type: 'mute' }) }
 test.run = (opts) => run(opts)
-test.fork = (name, fn, opts) => tests.push({ name, fn, opts, type: 'fork' })
+test.fork = (name, fn, opts) => { if (typeof fn === 'object') [fn, opts] = [opts, fn]; tests.push({ name, fn, opts, type: 'fork' }) }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Test execution
@@ -173,24 +173,28 @@ test.fork = (name, fn, opts) => tests.push({ name, fn, opts, type: 'fork' })
 async function runForked(t, testTimeout) {
   const fnStr = t.fn.toString()
   const baseUrl = import.meta.url
+  const data = t.opts?.data
+  const dataStr = JSON.stringify(data)
 
   if (isNode) {
     const { Worker } = await import('worker_threads')
     return new Promise((resolve, reject) => {
-      const worker = new Worker(`
-        import { parentPort, workerData } from 'worker_threads'
+      const code = `
+        import { parentPort } from 'worker_threads'
         import * as assert from '${new URL('./assert.js', baseUrl).href}'
 
         let assertCount = 0
         assert.onPass(() => assertCount++)
 
-        const fn = ${fnStr}
+        const fn = (${fnStr})
+        const data = ${dataStr}
         const start = performance.now()
-        ;(async () => fn(assert))().then(
+        ;(async () => fn(assert, data))().then(
           () => parentPort.postMessage({ ok: true, time: performance.now() - start, assertCount }),
           e => parentPort.postMessage({ ok: false, error: e.message, time: performance.now() - start, assertCount })
         )
-      `, { eval: true })
+      `
+      const worker = new Worker(code, { eval: true })
 
       const timer = setTimeout(() => {
         worker.terminate()
@@ -205,7 +209,7 @@ async function runForked(t, testTimeout) {
       worker.on('error', err => { clearTimeout(timer); worker.terminate(); reject(err) })
     })
   } else {
-    // Browser: Web Worker via Blob
+    // Browser: Web Worker via Blob — data passed via initial message
     return new Promise((resolve, reject) => {
       const blob = new Blob([`
         import * as assert from '${new URL('./assert.js', baseUrl).href}'
@@ -213,14 +217,21 @@ async function runForked(t, testTimeout) {
         let assertCount = 0
         assert.onPass(() => assertCount++)
 
-        const fn = ${fnStr}
-        const start = performance.now()
-        ;(async () => fn(assert))().then(
-          () => postMessage({ ok: true, time: performance.now() - start, assertCount }),
-          e => postMessage({ ok: false, error: e.message, time: performance.now() - start, assertCount })
-        )
+        const fn = (${fnStr})
+        
+        // Wait for data message, then run
+        self.onmessage = ({ data }) => {
+          const start = performance.now()
+          ;(async () => fn(assert, data))().then(
+            () => postMessage({ ok: true, time: performance.now() - start, assertCount }),
+            e => postMessage({ ok: false, error: e.message, time: performance.now() - start, assertCount })
+          )
+        }
       `], { type: 'application/javascript' })
       const worker = new Worker(URL.createObjectURL(blob), { type: 'module' })
+      
+      // Send data to worker
+      worker.postMessage(data)
 
       const timer = setTimeout(() => {
         worker.terminate()
@@ -303,7 +314,7 @@ export async function run(opts = {}) {
         fmt.testPass(t.name, t.type, testAssertCount, muted)
       } else {
         await Promise.race([
-          t.fn(assert),
+          t.fn(assert, t.opts?.data),
           new Promise((_, reject) => setTimeout(() => reject(new Error(`timeout after ${testTimeout}ms`)), testTimeout))
         ])
         state.passed++

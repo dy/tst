@@ -605,6 +605,31 @@ await run('summary lists all failures', `
 })
 
 // =============================================================================
+// FORK: isolated worker execution
+// =============================================================================
+
+await run('test.fork runs in isolated worker', `
+  import test, { ok } from './tst.js'
+  test.fork('isolated', ({ ok }) => {
+    ok(true)
+  })
+`, {
+  exitCode: 0,
+  stdout: ['# pass 1']
+})
+
+await run('test.fork receives data from opts', `
+  import test from './tst.js'
+  test.fork('with data', { data: { baseline: 42 } }, ({ ok, is }, data) => {
+    ok(data)
+    is(data.baseline, 42)
+  })
+`, {
+  exitCode: 0,
+  stdout: ['# pass 1']
+})
+
+// =============================================================================
 // SUMMARY
 // =============================================================================
 

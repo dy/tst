@@ -54,8 +54,11 @@ test.todo('future feature')        // mark as todo
 test.only('focus', t => {})        // run only this
 test.mute('quiet', t => {})        // hide assertions, show summary
 test.demo('example', t => {})      // run but don't fail exit code
-test.fork('isolate', t => {})      // run in worker thread
+test.fork('isolate', { data }?, (t, data) => {})      // run in worker thread (fresh V8 context)
 ```
+
+> [!NOTE]
+> Fork has no access to scope – `data` option for values, `await import()` for modules.
 
 
 ## config
