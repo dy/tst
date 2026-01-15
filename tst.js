@@ -208,7 +208,7 @@ async function runForked(t, testTimeout) {
           e => parentPort.postMessage({ ok: false, error: e.message, time: performance.now() - start, assertCount })
         )
       `
-      const worker = new Worker(code, { eval: 'module' })
+      const worker = new Worker(new URL(`data:text/javascript,${encodeURIComponent(code)}`))
 
       const timer = setTimeout(() => {
         worker.terminate()
