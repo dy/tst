@@ -151,7 +151,7 @@ await run('test.todo marks as todo', `
   test.todo('wip', () => { ok(true) })
 `, {
   exitCode: 0,
-  stdout: ['todo', '# skip 1']
+  stdout: ['🚧', '# skip 1']
 })
 
 // =============================================================================
@@ -176,7 +176,7 @@ await run('test without callback is todo', `
   test('future feature')
 `, {
   exitCode: 0,
-  stdout: ['todo', '# skip 1']
+  stdout: ['🚧', '# skip 1']
 })
 
 // =============================================================================
@@ -649,6 +649,37 @@ await run('test.fork serializes functions in data', `
 `, {
   exitCode: 0,
   stdout: ['# pass 1']
+})
+
+await run('test.fork resolves module imports', `
+  import test from './tst.js'
+  test.fork('imports work', async ({ ok }) => {
+    // Import local module - uses same resolution as bare specifiers
+    const assert = await import('./assert.js')
+    ok(typeof assert.ok === 'function')
+  })
+`, {
+  exitCode: 0,
+  stdout: ['# pass 1']
+})
+
+await run('options combine modifiers (fork+only)', `
+  import test, { ok } from './tst.js'
+  test('regular', () => ok(true))
+  test('fork+only', { fork: true, only: true }, ({ ok }) => ok(true))
+  test('skipped', () => ok(true))
+`, {
+  exitCode: 0,
+  stdout: ['fork+only', '# only 1', '# pass 1', '# skip 2']
+})
+
+await run('options combine modifiers (fork+demo)', `
+  import test, { ok } from './tst.js'
+  test('fork+demo', { fork: true, demo: true }, ({ ok }) => ok(false))
+  test('passes', () => ok(true))
+`, {
+  exitCode: 0,
+  stdout: ['fork+demo', '# pass 1']
 })
 
 // =============================================================================

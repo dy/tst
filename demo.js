@@ -106,7 +106,13 @@ test.fork('isolated computation', ({ is }) => {
   is(sum, 499999500000, 'computed in isolate')
 })
 
-test.fork('async in worker', async ({ ok, is }) => {
+test.fork('async in worker', { mute:true }, async ({ ok, is }) => {
+  await new Promise(r => setTimeout(r, 50))
+  ok(true, 'async works in fork')
+  is([1, 2], [1, 2], 'assertions available')
+})
+
+test.skip('async in worker 2', { fork:true }, async ({ ok, is }) => {
   await new Promise(r => setTimeout(r, 50))
   ok(true, 'async works in fork')
   is([1, 2], [1, 2], 'assertions available')

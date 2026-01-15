@@ -53,6 +53,9 @@ test.only('focus', t => {})        // run only this
 test.mute('quiet', t => {})        // hide assertions, show summary
 test.demo('example', t => {})      // run but don't fail exit code
 test.fork('isolate', t => {})      // run in worker thread (fresh V8 context)
+
+// Combine via options
+test('both', { fork: true, only: true }, t => {})
 ```
 
 > [!NOTE]

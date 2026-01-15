@@ -25,13 +25,16 @@ const log = (color, text, cssColor) => isNode
 export const formats = {
   pretty: {
     testStart(name, type, muted) {
-      if (muted) return
-      if (isNode) console.log(`${RESET}► ${name}${type !== 'test' ? ` (${type})` : ''}`)
-      else type === 'mute' ? console.groupCollapsed(name) : console.group(name)
+      if (isNode) {
+        if (!muted) console.log(`${RESET}► ${name}${type !== 'test' ? ` (${type})` : ''}`)
+      } else {
+        muted ? console.groupCollapsed(name) : console.group(name)
+      }
     },
 
     testSkip(name, type) {
-      log(type === 'todo' ? YELLOW : GRAY, `» ${name} (${type})`, 'gainsboro')
+      if (type === 'todo') log(YELLOW, `🚧 ${name}`, '#cc9900')
+      else log(GRAY, `» ${name} (skip)`, 'gainsboro')
     },
 
     assertion(n, operator, message) {
@@ -41,7 +44,7 @@ export const formats = {
     testPass(name, type, assertCount, muted) {
       if (isNode) {
         if (!muted) console.log()
-        if (type === 'mute') console.log(`${GREEN}► ${name} (${assertCount} assertions)${RESET}\n`)
+        if (type.includes('mute')) console.log(`${GREEN}► ${name} (${assertCount} assertions)${RESET}\n`)
       } else {
         console.groupEnd()
       }
@@ -145,17 +148,17 @@ let tests = [], state
 
 const register = (name, fn, opts, type) => {
   if (typeof fn === 'object') [fn, opts] = [opts, fn]
-  tests.push({ name, fn, opts, type })
+  tests.push({ name, fn, opts: { ...opts, [type]: true } })
 }
 
 export default function test(name, fn, opts) {
   if (typeof fn === 'object') [fn, opts] = [opts, fn]
   if (!fn) return test.todo(name)
-  tests.push({ name, fn, opts, type: 'test' })
+  tests.push({ name, fn, opts })
 }
 
-test.skip = (name, fn) => tests.push({ name, fn, type: 'skip' })
-test.todo = (name, fn) => tests.push({ name, fn, type: 'todo' })
+test.skip = (name, fn, opts) => register(name, fn, opts, 'skip')
+test.todo = (name, fn, opts) => register(name, fn, opts, 'todo')
 test.only = (name, fn, opts) => register(name, fn, opts, 'only')
 test.demo = (name, fn, opts) => register(name, fn, opts, 'demo')
 test.mute = (name, fn, opts) => register(name, fn, opts, 'mute')
@@ -182,7 +185,7 @@ const deserializerCode = `
 `
 
 // Fork execution: run test in isolated worker thread
-async function runForked(t, testTimeout) {
+async function runForked(t, testTimeout, onAssertion) {
   const fnStr = t.fn.toString()
   const baseUrl = import.meta.url
   const rawData = t.opts?.data
@@ -192,7 +195,6 @@ async function runForked(t, testTimeout) {
   if (isNode) {
     const { Worker } = await import('worker_threads')
     const { writeFileSync, unlinkSync } = await import('fs')
-    const { tmpdir } = await import('os')
     const { join } = await import('path')
 
     const code = `
@@ -200,20 +202,23 @@ async function runForked(t, testTimeout) {
       import * as assert from '${new URL('./assert.js', baseUrl).href}'
 
       let assertCount = 0
-      assert.onPass(() => assertCount++)
+      assert.onPass(({ operator, message }) => {
+        assertCount++
+        parentPort.postMessage({ type: 'assertion', operator, message, n: assertCount })
+      })
 
       ${deserializerCode}
       const fn = (${fnStr})
       const data = revive(${dataStr})
       const start = performance.now()
       ;(async () => fn(assert, data))().then(
-        () => parentPort.postMessage({ ok: true, time: performance.now() - start, assertCount }),
-        e => parentPort.postMessage({ ok: false, error: e.message, time: performance.now() - start, assertCount })
+        () => parentPort.postMessage({ type: 'done', ok: true, time: performance.now() - start, assertCount }),
+        e => parentPort.postMessage({ type: 'done', ok: false, error: e.message, time: performance.now() - start, assertCount })
       )
     `
 
-    // Write to temp file for proper module resolution (bare specifiers)
-    const tmpFile = join(tmpdir(), `tst-fork-${Date.now()}-${Math.random().toString(36).slice(2)}.mjs`)
+    // Write to cwd for proper module resolution (bare specifiers + relative imports)
+    const tmpFile = join(process.cwd(), `.tst-fork-${Date.now()}-${Math.random().toString(36).slice(2)}.mjs`)
     writeFileSync(tmpFile, code)
 
     return new Promise((resolve, reject) => {
@@ -228,10 +233,14 @@ async function runForked(t, testTimeout) {
       }, testTimeout)
 
       worker.on('message', msg => {
-        clearTimeout(timer)
-        worker.terminate()
-        cleanup()
-        msg.ok ? resolve(msg) : reject(Object.assign(new Error(msg.error), { time: msg.time, assertCount: msg.assertCount }))
+        if (msg.type === 'assertion') {
+          onAssertion?.(msg.n, msg.operator, msg.message)
+        } else if (msg.type === 'done') {
+          clearTimeout(timer)
+          worker.terminate()
+          cleanup()
+          msg.ok ? resolve(msg) : reject(Object.assign(new Error(msg.error), { time: msg.time, assertCount: msg.assertCount }))
+        }
       })
       worker.on('error', err => { clearTimeout(timer); worker.terminate(); cleanup(); reject(err) })
     })
@@ -242,7 +251,10 @@ async function runForked(t, testTimeout) {
         import * as assert from '${new URL('./assert.js', baseUrl).href}'
 
         let assertCount = 0
-        assert.onPass(() => assertCount++)
+        assert.onPass(({ operator, message }) => {
+          assertCount++
+          postMessage({ type: 'assertion', operator, message, n: assertCount })
+        })
 
         ${deserializerCode}
         const fn = (${fnStr})
@@ -252,8 +264,8 @@ async function runForked(t, testTimeout) {
           const data = revive(raw)
           const start = performance.now()
           ;(async () => fn(assert, data))().then(
-            () => postMessage({ ok: true, time: performance.now() - start, assertCount }),
-            e => postMessage({ ok: false, error: e.message, time: performance.now() - start, assertCount })
+            () => postMessage({ type: 'done', ok: true, time: performance.now() - start, assertCount }),
+            e => postMessage({ type: 'done', ok: false, error: e.message, time: performance.now() - start, assertCount })
           )
         }
       `], { type: 'application/javascript' })
@@ -268,9 +280,13 @@ async function runForked(t, testTimeout) {
       }, testTimeout)
 
       worker.onmessage = ({ data }) => {
-        clearTimeout(timer)
-        worker.terminate()
-        data.ok ? resolve(data) : reject(Object.assign(new Error(data.error), { time: data.time, assertCount: data.assertCount }))
+        if (data.type === 'assertion') {
+          onAssertion?.(data.n, data.operator, data.message)
+        } else if (data.type === 'done') {
+          clearTimeout(timer)
+          worker.terminate()
+          data.ok ? resolve(data) : reject(Object.assign(new Error(data.error), { time: data.time, assertCount: data.assertCount }))
+        }
       }
       worker.onerror = err => { clearTimeout(timer); worker.terminate(); reject(err) }
     })
@@ -292,15 +308,17 @@ export async function run(opts = {}) {
   if (!fmt) throw new Error(`Unknown format: ${format}`)
 
   state = { assertCount: 0, passed: 0, failed: [], skipped: 0 }
-  const only = tests.filter(t => t.type === 'only').length
+  const only = tests.filter(t => t.opts?.only).length
 
   for (const t of tests) {
-    // Skip: .only filter, grep filter, skip type, skip option
+    const o = t.opts || {}
+
+    // Skip: .only filter, grep filter, skip/todo
     const skipReason =
-      (only && t.type !== 'only' && t.type !== 'skip' && t.type !== 'todo') ? null :  // silent skip for .only
+      (only && !o.only && !o.skip && !o.todo) ? null :  // silent skip for .only
       (grep && !grep.test(t.name)) ? null :  // silent skip for grep
-      t.opts?.skip ? 'skip' :
-      (t.type === 'skip' || t.type === 'todo') ? t.type :
+      o.skip ? 'skip' :
+      o.todo ? 'todo' :
       false
 
     if (skipReason !== false) {
@@ -310,13 +328,15 @@ export async function run(opts = {}) {
     }
 
     // Mute mode: suppress assertion output
-    const muted = mute || (isNode && (t.type === 'mute' || t.type === 'fork'))
+    const muted = mute || o.mute
     let testAssertCount = 0
 
-    if (!mute) fmt.testStart(t.name, t.type, muted)
+    // Build type label for display
+    const typeLabel = [o.fork && 'fork', o.demo && 'demo', o.only && 'only', o.mute && 'mute'].filter(Boolean).join('+') || 'test'
+    if (!mute) fmt.testStart(t.name, typeLabel, muted)
 
-    // Hook assertion passes (skipped for fork - runs in isolate)
-    if (t.type !== 'fork') {
+    // Hook assertion passes
+    if (!o.fork) {
       onPass(({ operator, message }) => {
         state.assertCount++
         testAssertCount++
@@ -324,8 +344,8 @@ export async function run(opts = {}) {
       })
     }
 
-    const testTimeout = t.opts?.timeout ?? globalTimeout
-    const maxRetries = t.opts?.retry ?? 0
+    const testTimeout = o.timeout ?? globalTimeout
+    const maxRetries = o.retry ?? 0
     let lastError = null
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -333,14 +353,15 @@ export async function run(opts = {}) {
       lastError = null
 
       try {
-        if (t.type === 'fork') {
-          const result = await runForked(t, testTimeout)
+        if (o.fork) {
+          // Fork streams assertions live via callback
+          const onAssertion = muted ? null : (n, operator, message) => {
+            testAssertCount = n
+            fmt.assertion(n, operator, message)
+          }
+          const result = await runForked(t, testTimeout, onAssertion)
           state.assertCount += result.assertCount
           testAssertCount = result.assertCount
-          // Show timing + assertion count for fork tests
-          const timeStr = result.time < 1000 ? `${result.time.toFixed(2)}ms` : `${(result.time / 1000).toFixed(2)}s`
-          if (isNode) console.log(`${GREEN}√ fork (${result.assertCount} assertions) — ${timeStr}${RESET}`)
-          else console.log(`%c✔ fork (${result.assertCount} assertions) — ${timeStr}`, 'color: #229944')
         } else {
           await Promise.race([
             t.fn(assert, t.opts?.data),
@@ -351,7 +372,7 @@ export async function run(opts = {}) {
       } catch (e) {
         lastError = e
         // Fork tests: count assertions from worker
-        if (t.type === 'fork' && typeof e.assertCount === 'number') {
+        if (o.fork && typeof e.assertCount === 'number') {
           state.assertCount += e.assertCount + 1
           testAssertCount = e.assertCount + 1
         } else {
@@ -366,12 +387,12 @@ export async function run(opts = {}) {
     }
 
     if (lastError) {
-      if (t.type !== 'demo') state.failed.push([lastError.message, t])
+      if (!o.demo) state.failed.push([lastError.message, t])
       fmt.testFail(t.name, lastError, testAssertCount, muted)
-      if (bail && t.type !== 'demo') break
+      if (bail && !o.demo) break
     } else {
       state.passed++
-      fmt.testPass(t.name, t.type, testAssertCount, muted)
+      fmt.testPass(t.name, typeLabel, testAssertCount, muted)
     }
 
     await new Promise(r => setTimeout(r))
