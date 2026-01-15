@@ -54,11 +54,25 @@ test.todo('future feature')        // mark as todo
 test.only('focus', t => {})        // run only this
 test.mute('quiet', t => {})        // hide assertions, show summary
 test.demo('example', t => {})      // run but don't fail exit code
-test.fork('isolate', { data }?, (t, data) => {})      // run in worker thread (fresh V8 context)
+test.fork('isolate', t => {})      // run in worker thread (fresh V8 context)
+```
+
+## options
+
+```js
+test('name', {
+  timeout: 3000,     // override default 5000ms
+  data: { x: 1 },    // pass to callback as 2nd arg
+  skip: isCI,        // conditionally skip
+  retry: 3           // retry up to n times (flaky tests)
+}, (t, data) => {})
 ```
 
 > [!NOTE]
-> Fork has no access to scope – `data` option for values, `await import()` for modules.
+> Fork has no scope access — use `data` for values, `await import()` for modules.
+
+> [!NOTE]
+> Tests run sequentially. For parallelism, run separate test files.
 
 
 ## config

@@ -10,34 +10,32 @@
 import * as assert from './assert.js'
 import { onPass, Assertion } from './assert.js'
 
-const GREEN = '\x1b[32m', RED = '\x1b[31m', YELLOW = '\x1b[33m', RESET = '\x1b[0m', CYAN = '\x1b[36m', GRAY = '\x1b[90m'
+const GREEN = '\x1b[32m', RED = '\x1b[31m', YELLOW = '\x1b[33m', RESET = '\x1b[0m', GRAY = '\x1b[90m'
 const isNode = typeof process !== 'undefined' && process.versions?.node
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Output formats
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Helper: log with color (node) or CSS (browser)
+const log = (color, text, cssColor) => isNode 
+  ? console.log(`${color}${text}${RESET}`) 
+  : console.log(`%c${text}`, `color: ${cssColor}`)
+
 export const formats = {
   pretty: {
     testStart(name, type, muted) {
       if (muted) return
-      if (isNode) {
-        console.log(`${RESET}► ${name}${type !== 'test' ? ` (${type})` : ''}`)
-      } else {
-        type === 'mute' ? console.groupCollapsed(name) : console.group(name)
-      }
+      if (isNode) console.log(`${RESET}► ${name}${type !== 'test' ? ` (${type})` : ''}`)
+      else type === 'mute' ? console.groupCollapsed(name) : console.group(name)
     },
 
     testSkip(name, type) {
-      isNode
-        ? console.log(`${type === 'todo' ? YELLOW : CYAN}» ${name} (${type})${RESET}`)
-        : console.log(`%c${name} ${type === 'todo' ? '🚧' : '≫'} (${type})`, 'color: gainsboro')
+      log(type === 'todo' ? YELLOW : GRAY, `» ${name} (${type})`, 'gainsboro')
     },
 
     assertion(n, operator, message) {
-      isNode
-        ? console.log(`${GREEN}√ ${n} (${operator}) — ${message}${RESET}`)
-        : console.log(`%c✔ ${n} (${operator}) — ${message}`, 'color: #229944')
+      log(GREEN, `√ ${n} (${operator}) — ${message}`, '#229944')
     },
 
     testPass(name, type, assertCount, muted) {
@@ -53,21 +51,20 @@ export const formats = {
       if (muted && isNode) console.log(`${RESET}► ${name}`)
       const { message, actual, expected } = error
       if (error instanceof Assertion || error.name === 'Assertion') {
-        isNode ? (
-          console.log(`${RED}× ${assertCount} — ${message}`),
-          actual !== undefined && (
-            console.info(`actual:${RESET}`, typeof actual === 'string' ? JSON.stringify(actual) : actual, RED),
-            console.info(`expected:${RESET}`, typeof expected === 'string' ? JSON.stringify(expected) : expected, RED),
+        if (isNode) {
+          console.log(`${RED}× ${assertCount} — ${message}`)
+          if (actual !== undefined) {
+            console.info(`actual:${RESET}`, typeof actual === 'string' ? JSON.stringify(actual) : actual, RED)
+            console.info(`expected:${RESET}`, typeof expected === 'string' ? JSON.stringify(expected) : expected, RED)
             console.error(new Error, RESET)
-          )
-        ) : console.assert(false, `${assertCount} — ${message}`, { actual, expected })
+          }
+        } else {
+          console.assert(false, `${assertCount} — ${message}`, { actual, expected })
+        }
       } else {
-        isNode
-          ? (console.log(`${RED}× ${assertCount} — ${error.message}${RESET}`), console.error(error))
-          : console.error(error)
+        isNode ? (console.log(`${RED}× ${assertCount} — ${error.message}${RESET}`), console.error(error)) : console.error(error)
       }
-      if (isNode) console.log()
-      else console.groupEnd()
+      isNode ? console.log() : console.groupEnd()
     },
 
     summary(state, opts = {}) {
@@ -77,24 +74,19 @@ export const formats = {
       if (grep) console.log(`${isNode ? GRAY : ''}# grep /${grep.source}/${grep.flags}${isNode ? RESET : ''}`)
       if (only) console.log(`# only ${only} cases`)
       console.log(`# total ${total}`)
-      if (state.passed) isNode ? console.log(`${GREEN}# pass ${state.passed}${RESET}`) : console.log(`%c# pass ${state.passed}`, 'color: #229944')
-
+      if (state.passed) log(GREEN, `# pass ${state.passed}`, '#229944')
       if (state.failed.length) {
-        isNode ? console.log(`${RED}# fail ${state.failed.length}${RESET}`) : console.log(`%c# fail ${state.failed.length}`, 'color: #cc3300')
-        const maxShow = 3
-        const truncate = state.failed.length > maxShow + 2
+        log(RED, `# fail ${state.failed.length}`, '#cc3300')
+        const maxShow = 3, truncate = state.failed.length > maxShow + 2
         const shown = truncate ? state.failed.slice(0, maxShow) : state.failed
-        for (const [msg, t] of shown) {
-          isNode ? console.log(`${RED}  ✗ ${t.name}: ${msg}${RESET}`) : console.log(`%c  ✗ ${t.name}: ${msg}`, 'color: #cc3300')
-        }
+        for (const [msg, t] of shown) log(RED, `  ✗ ${t.name}: ${msg}`, '#cc3300')
         if (truncate) {
-          const skipped = state.failed.length - maxShow - 1
-          isNode ? console.log(`${RED}  ⋮ ${skipped} more${RESET}`) : console.log(`%c  ⋮ ${skipped} more`, 'color: #cc3300')
-          const [msg, t] = state.failed[state.failed.length - 1]
-          isNode ? console.log(`${RED}  ✗ ${t.name}: ${msg}${RESET}`) : console.log(`%c  ✗ ${t.name}: ${msg}`, 'color: #cc3300')
+          log(RED, `  ⋮ ${state.failed.length - maxShow - 1} more`, '#cc3300')
+          const [msg, t] = state.failed.at(-1)
+          log(RED, `  ✗ ${t.name}: ${msg}`, '#cc3300')
         }
       }
-      if (state.skipped) isNode ? console.log(`${GRAY}# skip ${state.skipped}${RESET}`) : console.log(`%c# skip ${state.skipped}`, 'color: gray')
+      if (state.skipped) log(GRAY, `# skip ${state.skipped}`, 'gray')
     }
   },
 
@@ -151,6 +143,11 @@ let tests = [], state
 // Test registration
 // ─────────────────────────────────────────────────────────────────────────────
 
+const register = (name, fn, opts, type) => {
+  if (typeof fn === 'object') [fn, opts] = [opts, fn]
+  tests.push({ name, fn, opts, type })
+}
+
 export default function test(name, fn, opts) {
   if (typeof fn === 'object') [fn, opts] = [opts, fn]
   if (!fn) return test.todo(name)
@@ -159,11 +156,11 @@ export default function test(name, fn, opts) {
 
 test.skip = (name, fn) => tests.push({ name, fn, type: 'skip' })
 test.todo = (name, fn) => tests.push({ name, fn, type: 'todo' })
-test.only = (name, fn, opts) => { if (typeof fn === 'object') [fn, opts] = [opts, fn]; tests.push({ name, fn, opts, type: 'only' }) }
-test.demo = (name, fn, opts) => { if (typeof fn === 'object') [fn, opts] = [opts, fn]; tests.push({ name, fn, opts, type: 'demo' }) }
-test.mute = (name, fn, opts) => { if (typeof fn === 'object') [fn, opts] = [opts, fn]; tests.push({ name, fn, opts, type: 'mute' }) }
+test.only = (name, fn, opts) => register(name, fn, opts, 'only')
+test.demo = (name, fn, opts) => register(name, fn, opts, 'demo')
+test.mute = (name, fn, opts) => register(name, fn, opts, 'mute')
+test.fork = (name, fn, opts) => register(name, fn, opts, 'fork')
 test.run = (opts) => run(opts)
-test.fork = (name, fn, opts) => { if (typeof fn === 'object') [fn, opts] = [opts, fn]; tests.push({ name, fn, opts, type: 'fork' }) }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Test execution
@@ -218,7 +215,7 @@ async function runForked(t, testTimeout) {
         assert.onPass(() => assertCount++)
 
         const fn = (${fnStr})
-        
+
         // Wait for data message, then run
         self.onmessage = ({ data }) => {
           const start = performance.now()
@@ -229,7 +226,7 @@ async function runForked(t, testTimeout) {
         }
       `], { type: 'application/javascript' })
       const worker = new Worker(URL.createObjectURL(blob), { type: 'module' })
-      
+
       // Send data to worker
       worker.postMessage(data)
 
@@ -266,21 +263,17 @@ export async function run(opts = {}) {
   const only = tests.filter(t => t.type === 'only').length
 
   for (const t of tests) {
-    // Skip non-only tests if there are .only tests
-    if (only && t.type !== 'only' && t.type !== 'skip' && t.type !== 'todo') {
-      state.skipped++
-      continue
-    }
+    // Skip: .only filter, grep filter, skip type, skip option
+    const skipReason = 
+      (only && t.type !== 'only' && t.type !== 'skip' && t.type !== 'todo') ? null :  // silent skip for .only
+      (grep && !grep.test(t.name)) ? null :  // silent skip for grep
+      t.opts?.skip ? 'skip' :
+      (t.type === 'skip' || t.type === 'todo') ? t.type : 
+      false
 
-    // Grep filter
-    if (grep && !grep.test(t.name)) {
+    if (skipReason !== false) {
       state.skipped++
-      continue
-    }
-
-    if (t.type === 'skip' || t.type === 'todo') {
-      state.skipped++
-      if (!mute) fmt.testSkip(t.name, t.type)
+      if (skipReason && !mute) fmt.testSkip(t.name, skipReason)
       continue
     }
 
@@ -300,43 +293,57 @@ export async function run(opts = {}) {
     }
 
     const testTimeout = t.opts?.timeout ?? globalTimeout
+    const maxRetries = t.opts?.retry ?? 0
+    let lastError = null
 
-    try {
-      if (t.type === 'fork') {
-        const result = await runForked(t, testTimeout)
-        state.passed++
-        state.assertCount += result.assertCount
-        testAssertCount = result.assertCount
-        // Show timing + assertion count for fork tests
-        const timeStr = result.time < 1000 ? `${result.time.toFixed(2)}ms` : `${(result.time / 1000).toFixed(2)}s`
-        if (isNode) console.log(`${GREEN}√ fork (${result.assertCount} assertions) — ${timeStr}${RESET}`)
-        else console.log(`%c✔ fork (${result.assertCount} assertions) — ${timeStr}`, 'color: #229944')
-        fmt.testPass(t.name, t.type, testAssertCount, muted)
-      } else {
-        await Promise.race([
-          t.fn(assert, t.opts?.data),
-          new Promise((_, reject) => setTimeout(() => reject(new Error(`timeout after ${testTimeout}ms`)), testTimeout))
-        ])
-        state.passed++
-        fmt.testPass(t.name, t.type, testAssertCount, muted)
-      }
-      await new Promise(r => setTimeout(r))
-    } catch (e) {
-      // Fork tests: count assertions from worker
-      if (t.type === 'fork' && typeof e.assertCount === 'number') {
-        state.assertCount += e.assertCount + 1
-        testAssertCount = e.assertCount + 1
-      } else {
-        state.assertCount++
-        testAssertCount++
-      }
-      if (t.type !== 'demo') state.failed.push([e.message, t])  // demo failures don't affect exit code
-      fmt.testFail(t.name, e, testAssertCount, muted)
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      testAssertCount = 0
+      lastError = null
 
-      if (bail && t.type !== 'demo') break
-    } finally {
-      onPass(null)
+      try {
+        if (t.type === 'fork') {
+          const result = await runForked(t, testTimeout)
+          state.assertCount += result.assertCount
+          testAssertCount = result.assertCount
+          // Show timing + assertion count for fork tests
+          const timeStr = result.time < 1000 ? `${result.time.toFixed(2)}ms` : `${(result.time / 1000).toFixed(2)}s`
+          if (isNode) console.log(`${GREEN}√ fork (${result.assertCount} assertions) — ${timeStr}${RESET}`)
+          else console.log(`%c✔ fork (${result.assertCount} assertions) — ${timeStr}`, 'color: #229944')
+        } else {
+          await Promise.race([
+            t.fn(assert, t.opts?.data),
+            new Promise((_, reject) => setTimeout(() => reject(new Error(`timeout after ${testTimeout}ms`)), testTimeout))
+          ])
+        }
+        break  // Success, exit retry loop
+      } catch (e) {
+        lastError = e
+        // Fork tests: count assertions from worker
+        if (t.type === 'fork' && typeof e.assertCount === 'number') {
+          state.assertCount += e.assertCount + 1
+          testAssertCount = e.assertCount + 1
+        } else {
+          state.assertCount++
+          testAssertCount++
+        }
+        if (attempt < maxRetries) {
+          if (isNode) console.log(`${YELLOW}↻ retry ${attempt + 1}/${maxRetries}${RESET}`)
+          else console.log(`%c↻ retry ${attempt + 1}/${maxRetries}`, 'color: orange')
+        }
+      }
     }
+
+    if (lastError) {
+      if (t.type !== 'demo') state.failed.push([lastError.message, t])
+      fmt.testFail(t.name, lastError, testAssertCount, muted)
+      if (bail && t.type !== 'demo') break
+    } else {
+      state.passed++
+      fmt.testPass(t.name, t.type, testAssertCount, muted)
+    }
+
+    await new Promise(r => setTimeout(r))
+    onPass(null)
   }
 
   fmt.summary(state, { grep, only })

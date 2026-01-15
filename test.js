@@ -630,6 +630,51 @@ await run('test.fork receives data from opts', `
 })
 
 // =============================================================================
+// OPTIONS: skip
+// =============================================================================
+
+await run('skip option skips test when truthy', `
+  import test, { ok } from './tst.js'
+  test('skipped', { skip: true }, () => ok(false))
+  test('runs', () => ok(true))
+`, {
+  exitCode: 0,
+  stdout: ['# skip 1', '# pass 1']
+})
+
+await run('skip option runs test when falsy', `
+  import test, { ok } from './tst.js'
+  test('runs', { skip: false }, () => ok(true))
+`, {
+  exitCode: 0,
+  stdout: ['# pass 1']
+})
+
+// =============================================================================
+// OPTIONS: retry
+// =============================================================================
+
+await run('retry option retries on failure', `
+  import test, { ok } from './tst.js'
+  let attempt = 0
+  test('flaky', { retry: 2 }, () => {
+    attempt++
+    ok(attempt >= 2)  // fails first, passes second
+  })
+`, {
+  exitCode: 0,
+  stdout: ['retry 1/2', '# pass 1']
+})
+
+await run('retry option fails after max retries', `
+  import test, { ok } from './tst.js'
+  test('always fails', { retry: 2 }, () => ok(false))
+`, {
+  exitCode: 1,
+  stdout: ['retry 1/2', 'retry 2/2', '# fail 1']
+})
+
+// =============================================================================
 // SUMMARY
 // =============================================================================
 
