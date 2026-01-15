@@ -191,36 +191,49 @@ async function runForked(t, testTimeout) {
 
   if (isNode) {
     const { Worker } = await import('worker_threads')
+    const { writeFileSync, unlinkSync } = await import('fs')
+    const { tmpdir } = await import('os')
+    const { join } = await import('path')
+
+    const code = `
+      import { parentPort } from 'worker_threads'
+      import * as assert from '${new URL('./assert.js', baseUrl).href}'
+
+      let assertCount = 0
+      assert.onPass(() => assertCount++)
+
+      ${deserializerCode}
+      const fn = (${fnStr})
+      const data = revive(${dataStr})
+      const start = performance.now()
+      ;(async () => fn(assert, data))().then(
+        () => parentPort.postMessage({ ok: true, time: performance.now() - start, assertCount }),
+        e => parentPort.postMessage({ ok: false, error: e.message, time: performance.now() - start, assertCount })
+      )
+    `
+
+    // Write to temp file for proper module resolution (bare specifiers)
+    const tmpFile = join(tmpdir(), `tst-fork-${Date.now()}-${Math.random().toString(36).slice(2)}.mjs`)
+    writeFileSync(tmpFile, code)
+
     return new Promise((resolve, reject) => {
-      const code = `
-        import { parentPort } from 'worker_threads'
-        import * as assert from '${new URL('./assert.js', baseUrl).href}'
+      // Clear execArgv to avoid inheriting --input-type flags that break imports
+      const worker = new Worker(tmpFile, { execArgv: [] })
 
-        let assertCount = 0
-        assert.onPass(() => assertCount++)
-
-        ${deserializerCode}
-        const fn = (${fnStr})
-        const data = revive(${dataStr})
-        const start = performance.now()
-        ;(async () => fn(assert, data))().then(
-          () => parentPort.postMessage({ ok: true, time: performance.now() - start, assertCount }),
-          e => parentPort.postMessage({ ok: false, error: e.message, time: performance.now() - start, assertCount })
-        )
-      `
-      const worker = new Worker(new URL(`data:text/javascript,${encodeURIComponent(code)}`))
-
+      const cleanup = () => { try { unlinkSync(tmpFile) } catch {} }
       const timer = setTimeout(() => {
         worker.terminate()
+        cleanup()
         reject(new Error(`timeout after ${testTimeout}ms`))
       }, testTimeout)
 
       worker.on('message', msg => {
         clearTimeout(timer)
         worker.terminate()
+        cleanup()
         msg.ok ? resolve(msg) : reject(Object.assign(new Error(msg.error), { time: msg.time, assertCount: msg.assertCount }))
       })
-      worker.on('error', err => { clearTimeout(timer); worker.terminate(); reject(err) })
+      worker.on('error', err => { clearTimeout(timer); worker.terminate(); cleanup(); reject(err) })
     })
   } else {
     // Browser: Web Worker via Blob — data passed via initial message
@@ -247,7 +260,7 @@ async function runForked(t, testTimeout) {
       const worker = new Worker(URL.createObjectURL(blob), { type: 'module' })
 
       // Send serialized data to worker (parsed JSON, functions as markers)
-      worker.postMessage(JSON.parse(dataStr))
+      worker.postMessage(data !== undefined ? JSON.parse(dataStr) : undefined)
 
       const timer = setTimeout(() => {
         worker.terminate()
