@@ -1,4 +1,4 @@
-# [tst](https://dy.github.io/tst/) [![test](https://github.com/dy/tst/actions/workflows/test.yml/badge.svg)](https://github.com/dy/tst/actions/workflows/test.yml) [![npm](https://img.shields.io/npm/v/tst?color=red)](https://npmjs.org/package/tst) [![demo](https://img.shields.io/badge/demo-%C2%A0%E2%96%B6-white)](https://dy.github.io/tst/) [![ॐ](https://img.shields.io/badge/MIT-%E0%A5%90-white)](https://krishnized.github.io/license)
+# tst [![test](https://github.com/dy/tst/actions/workflows/test.yml/badge.svg)](https://github.com/dy/tst/actions/workflows/test.yml) [![npm](https://img.shields.io/npm/v/tst?color=red)](https://npmjs.org/package/tst) [![demo](https://img.shields.io/badge/demo-%F0%9F%9A%80-white)](https://dy.github.io/tst/) [![ॐ](https://img.shields.io/badge/MIT-%E0%A5%90-white)](https://krishnized.github.io/license)
 
 Test without <em>e</em>fforts.
 
