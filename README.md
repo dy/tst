@@ -41,7 +41,7 @@ test('async', async ({ ok }) => {
 | `pass(msg)` / `fail(msg)` | Explicit pass/fail |
 
 > [!NOTE]
-> Assertions also exported as `{ ok, is, not, any, same, throws, rejects, almost, pass, fail }` for standalone use.
+> Standalone use: `import { ok, is, not, any, same, throws, rejects, almost, pass, fail } from 'tst/assert.js'`
 
 
 ## modifiers
