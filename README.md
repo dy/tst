@@ -56,7 +56,8 @@ test.fork('isolate', t => {})      // run in worker thread (fresh V8 context)
 ```
 
 > [!NOTE]
-> Tests run sequentially. For parallelism, run separate test files.
+> Fork has no scope access — use `data` for values, `await import()` for modules.
+
 
 ## options
 
@@ -68,10 +69,6 @@ test('name', {
   retry: 3           // retry up to n times (flaky tests)
 }, (t, data) => {})
 ```
-
-> [!NOTE]
-> Fork has no scope access — use `data` for values, `await import()` for modules.
-
 
 ## config
 
@@ -104,6 +101,9 @@ test.html?bail
 test.html?mute
 test.html?format=tap
 ```
+
+> [!NOTE]
+> Tests run sequentially. For parallelism, run separate test files.
 
 
 ## why?
