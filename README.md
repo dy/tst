@@ -1,4 +1,4 @@
-# tst [![test](https://github.com/dy/tst/actions/workflows/test.yml/badge.svg)](https://github.com/dy/tst/actions/workflows/test.yml) [![npm](https://img.shields.io/npm/v/tst)](https://npmjs.org/package/tst) [![ॐ](https://img.shields.io/badge/MIT-%E0%A5%90-white)](https://krishnized.github.io/license)
+# [tst](https://dy.github.io/tst/) [![test](https://github.com/dy/tst/actions/workflows/test.yml/badge.svg)](https://github.com/dy/tst/actions/workflows/test.yml) [![npm](https://img.shields.io/npm/v/tst)](https://npmjs.org/package/tst) [![ॐ](https://img.shields.io/badge/MIT-%E0%A5%90-white)](https://krishnized.github.io/license)
 
 Test without <em>e</em>fforts.
 
@@ -7,8 +7,6 @@ Test without <em>e</em>fforts.
 * standalone assertions
 * async, timeouts, TAP
 * 0 deps, ~400 LOC
-
-[**Demo**](https://dy.github.io/tst/)
 
 ## usage
 
@@ -57,6 +55,10 @@ test.demo('example', t => {})      // run but don't fail exit code
 test.fork('isolate', t => {})      // run in worker thread (fresh V8 context)
 ```
 
+> [!NOTE]
+> Fork has no scope access — use `data` for values, `await import()` for modules.
+
+
 ## options
 
 ```js
@@ -67,13 +69,6 @@ test('name', {
   retry: 3           // retry up to n times (flaky tests)
 }, (t, data) => {})
 ```
-
-> [!NOTE]
-> Fork has no scope access — use `data` for values, `await import()` for modules.
-
-> [!NOTE]
-> Tests run sequentially. For parallelism, run separate test files.
-
 
 ## config
 
@@ -106,6 +101,9 @@ test.html?bail
 test.html?mute
 test.html?format=tap
 ```
+
+> [!NOTE]
+> Tests run sequentially. For parallelism, run separate test files.
 
 
 ## why?
