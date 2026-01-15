@@ -55,6 +55,9 @@ test.demo('example', t => {})      // run but don't fail exit code
 test.fork('isolate', t => {})      // run in worker thread (fresh V8 context)
 ```
 
+> [!NOTE]
+> Tests run sequentially. For parallelism, run separate test files.
+
 ## options
 
 ```js
@@ -68,9 +71,6 @@ test('name', {
 
 > [!NOTE]
 > Fork has no scope access — use `data` for values, `await import()` for modules.
-
-> [!NOTE]
-> Tests run sequentially. For parallelism, run separate test files.
 
 
 ## config
