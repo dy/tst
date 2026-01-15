@@ -18,8 +18,8 @@ const isNode = typeof process !== 'undefined' && process.versions?.node
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Helper: log with color (node) or CSS (browser)
-const log = (color, text, cssColor) => isNode 
-  ? console.log(`${color}${text}${RESET}`) 
+const log = (color, text, cssColor) => isNode
+  ? console.log(`${color}${text}${RESET}`)
   : console.log(`%c${text}`, `color: ${cssColor}`)
 
 export const formats = {
@@ -166,12 +166,28 @@ test.run = (opts) => run(opts)
 // Test execution
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Serialize data with function support
+const FN_MARKER = '__tst_fn__'
+function serialize(obj) {
+  return JSON.stringify(obj, (_, v) => typeof v === 'function' ? { [FN_MARKER]: v.toString() } : v)
+}
+const deserializerCode = `
+  const revive = v => {
+    if (v && typeof v === 'object') {
+      if ('${FN_MARKER}' in v) return eval('(' + v['${FN_MARKER}'] + ')')
+      for (const k in v) v[k] = revive(v[k])
+    }
+    return v
+  }
+`
+
 // Fork execution: run test in isolated worker thread
 async function runForked(t, testTimeout) {
   const fnStr = t.fn.toString()
   const baseUrl = import.meta.url
-  const data = t.opts?.data
-  const dataStr = JSON.stringify(data)
+  const rawData = t.opts?.data
+  const data = typeof rawData === 'function' ? rawData() : rawData
+  const dataStr = serialize(data)
 
   if (isNode) {
     const { Worker } = await import('worker_threads')
@@ -183,8 +199,9 @@ async function runForked(t, testTimeout) {
         let assertCount = 0
         assert.onPass(() => assertCount++)
 
+        ${deserializerCode}
         const fn = (${fnStr})
-        const data = ${dataStr}
+        const data = revive(${dataStr})
         const start = performance.now()
         ;(async () => fn(assert, data))().then(
           () => parentPort.postMessage({ ok: true, time: performance.now() - start, assertCount }),
@@ -214,10 +231,12 @@ async function runForked(t, testTimeout) {
         let assertCount = 0
         assert.onPass(() => assertCount++)
 
+        ${deserializerCode}
         const fn = (${fnStr})
 
         // Wait for data message, then run
-        self.onmessage = ({ data }) => {
+        self.onmessage = ({ data: raw }) => {
+          const data = revive(raw)
           const start = performance.now()
           ;(async () => fn(assert, data))().then(
             () => postMessage({ ok: true, time: performance.now() - start, assertCount }),
@@ -227,8 +246,8 @@ async function runForked(t, testTimeout) {
       `], { type: 'application/javascript' })
       const worker = new Worker(URL.createObjectURL(blob), { type: 'module' })
 
-      // Send data to worker
-      worker.postMessage(data)
+      // Send serialized data to worker (parsed JSON, functions as markers)
+      worker.postMessage(JSON.parse(dataStr))
 
       const timer = setTimeout(() => {
         worker.terminate()
@@ -264,11 +283,11 @@ export async function run(opts = {}) {
 
   for (const t of tests) {
     // Skip: .only filter, grep filter, skip type, skip option
-    const skipReason = 
+    const skipReason =
       (only && t.type !== 'only' && t.type !== 'skip' && t.type !== 'todo') ? null :  // silent skip for .only
       (grep && !grep.test(t.name)) ? null :  // silent skip for grep
       t.opts?.skip ? 'skip' :
-      (t.type === 'skip' || t.type === 'todo') ? t.type : 
+      (t.type === 'skip' || t.type === 'todo') ? t.type :
       false
 
     if (skipReason !== false) {

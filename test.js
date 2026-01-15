@@ -629,6 +629,28 @@ await run('test.fork receives data from opts', `
   stdout: ['# pass 1']
 })
 
+await run('test.fork receives data from function', `
+  import test from './tst.js'
+  test.fork('with fn data', { data: () => ({ computed: 21 * 2 }) }, ({ ok, is }, data) => {
+    ok(data)
+    is(data.computed, 42)
+  })
+`, {
+  exitCode: 0,
+  stdout: ['# pass 1']
+})
+
+await run('test.fork serializes functions in data', `
+  import test from './tst.js'
+  test.fork('with fn props', { data: { add: (a, b) => a + b, nested: { mul: (a, b) => a * b } } }, ({ is }, data) => {
+    is(data.add(2, 3), 5)
+    is(data.nested.mul(4, 5), 20)
+  })
+`, {
+  exitCode: 0,
+  stdout: ['# pass 1']
+})
+
 // =============================================================================
 // OPTIONS: skip
 // =============================================================================
