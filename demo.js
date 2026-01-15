@@ -4,13 +4,13 @@
  *
  * This is NOT the test suite - see test.js for actual tests.
  */
-import test, { ok, is, not, any, same, throws, formats } from './tst.js'
+import test from './tst.js'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Basic assertions
+// Basic assertions (passed as parameter)
 // ─────────────────────────────────────────────────────────────────────────────
 
-test('ok - truthy check', () => {
+test('ok - truthy check', ({ ok }) => {
   ok(true)
   ok(1)
   ok('non-empty string')
@@ -18,7 +18,7 @@ test('ok - truthy check', () => {
   ok({})  // objects are truthy
 })
 
-test('is - equality check', () => {
+test('is - equality check', ({ is }) => {
   // Primitives use Object.is
   is(1, 1)
   is('hello', 'hello')
@@ -31,24 +31,24 @@ test('is - equality check', () => {
   is([{ x: 1 }], [{ x: 1 }])  // nested
 })
 
-test('not - inequality check', () => {
+test('not - inequality check', ({ not }) => {
   not(1, 2)
   not([1], [2])
   not({ a: 1 }, { a: 2 })
 })
 
-test('any - one of options', () => {
+test('any - one of options', ({ any }) => {
   any(2, [1, 2, 3])
   any('b', ['a', 'b', 'c'])
   any([1], [[1], [2], [3]])  // deep equality
 })
 
-test('same - same members (order independent)', () => {
+test('same - same members (order independent)', ({ same }) => {
   same([1, 2, 3], [3, 1, 2])
   same(['a', 'b'], ['b', 'a'])
 })
 
-test('throws - error checking', () => {
+test('throws - error checking', ({ throws }) => {
   throws(() => { throw new Error('boom') })
   throws(() => { throw new Error('boom') }, /boom/)
   throws(() => { throw new TypeError() }, TypeError)
@@ -58,12 +58,12 @@ test('throws - error checking', () => {
 // Async tests
 // ─────────────────────────────────────────────────────────────────────────────
 
-test('async test', async () => {
+test('async test', async ({ ok }) => {
   await new Promise(r => setTimeout(r, 100))
   ok(true)
 })
 
-test('async with timeout', { timeout: 2000 }, async () => {
+test('async with timeout', { timeout: 2000 }, async ({ ok }) => {
   await new Promise(r => setTimeout(r, 500))
   ok(true)
 })
@@ -72,13 +72,13 @@ test('async with timeout', { timeout: 2000 }, async () => {
 // Test modifiers
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.skip('skipped test', () => {
+test.skip('skipped test', ({ ok }) => {
   ok(false)  // won't run
 })
 
 test.todo('future feature')  // no callback = todo
 
-test.mute('muted test (assertions hidden)', () => {
+test.mute('muted test (assertions hidden)', ({ ok, is }) => {
   ok(true)
   ok(true)
   is(1, 1)
@@ -90,6 +90,24 @@ test.mute('muted test (assertions hidden)', () => {
 // Demo mode - failures don't affect exit code
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.demo('experimental feature', () => {
+test.demo('experimental feature', ({ ok }) => {
   ok(true)  // this runs, failures here won't fail the whole suite
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Fork mode - isolated worker thread (benchmarking, isolation)
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.fork('isolated computation', ({ is }) => {
+  // Runs in separate thread (Worker)
+  // Useful for: benchmarks, CPU-intensive tests, isolation
+  let sum = 0
+  for (let i = 0; i < 1e6; i++) sum += i
+  is(sum, 499999500000, 'computed in isolate')
+})
+
+test.fork('async in worker', async ({ ok, is }) => {
+  await new Promise(r => setTimeout(r, 50))
+  ok(true, 'async works in fork')
+  is([1, 2], [1, 2], 'assertions available')
 })

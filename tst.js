@@ -7,6 +7,7 @@
  * - Pluggable output formats (pretty, tap)
  */
 
+import * as assert from './assert.js'
 import { onPass, Assertion } from './assert.js'
 
 const GREEN = '\x1b[32m', RED = '\x1b[31m', YELLOW = '\x1b[33m', RESET = '\x1b[0m', CYAN = '\x1b[36m', GRAY = '\x1b[90m'
@@ -162,10 +163,79 @@ test.only = (name, fn, opts) => tests.push({ name, fn, opts, type: 'only' })
 test.demo = (name, fn, opts) => tests.push({ name, fn, opts, type: 'demo' })  // demo: runs but failures don't affect exit code
 test.mute = (name, fn, opts) => tests.push({ name, fn, opts, type: 'mute' })
 test.run = (opts) => run(opts)
+test.fork = (name, fn, opts) => tests.push({ name, fn, opts, type: 'fork' })
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Test execution
 // ─────────────────────────────────────────────────────────────────────────────
+
+// Fork execution: run test in isolated worker thread
+async function runForked(t, testTimeout) {
+  const fnStr = t.fn.toString()
+  const baseUrl = import.meta.url
+
+  if (isNode) {
+    const { Worker } = await import('worker_threads')
+    return new Promise((resolve, reject) => {
+      const worker = new Worker(`
+        import { parentPort, workerData } from 'worker_threads'
+        import * as assert from '${new URL('./assert.js', baseUrl).href}'
+
+        let assertCount = 0
+        assert.onPass(() => assertCount++)
+
+        const fn = ${fnStr}
+        const start = performance.now()
+        ;(async () => fn(assert))().then(
+          () => parentPort.postMessage({ ok: true, time: performance.now() - start, assertCount }),
+          e => parentPort.postMessage({ ok: false, error: e.message, time: performance.now() - start, assertCount })
+        )
+      `, { eval: true })
+
+      const timer = setTimeout(() => {
+        worker.terminate()
+        reject(new Error(`timeout after ${testTimeout}ms`))
+      }, testTimeout)
+
+      worker.on('message', msg => {
+        clearTimeout(timer)
+        worker.terminate()
+        msg.ok ? resolve(msg) : reject(Object.assign(new Error(msg.error), { time: msg.time, assertCount: msg.assertCount }))
+      })
+      worker.on('error', err => { clearTimeout(timer); worker.terminate(); reject(err) })
+    })
+  } else {
+    // Browser: Web Worker via Blob
+    return new Promise((resolve, reject) => {
+      const blob = new Blob([`
+        import * as assert from '${new URL('./assert.js', baseUrl).href}'
+
+        let assertCount = 0
+        assert.onPass(() => assertCount++)
+
+        const fn = ${fnStr}
+        const start = performance.now()
+        ;(async () => fn(assert))().then(
+          () => postMessage({ ok: true, time: performance.now() - start, assertCount }),
+          e => postMessage({ ok: false, error: e.message, time: performance.now() - start, assertCount })
+        )
+      `], { type: 'application/javascript' })
+      const worker = new Worker(URL.createObjectURL(blob), { type: 'module' })
+
+      const timer = setTimeout(() => {
+        worker.terminate()
+        reject(new Error(`timeout after ${testTimeout}ms`))
+      }, testTimeout)
+
+      worker.onmessage = ({ data }) => {
+        clearTimeout(timer)
+        worker.terminate()
+        data.ok ? resolve(data) : reject(Object.assign(new Error(data.error), { time: data.time, assertCount: data.assertCount }))
+      }
+      worker.onerror = err => { clearTimeout(timer); worker.terminate(); reject(err) }
+    })
+  }
+}
 
 export async function run(opts = {}) {
   const config = getConfig()
@@ -204,31 +274,51 @@ export async function run(opts = {}) {
     }
 
     // Mute mode: suppress assertion output
-    const muted = mute || (isNode && t.type === 'mute')
+    const muted = mute || (isNode && (t.type === 'mute' || t.type === 'fork'))
     let testAssertCount = 0
 
     if (!mute) fmt.testStart(t.name, t.type, muted)
 
-    // Hook assertion passes
-    onPass(({ operator, message }) => {
-      state.assertCount++
-      testAssertCount++
-      if (!muted) fmt.assertion(testAssertCount, operator, message)
-    })
+    // Hook assertion passes (skipped for fork - runs in isolate)
+    if (t.type !== 'fork') {
+      onPass(({ operator, message }) => {
+        state.assertCount++
+        testAssertCount++
+        if (!muted) fmt.assertion(testAssertCount, operator, message)
+      })
+    }
 
     const testTimeout = t.opts?.timeout ?? globalTimeout
 
     try {
-      await Promise.race([
-        t.fn(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error(`timeout after ${testTimeout}ms`)), testTimeout))
-      ])
-      state.passed++
-      fmt.testPass(t.name, t.type, testAssertCount, muted)
+      if (t.type === 'fork') {
+        const result = await runForked(t, testTimeout)
+        state.passed++
+        state.assertCount += result.assertCount
+        testAssertCount = result.assertCount
+        // Show timing + assertion count for fork tests
+        const timeStr = result.time < 1000 ? `${result.time.toFixed(2)}ms` : `${(result.time / 1000).toFixed(2)}s`
+        if (isNode) console.log(`${GREEN}√ fork (${result.assertCount} assertions) — ${timeStr}${RESET}`)
+        else console.log(`%c✔ fork (${result.assertCount} assertions) — ${timeStr}`, 'color: #229944')
+        fmt.testPass(t.name, t.type, testAssertCount, muted)
+      } else {
+        await Promise.race([
+          t.fn(assert),
+          new Promise((_, reject) => setTimeout(() => reject(new Error(`timeout after ${testTimeout}ms`)), testTimeout))
+        ])
+        state.passed++
+        fmt.testPass(t.name, t.type, testAssertCount, muted)
+      }
       await new Promise(r => setTimeout(r))
     } catch (e) {
-      state.assertCount++
-      testAssertCount++
+      // Fork tests: count assertions from worker
+      if (t.type === 'fork' && typeof e.assertCount === 'number') {
+        state.assertCount += e.assertCount + 1
+        testAssertCount = e.assertCount + 1
+      } else {
+        state.assertCount++
+        testAssertCount++
+      }
       if (t.type !== 'demo') state.failed.push([e.message, t])  // demo failures don't affect exit code
       fmt.testFail(t.name, e, testAssertCount, muted)
 

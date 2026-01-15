@@ -15,19 +15,22 @@ Test without <em>e</em>fforts.
 ## usage
 
 ```js
-import test, { ok, is, not, throws, same, any } from 'tst.js'
+import test from 'tst.js'
 
-test('basic', () => {
+test('basic', ({ ok, is }) => {
   ok(true)
   is(1 + 1, 2)
   is({a: 1}, {a: 1})  // deep equality
 })
 
-test('async', async () => {
+test('async', async ({ ok }) => {
   await fetch('/api')
   ok(true)
 })
 ```
+
+> [!TIP]
+> Assertions also exported as `{ ok, is, not, any, same, throws, almost, pass, fail }` for standalone use.
 
 ## assertions
 
@@ -45,12 +48,14 @@ test('async', async () => {
 ## modifiers
 
 ```js
-test.skip('ignored', () => {})     // skip test
+test.skip('ignored', t => {})      // skip test
 test.todo('future feature')        // mark as todo
-test.only('focus', () => {})       // run only this
-test.mute('quiet', () => {})       // hide assertions, show summary
-test.demo('example', () => {})     // run but don't fail exit code
+test.only('focus', t => {})        // run only this
+test.mute('quiet', t => {})        // hide assertions, show summary
+test.demo('example', t => {})      // run but don't fail exit code
+test.fork('isolate', t => {})      // run in worker thread
 ```
+
 
 ## config
 

@@ -112,13 +112,14 @@
       <div class="cheat-section mod">
         <h4>Modifiers</h4>
         <ul>
-          <li><code>test(name, fn)</code> — define a test</li>
-          <li><code>test.skip(name, fn)</code> — skip this test</li>
-          <li><code>test.only(name, fn)</code> — run exclusively</li>
-          <li><code>test.todo(name, fn?)</code> — mark as planned</li>
-          <li><code>test.mute(name, fn)</code> — suppress output</li>
-          <li><code>test.demo(name, fn)</code> — ignore failures</li>
-          <li><code>test.run({ timeout, ...options })</code> — manually run tests</li>
+          <li><code>test(name, t => {})</code> — define a test</li>
+          <li><code>test.skip(name, t => {})</code> — skip this test</li>
+          <li><code>test.only(name, t => {})</code> — run exclusively</li>
+          <li><code>test.todo(name, t?)</code> — mark as planned</li>
+          <li><code>test.mute(name, t => {})</code> — suppress output</li>
+          <li><code>test.demo(name, t => {})</code> — ignore failures</li>
+          <li><code>test.fork(name, t => {})</code> — run in worker</li>
+          <li><code>test.run({ timeout, ... })</code> — manually run</li>
         </ul>
       </div>
     </div>
