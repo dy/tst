@@ -15,7 +15,7 @@ Test without <em>e</em>fforts.
 ```js
 import test from 'tst.js'
 
-test('basic', ({ ok, is }) => {
+test('math', ({ ok, is }) => {
   ok(true)
   is(1 + 1, 2)
   is({a: 1}, {a: 1})  // deep equality
@@ -97,7 +97,7 @@ Jest wants `jest.config.js`, `babel.config.js`, 200MB node_modules, transformati
 
 Testing should be: write test, run file, see result. No ceremony. No maintenance. No build step.
 
-Spiritual successor to [tape](https://ghub.io/tape) — works in browser, works in node, ESM-native, async-native, clean output.
+Spiritual successor to [tape](https://ghub.io/tape) — browser + node, ESM-native, async-native.
 
 <!--
 * [testra](https://github.com/eliot-akira/testra)
