@@ -111,12 +111,9 @@ test.html?format=tap
 
 ## why?
 
-You want to test `add(1, 2) === 3`.
-
-Jest wants `jest.config.js`, `babel.config.js`, 200MB node_modules, transformation pipelines, mock systems.
-
-Testing should be: write test, run file, see result. No ceremony. No maintenance. No build step.
-
+You want to test `add(1, 2) === 3`.<br>
+Jest wants `jest.config.js`, `babel.config.js`, 200MB node_modules, transformation pipelines, mock systems.<br>
+Testing should be: write test, run file, see result. No setup, no maintenance, no build step.<br>
 Spiritual successor to [tape](https://ghub.io/tape) — browser + node, ESM-native, async-native.
 
 <!--
