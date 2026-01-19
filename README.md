@@ -1,5 +1,4 @@
-# tst [![test](https://github.com/dy/tst/actions/workflows/test.yml/badge.svg)](https://github.com/dy/tst/actions/workflows/test.yml) ![npm package minimized gzipped size](https://img.shields.io/bundlejs/size/tst?label=gzip&color=white) [![npm](https://img.shields.io/npm/v/tst?color=white)](https://npmjs.org/package/tst) [![demo](https://img.shields.io/badge/demo-%F0%9F%9A%80-white)](https://dy.github.io/tst/) [![ॐ](https://img.shields.io/badge/MIT-%E0%A5%90-white)](https://krishnized.github.io/license)
-
+# tst [![test](https://github.com/dy/tst/actions/workflows/test.yml/badge.svg)](https://github.com/dy/tst/actions/workflows/test.yml) ![npm package minimized gzipped size](https://img.shields.io/bundlejs/size/tst?label=gzip&color=white) [![npm](https://img.shields.io/npm/v/tst?color=white)](https://npmjs.org/package/tst) [![demo](https://img.shields.io/badge/demo-%F0%9F%9A%80-white)](https://dy.github.io/tst/) 
 Test without <em>e</em>fforts.
 
 * vanilla ESM — no build, no tooling
@@ -136,3 +135,5 @@ Spiritual successor to [tape](https://ghub.io/tape) — browser + node, ESM-nati
 * [uvu](https://github.com/lukeed/uvu)
 * [pitesti](https://github.com/bengl/pitesti)
 -->
+
+<p align="center"><a href="https://krishnized.github.io/license">ॐ</a></p>
