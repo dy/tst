@@ -66,10 +66,17 @@ test('both', { fork: true, only: true }, t => {})
 
 ```js
 test('name', {
-  timeout: 3000,     // override default 5000ms
-  data: { x: 1 },    // pass to callback as 2nd arg
-  skip: isCI,        // conditionally skip
-  retry: 3           // retry up to n times (flaky tests)
+  timeout: 3000,           // override default 5000ms
+  data: { x: 1 },          // pass to callback as 2nd arg
+  retry: 3,                // retry up to n times (flaky tests)
+
+  // modifiers
+  only: process.env.DEBUG, // run only this test when debugging
+  skip: isCI,              // conditionally skip
+  todo: !featureComplete,  // mark as todo until feature is ready
+  mute: isCI,              // hide assertions in CI, show summary
+  demo: true,              // run but don't fail exit code (for examples)
+  fork: bench              // run in worker thread (fresh V8 context)
 }, (t, data) => {})
 ```
 
