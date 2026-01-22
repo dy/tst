@@ -15,8 +15,8 @@ const GREEN = '\u001b[32m', RED = '\u001b[31m', RESET = '\u001b[0m'
 
 let passed = 0, failed = 0
 
-async function run(name, code, expect) {
-  const result = await execute(code)
+async function run(name, code, expect, nodeFlags = []) {
+  const result = await execute(code, nodeFlags)
 
   const checks = []
   if (expect.exitCode !== undefined) {
@@ -48,7 +48,7 @@ async function run(name, code, expect) {
   }
 }
 
-function execute(code) {
+function execute(code, nodeFlags = []) {
   return new Promise((resolve) => {
     // Clean env: remove TST_* vars to not affect child processes
     const cleanEnv = { ...process.env, FORCE_COLOR: '0' }
@@ -56,7 +56,7 @@ function execute(code) {
     delete cleanEnv.TST_BAIL
     delete cleanEnv.TST_MUTE
 
-    const child = spawn('node', ['--input-type=module', '-e', code], {
+    const child = spawn('node', [...nodeFlags, '--input-type=module', '-e', code], {
       cwd: __dirname,
       env: cleanEnv
     })
@@ -662,6 +662,17 @@ await run('test.fork resolves module imports', `
   exitCode: 0,
   stdout: ['# pass 1']
 })
+
+await run('test.fork inherits --import flags', `
+  import test from './tst.js'
+  test.fork('check import flag', ({ ok }) => {
+    // If --import was inherited, globalThis.__importFlagTest should be set
+    ok(globalThis.__importFlagTest === 'inherited')
+  })
+`, {
+  exitCode: 0,
+  stdout: ['# pass 1']
+}, ['--import', join(__dirname, '.tst-import-flag-test.mjs')])
 
 await run('options combine modifiers (fork+only)', `
   import test, { ok } from './tst.js'

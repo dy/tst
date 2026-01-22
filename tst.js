@@ -222,8 +222,11 @@ async function runForked(t, testTimeout, onAssertion) {
     writeFileSync(tmpFile, code)
 
     return new Promise((resolve, reject) => {
-      // Clear execArgv to avoid inheriting --input-type flags that break imports
-      const worker = new Worker(tmpFile, { execArgv: [] })
+      // Inherit --import flags from parent (e.g., tsx loaders), clear others to avoid --input-type issues
+      const importFlags = process.execArgv.filter((arg, i, arr) =>
+        arg === '--import' || arr[i-1] === '--import'
+      )
+      const worker = new Worker(tmpFile, { execArgv: importFlags })
 
       const cleanup = () => { try { unlinkSync(tmpFile) } catch {} }
       const timer = setTimeout(() => {
