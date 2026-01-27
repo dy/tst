@@ -1,7 +1,5 @@
-.DS_Store
 node_modules
-*.d.ts
 dist
+*.d.ts
 .tst-*
 coverage
-.nyc_output

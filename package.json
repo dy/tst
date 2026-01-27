@@ -16,6 +16,15 @@
   ],
   "scripts": {
     "test": "node test.js",
-    "demo": "node demo.js"
+    "test:coverage": "c8 --reporter=text --reporter=html --reporter=lcov node test.js",
+    "demo": "node demo.js",
+    "lint": "eslint *.js",
+    "format": "prettier --write *.js",
+    "format:check": "prettier --check *.js"
+  },
+  "devDependencies": {
+    "c8": "^10.1.2",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2"
   }
 }

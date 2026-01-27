@@ -122,6 +122,31 @@ Jest wants `jest.config.js`, `babel.config.js`, 200MB node_modules, transformati
 Testing should be: write test, run file, see result. No setup, no maintenance, no build step.<br>
 Spiritual successor to [tape](https://ghub.io/tape) — browser + node, ESM-native, async-native.
 
+## development
+
+### Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines. Quick start:
+
+```bash
+git clone https://github.com/dy/tst.git
+cd tst
+npm test              # Run tests
+npm run lint          # Lint code (requires: npm install -D eslint)
+npm run format        # Format code (requires: npm install -D prettier)
+npm run test:coverage # Run with coverage (requires: npm install -D c8)
+```
+
+Development dependencies are **optional** — tests run without `npm install`.
+
+### For AI Assistants
+
+See [AGENTS.md](AGENTS.md) for guidelines on contributing with AI assistance.
+
+### Security
+
+See [SECURITY.md](SECURITY.md) for security policy and vulnerability reporting.
+
 <!--
 * [testra](https://github.com/eliot-akira/testra)
 * [tape-modern](https://ghub.io/tape-modern)
