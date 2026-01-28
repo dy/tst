@@ -14,8 +14,8 @@ test('ok - truthy check', ({ ok }) => {
   ok(true)
   ok(1)
   ok('non-empty string')
-  ok([])  // arrays are truthy
-  ok({})  // objects are truthy
+  ok([]) // arrays are truthy
+  ok({}) // objects are truthy
 })
 
 test('is - equality check', ({ is }) => {
@@ -23,12 +23,12 @@ test('is - equality check', ({ is }) => {
   is(1, 1)
   is('hello', 'hello')
   is(null, null)
-  is(NaN, NaN)  // Object.is(NaN, NaN) === true
+  is(NaN, NaN) // Object.is(NaN, NaN) === true
 
   // Objects use deep equality
   is([1, 2, 3], [1, 2, 3])
-  is({ a: 1, b: 2 }, { b: 2, a: 1 })  // key order doesn't matter
-  is([{ x: 1 }], [{ x: 1 }])  // nested
+  is({ a: 1, b: 2 }, { b: 2, a: 1 }) // key order doesn't matter
+  is([{ x: 1 }], [{ x: 1 }]) // nested
 })
 
 test('not - inequality check', ({ not }) => {
@@ -40,7 +40,7 @@ test('not - inequality check', ({ not }) => {
 test('any - one of options', ({ any }) => {
   any(2, [1, 2, 3])
   any('b', ['a', 'b', 'c'])
-  any([1], [[1], [2], [3]])  // deep equality
+  any([1], [[1], [2], [3]]) // deep equality
 })
 
 test('same - same members (order independent)', ({ same }) => {
@@ -49,9 +49,15 @@ test('same - same members (order independent)', ({ same }) => {
 })
 
 test('throws - error checking', ({ throws }) => {
-  throws(() => { throw new Error('boom') })
-  throws(() => { throw new Error('boom') }, /boom/)
-  throws(() => { throw new TypeError() }, TypeError)
+  throws(() => {
+    throw new Error('boom')
+  })
+  throws(() => {
+    throw new Error('boom')
+  }, /boom/)
+  throws(() => {
+    throw new TypeError()
+  }, TypeError)
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -73,10 +79,10 @@ test('async with timeout', { timeout: 2000 }, async ({ ok }) => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.skip('skipped test', ({ ok }) => {
-  ok(false)  // won't run
+  ok(false) // won't run
 })
 
-test.todo('future feature')  // no callback = todo
+test.todo('future feature') // no callback = todo
 
 test.mute('muted test (assertions hidden)', ({ ok, is }) => {
   ok(true)
@@ -91,7 +97,7 @@ test.mute('muted test (assertions hidden)', ({ ok, is }) => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.demo('experimental feature', ({ ok }) => {
-  ok(true)  // this runs, failures here won't fail the whole suite
+  ok(true) // this runs, failures here won't fail the whole suite
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -106,13 +112,13 @@ test.fork('isolated computation', ({ is }) => {
   is(sum, 499999500000, 'computed in isolate')
 })
 
-test.fork('async in worker', { mute:true }, async ({ ok, is }) => {
+test.fork('async in worker', { mute: true }, async ({ ok, is }) => {
   await new Promise(r => setTimeout(r, 50))
   ok(true, 'async works in fork')
   is([1, 2], [1, 2], 'assertions available')
 })
 
-test.skip('async in worker 2', { fork:true }, async ({ ok, is }) => {
+test.skip('async in worker 2', { fork: true }, async ({ ok, is }) => {
   await new Promise(r => setTimeout(r, 50))
   ok(true, 'async works in fork')
   is([1, 2], [1, 2], 'assertions available')

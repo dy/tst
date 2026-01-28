@@ -20,7 +20,9 @@ Assertion.prototype.name = 'Assertion'
 
 // Hook for test runner to capture passes
 let hook = null
-export function onPass(fn) { hook = fn }
+export function onPass(fn) {
+  hook = fn
+}
 
 function report(op, msg) {
   hook?.({ operator: op, message: msg })
@@ -28,7 +30,7 @@ function report(op, msg) {
 }
 
 // Deep or primitive equality
-const eq = (a, b) => isPrimitive(a) || isPrimitive(b) ? Object.is(a, b) : deq(a, b)
+const eq = (a, b) => (isPrimitive(a) || isPrimitive(b) ? Object.is(a, b) : deq(a, b))
 
 export function ok(value, msg = 'should be truthy') {
   if (value) return report('ok', msg)
@@ -52,7 +54,12 @@ export function same(a, b, msg = 'should have same members') {
 
 export function any(a, list, msg = 'should be one of') {
   if (list.some(b => eq(a, b))) return report('any', msg)
-  throw new Assertion({ operator: 'any', message: msg, actual: slice(a), expected: list.map(slice) })
+  throw new Assertion({
+    operator: 'any',
+    message: msg,
+    actual: slice(a),
+    expected: list.map(slice)
+  })
 }
 
 export function throws(fn, expected, msg = 'should throw') {
@@ -64,7 +71,12 @@ export function throws(fn, expected, msg = 'should throw') {
 
     if (expected instanceof Error) {
       if (err.name === expected.name) return report('throws', msg)
-      throw new Assertion({ operator: 'throws', message: msg, actual: err.name, expected: expected.name })
+      throw new Assertion({
+        operator: 'throws',
+        message: msg,
+        actual: err.name,
+        expected: expected.name
+      })
     }
     if (expected instanceof RegExp) {
       if (expected.test(err.toString())) return report('throws', msg)
@@ -87,7 +99,12 @@ export async function rejects(fn, expected, msg = 'should reject') {
 
     if (expected instanceof Error) {
       if (err.name === expected.name) return report('rejects', msg)
-      throw new Assertion({ operator: 'rejects', message: msg, actual: err.name, expected: expected.name })
+      throw new Assertion({
+        operator: 'rejects',
+        message: msg,
+        actual: err.name,
+        expected: expected.name
+      })
     }
     if (expected instanceof RegExp) {
       if (expected.test(err.toString())) return report('rejects', msg)
@@ -101,16 +118,23 @@ export async function rejects(fn, expected, msg = 'should reject') {
   }
 }
 
-export function almost(a, b, eps = 1.19209290e-7, msg = 'should almost equal') {
-  if (isPrimitive(a) || isPrimitive(b) ? almostEqual(a, b, eps) :
-    [...a].every((a0, i) => a0 === b[i] || almostEqual(a0, b[i], eps)))
+export function almost(a, b, eps = 1.1920929e-7, msg = 'should almost equal') {
+  if (
+    isPrimitive(a) || isPrimitive(b)
+      ? almostEqual(a, b, eps)
+      : [...a].every((a0, i) => a0 === b[i] || almostEqual(a0, b[i], eps))
+  )
     return report('almost', msg)
   throw new Assertion({ operator: 'almost', message: msg, actual: slice(a), expected: slice(b) })
 }
 
 // Convenience: explicit pass/fail
-export function pass(msg) { return report('pass', msg) }
-export function fail(msg) { throw new Assertion({ operator: 'fail', message: msg }) }
+export function pass(msg) {
+  return report('pass', msg)
+}
+export function fail(msg) {
+  throw new Assertion({ operator: 'fail', message: msg })
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -123,7 +147,11 @@ function deq(a, b) {
       if (a.constructor === RegExp) return a.toString() === b.toString()
       if (a.constructor === Date) return a.getTime() === b.getTime()
       if (a.constructor === Array) return a.length === b.length && a.every((a, i) => deq(a, b[i]))
-      if (a.constructor === Object) return Object.keys(a).length === Object.keys(b).length && Object.keys(a).every(key => deq(a[key], b[key]))
+      if (a.constructor === Object)
+        return (
+          Object.keys(a).length === Object.keys(b).length &&
+          Object.keys(a).every(key => deq(a[key], b[key]))
+        )
     }
     if (!isPrimitive(a) && a[Symbol.iterator] && b[Symbol.iterator]) return deq([...a], [...b])
   }
@@ -137,10 +165,10 @@ function isPrimitive(val) {
 
 function almostEqual(a, b, eps) {
   if (eps === undefined) {
-    eps = Math.min(Math.max(
-      Math.abs(a - new Float32Array([a])[0]),
-      Math.abs(b - new Float32Array([b])[0])
-    ), 1.19209290e-7)
+    eps = Math.min(
+      Math.max(Math.abs(a - new Float32Array([a])[0]), Math.abs(b - new Float32Array([b])[0])),
+      1.1920929e-7
+    )
   }
   return Math.abs(a - b) <= eps || a === b
 }
@@ -157,4 +185,4 @@ function sameMembers(a, b) {
   return a.length === 0
 }
 
-const slice = a => isPrimitive(a) ? a : a.slice ? a.slice() : Object.assign({}, a)
+const slice = a => (isPrimitive(a) ? a : a.slice ? a.slice() : Object.assign({}, a))
