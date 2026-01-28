@@ -31,7 +31,7 @@ function report(op, msg) {
 const eq = (a, b) => isPrimitive(a) || isPrimitive(b) ? Object.is(a, b) : deq(a, b)
 
 export function ok(value, msg = 'should be truthy') {
-  if (Boolean(value)) return report('ok', msg)
+  if (value) return report('ok', msg)
   throw new Assertion({ operator: 'ok', message: msg, actual: value, expected: true })
 }
 

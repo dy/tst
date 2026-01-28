@@ -15,7 +15,7 @@ jobs:
         with:
           node-version: 22
       - name: Install dependencies
-        run: npm install --no-save eslint prettier
+        run: npm install --no-save eslint prettier @eslint/js
       - name: Run ESLint
         run: npm run lint
       - name: Check formatting

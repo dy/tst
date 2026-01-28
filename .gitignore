@@ -3,5 +3,6 @@ node_modules
 *.d.ts
 dist
 .tst-*
+!.tst-import-flag-test.mjs
 coverage
 .nyc_output

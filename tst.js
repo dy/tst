@@ -228,7 +228,7 @@ async function runForked(t, testTimeout, onAssertion) {
       )
       const worker = new Worker(tmpFile, { execArgv: importFlags })
 
-      const cleanup = () => { try { unlinkSync(tmpFile) } catch {} }
+      const cleanup = () => { try { unlinkSync(tmpFile) } catch { /* ignore */ } }
       const timer = setTimeout(() => {
         worker.terminate()
         cleanup()
