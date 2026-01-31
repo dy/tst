@@ -741,7 +741,7 @@ await run(
 `,
   {
     exitCode: 1,
-    stdout: ['# fail 1', '# total 1'],
+    stdout: ['# fail 1', '# total 1', '(1 assertions)'],
     notStdout: ['SHOULD NOT RUN', 'second']
   }
 )
@@ -878,6 +878,20 @@ await run(
     stdout: ['# pass 1']
   },
   ['--import', join(__dirname, '.tst-import-flag-test.mjs')]
+)
+
+await run(
+  'test.fork terminates on infinite loop',
+  `
+  import test from './tst.js'
+  test.fork('hangs', { timeout: 100 }, () => {
+    while(true) {}
+  })
+`,
+  {
+    exitCode: 1,
+    stdout: ['timeout after 100ms', '# fail 1']
+  }
 )
 
 await run(

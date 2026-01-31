@@ -1,4 +1,4 @@
-# tst [![test](https://github.com/dy/tst/actions/workflows/test.yml/badge.svg)](https://github.com/dy/tst/actions/workflows/test.yml) [![npm package minimized gzipped size](https://img.shields.io/bundlejs/size/tst?label=gzip&color=white)](https://bundlejs.com/?q=tst) [![npm](https://img.shields.io/npm/v/tst?color=white)](https://npmjs.org/package/tst) [![demo](https://img.shields.io/badge/demo-%F0%9F%9A%80-white)](https://dy.github.io/tst/) 
+# tst [![test](https://github.com/dy/tst/actions/workflows/test.yml/badge.svg)](https://github.com/dy/tst/actions/workflows/test.yml) [![npm package minimized gzipped size](https://img.shields.io/bundlejs/size/tst?label=gzip&color=white)](https://bundlejs.com/?q=tst) [![npm](https://img.shields.io/npm/v/tst?color=white)](https://npmjs.org/package/tst) [![demo](https://img.shields.io/badge/demo-%F0%9F%9A%80-white)](https://dy.github.io/tst/)
 Test without <em>e</em>fforts.
 
 * vanilla ESM — no build, no tooling
@@ -59,6 +59,9 @@ test('both', { fork: true, only: true }, t => {})
 
 > [!NOTE]
 > Fork has no scope access — use `data` for values, `await import()` for modules.
+
+> [!TIP]
+> Use `.fork` for tests with potential infinite loops — timeout can only terminate forked workers, not main thread.
 
 
 ## options

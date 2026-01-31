@@ -93,7 +93,7 @@ export const formats = {
           `${isNode ? GRAY : ''}# grep /${grep.source}/${grep.flags}${isNode ? RESET : ''}`
         )
       if (only) console.log(`# only ${only} cases`)
-      console.log(`# total ${total}`)
+      console.log(`# total ${total} (${state.assertCount} assertions)`)
       if (state.passed) log(GREEN, `# pass ${state.passed}`, '#229944')
       if (state.failed.length) {
         log(RED, `# fail ${state.failed.length}`, '#cc3300')
@@ -131,8 +131,10 @@ export const formats = {
     },
     summary(state) {
       console.log(`1..${this._n}`)
+      console.log(`# tests ${state.passed + state.failed.length}`)
       console.log(`# pass ${state.passed}`)
       if (state.failed.length) console.log(`# fail ${state.failed.length}`)
+      console.log(`# assertions ${state.assertCount}`)
       if (state.skipped) console.log(`# skip ${state.skipped}`)
       this._n = 0
     }
