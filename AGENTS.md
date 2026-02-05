@@ -1,8 +1,4 @@
-# AI Agent Guidelines for tst
-
-This document helps AI assistants (like Claude, GitHub Copilot, ChatGPT) understand how to work effectively with this codebase.
-
-## Project Philosophy
+# AI Agent Guidelines 
 
 **tst** is a minimal testing library. The core philosophy is "tests without efforts":
 
@@ -137,7 +133,6 @@ See [test.js](test.js:18-68) for the `run()` helper that spawns tests.
 ### Comments
 
 - Use JSDoc for public APIs
-- Use `// ───────────────` to separate sections
 - Explain "why" not "what" in comments
 - Comment non-obvious behavior (e.g., browser vs Node differences)
 
@@ -159,39 +154,6 @@ Common differences:
 - **Imports**: Node can use Worker threads, browser uses Web Workers
 - **Process**: Node has `process.exit()`, browser doesn't
 - **Env vars**: Node has `process.env`, browser uses URL params
-
-## Performance Considerations
-
-- Keep test runner overhead < 1ms per test
-- Assertions should be microsecond-fast
-- Avoid regex in hot paths
-- Deep equality is recursive - it's ok, objects are small
-
-## Breaking Changes
-
-This library has users. Breaking changes require:
-1. Major version bump
-2. Migration guide in README
-3. Deprecation warnings (if possible)
-4. Discussion in issue before implementation
-
-Examples of breaking changes:
-- Changing assertion signatures
-- Removing modifiers or options
-- Changing exit code behavior
-- Changing default timeout values
-
-## Common Pitfalls
-
-1. **Adding dependencies** - Don't. If you need a feature, implement it in vanilla JS.
-
-2. **Platform-specific features** - Must work in both Node and browser. Test both.
-
-3. **Bloating LOC** - Every new line must justify its existence. Remove old code when adding new.
-
-4. **Async complexity** - Keep async simple. We already handle promises and async/await.
-
-5. **Over-engineering** - Users chose tst to escape Jest/Mocha complexity. Keep it simple.
 
 ## Questions?
 
