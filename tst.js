@@ -196,7 +196,9 @@ test.fork = (name, fn, opts) => register(name, fn, opts, 'fork')
 test.run = opts => run(opts)
 Object.defineProperty(test, 'manual', {
   get: () => manual,
-  set: v => { manual = v }
+  set: v => {
+    manual = v
+  }
 })
 
 // ─────────────────────────────────────────────────────────────────────────────

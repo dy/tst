@@ -1025,25 +1025,38 @@ await (async () => {
     delete env.TST_GREP
     delete env.TST_BAIL
     delete env.TST_MUTE
-    const child = spawn('node', ['--input-type=module', '-e', `
+    const child = spawn(
+      'node',
+      [
+        '--input-type=module',
+        '-e',
+        `
       import test, { ok } from './tst.js'
       test('a', () => ok(true))
       await new Promise(r => setTimeout(r, 300))
       console.log('manual:' + test.manual)
       await test.run()
-    `], { cwd: __dirname, env })
+    `
+      ],
+      { cwd: __dirname, env }
+    )
     let stdout = ''
     child.stdout.on('data', d => (stdout += d))
     child.stderr.on('data', () => {})
     child.on('close', exitCode => resolve({ exitCode, stdout }))
   })
-  const ok = result.exitCode === 0 && result.stdout.includes('manual:true') && result.stdout.includes('# pass 1')
+  const ok =
+    result.exitCode === 0 &&
+    result.stdout.includes('manual:true') &&
+    result.stdout.includes('# pass 1')
   if (ok) {
     console.log(`${GREEN}✔ TST_MANUAL=1 env var works${RESET}`)
     passed++
   } else {
     console.log(`${RED}✘ TST_MANUAL=1 env var works${RESET}`)
-    console.log(`  ${RED}exitCode: ${result.exitCode}, stdout: ${result.stdout.slice(0, 200)}${RESET}`)
+    console.log(
+      `  ${RED}exitCode: ${result.exitCode}, stdout: ${result.stdout.slice(0, 200)}${RESET}`
+    )
     failed++
   }
 })()

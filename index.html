@@ -88,11 +88,12 @@
     <a href="?bail">?bail</a>
     <a href="?grep=async">?grep=async</a>
     <a href="?format=tap">?format=tap</a>
+    <a href="?manual">?manual</a>
   </div>
 
   <p class="hint">
-    💡 URL params: <code>?grep=pattern</code> <code>?mute</code> <code>?bail</code> <code>?format=tap</code><br>
-    💡 Node env: <code>TST_GREP=pattern</code> <code>TST_MUTE=1</code> <code>TST_BAIL=1</code> <code>TST_FORMAT=tap</code>
+    💡 URL params: <code>?grep=pattern</code> <code>?mute</code> <code>?bail</code> <code>?format=tap</code> <code>?manual</code><br>
+    💡 Node env: <code>TST_GREP=pattern</code> <code>TST_MUTE=1</code> <code>TST_BAIL=1</code> <code>TST_FORMAT=tap</code> <code>TST_MANUAL=1</code>
   </p>
 
   <div>
@@ -120,6 +121,7 @@
           <li><code>test.mute(name, t => {})</code> — suppress output</li>
           <li><code>test.demo(name, t => {})</code> — ignore failures</li>
           <li><code>test.fork(name, t => {})</code> — run in worker</li>
+          <li><code>test.manual = true</code> — disable auto-run</li>
           <li><code>test.run({ timeout, ... })</code> — manually run</li>
         </ul>
       </div>

@@ -84,10 +84,13 @@ test('name', {
 
 ## config
 
-Manual run (disables auto-run):
+Manual mode (disables auto-run, keeps tests for re-run):
 
 ```js
 import test from 'tst.js'
+test.manual = true
+
+// register tests...
 await test.run({
   grep: /api/,       // filter by name
   bail: true,        // stop on first failure
@@ -104,6 +107,7 @@ TST_GREP=pattern node test.js  # filter by name
 TST_BAIL=1 node test.js        # stop on first failure
 TST_MUTE=1 node test.js        # hide passing tests
 TST_FORMAT=tap node test.js    # TAP output (pipeable)
+TST_MANUAL=1 node test.js     # disable auto-run
 ```
 
 Or URL params (browser):
@@ -112,6 +116,7 @@ test.html?grep=pattern
 test.html?bail
 test.html?mute
 test.html?format=tap
+test.html?manual
 ```
 
 > [!NOTE]
