@@ -983,6 +983,88 @@ await run(
 )
 
 // =============================================================================
+// MANUAL MODE: test.manual disables auto-run
+// =============================================================================
+
+await run(
+  'test.manual disables auto-run, tests run on explicit run()',
+  `
+  import test, { ok } from './tst.js'
+  test.manual = true
+  test('a', () => ok(true))
+  test('b', () => ok(true))
+  // Wait past auto-run window, then run manually
+  await new Promise(r => setTimeout(r, 300))
+  await test.run()
+`,
+  {
+    exitCode: 0,
+    stdout: ['# pass 2']
+  }
+)
+
+await run(
+  'test.manual keeps tests for re-run',
+  `
+  import test, { ok } from './tst.js'
+  test.manual = true
+  test('a', () => ok(true))
+  const r1 = await test.run()
+  const r2 = await test.run()
+  console.log('run1:' + r1.passed + ' run2:' + r2.passed)
+`,
+  {
+    exitCode: 0,
+    stdout: ['run1:1 run2:1']
+  }
+)
+
+await (async () => {
+  const result = await new Promise(resolve => {
+    const env = { ...process.env, FORCE_COLOR: '0', TST_MANUAL: '1' }
+    delete env.TST_GREP
+    delete env.TST_BAIL
+    delete env.TST_MUTE
+    const child = spawn('node', ['--input-type=module', '-e', `
+      import test, { ok } from './tst.js'
+      test('a', () => ok(true))
+      await new Promise(r => setTimeout(r, 300))
+      console.log('manual:' + test.manual)
+      await test.run()
+    `], { cwd: __dirname, env })
+    let stdout = ''
+    child.stdout.on('data', d => (stdout += d))
+    child.stderr.on('data', () => {})
+    child.on('close', exitCode => resolve({ exitCode, stdout }))
+  })
+  const ok = result.exitCode === 0 && result.stdout.includes('manual:true') && result.stdout.includes('# pass 1')
+  if (ok) {
+    console.log(`${GREEN}✔ TST_MANUAL=1 env var works${RESET}`)
+    passed++
+  } else {
+    console.log(`${RED}✘ TST_MANUAL=1 env var works${RESET}`)
+    console.log(`  ${RED}exitCode: ${result.exitCode}, stdout: ${result.stdout.slice(0, 200)}${RESET}`)
+    failed++
+  }
+})()
+
+// =============================================================================
+// ASSERTIONS: almost length mismatch
+// =============================================================================
+
+await run(
+  'almost() fails on different length arrays',
+  `
+  import test, { almost } from './tst.js'
+  test('almost', () => { almost([1, 2], [1, 2, 3]) })
+`,
+  {
+    exitCode: 1,
+    stdout: ['# fail 1']
+  }
+)
+
+// =============================================================================
 // SUMMARY
 // =============================================================================
 

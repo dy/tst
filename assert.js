@@ -122,7 +122,7 @@ export function almost(a, b, eps = 1.1920929e-7, msg = 'should almost equal') {
   if (
     isPrimitive(a) || isPrimitive(b)
       ? almostEqual(a, b, eps)
-      : [...a].every((a0, i) => a0 === b[i] || almostEqual(a0, b[i], eps))
+      : a.length === b.length && [...a].every((a0, i) => almostEqual(a0, b[i], eps))
   )
     return report('almost', msg)
   throw new Assertion({ operator: 'almost', message: msg, actual: slice(a), expected: slice(b) })

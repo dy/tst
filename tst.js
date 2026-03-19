@@ -165,7 +165,12 @@ function getConfig() {
 
 // State
 let tests = [],
-  state
+  state,
+  manual = isNode
+    ? process.env.TST_MANUAL === '1'
+    : typeof location !== 'undefined'
+      ? new URLSearchParams(location.search).has('manual')
+      : false
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Test registration
@@ -189,6 +194,10 @@ test.demo = (name, fn, opts) => register(name, fn, opts, 'demo')
 test.mute = (name, fn, opts) => register(name, fn, opts, 'mute')
 test.fork = (name, fn, opts) => register(name, fn, opts, 'fork')
 test.run = opts => run(opts)
+Object.defineProperty(test, 'manual', {
+  get: () => manual,
+  set: v => { manual = v }
+})
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Test execution
@@ -479,9 +488,9 @@ export async function run(opts = {}) {
 
   fmt.summary(state, { grep, only })
 
-  tests = []
+  if (!manual) tests = []
   hasRun = true
-  if (isNode) process.exit(state.failed.length ? 1 : 0)
+  if (!manual && isNode) process.exit(state.failed.length ? 1 : 0)
   return state
 }
 
@@ -495,7 +504,7 @@ function scheduleAutoRun() {
   let lastCount = 0,
     waited = 0
   const check = () => {
-    if (hasRun) return // Manual run() was called, skip auto-run
+    if (hasRun || manual) return
     waited += 10
     if (tests.length === 0 && waited > 200) return // No tests, exit
     if (tests.length > 0 && tests.length === lastCount) {
