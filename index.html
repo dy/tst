@@ -89,11 +89,12 @@
     <a href="?grep=async">?grep=async</a>
     <a href="?format=tap">?format=tap</a>
     <a href="?manual">?manual</a>
+    <a href="?parallel">?parallel</a>
   </div>
 
   <p class="hint">
-    💡 URL params: <code>?grep=pattern</code> <code>?mute</code> <code>?bail</code> <code>?format=tap</code> <code>?manual</code><br>
-    💡 Node env: <code>TST_GREP=pattern</code> <code>TST_MUTE=1</code> <code>TST_BAIL=1</code> <code>TST_FORMAT=tap</code> <code>TST_MANUAL=1</code>
+    💡 URL params: <code>?grep=pattern</code> <code>?mute</code> <code>?bail</code> <code>?format=tap</code> <code>?manual</code> <code>?parallel</code><br>
+    💡 Node env: <code>TST_GREP=pattern</code> <code>TST_MUTE=1</code> <code>TST_BAIL=1</code> <code>TST_FORMAT=tap</code> <code>TST_MANUAL=1</code> <code>TST_PARALLEL=1</code>
   </p>
 
   <div>
@@ -109,6 +110,7 @@
           <li><code>throws(fn, match?)</code> — function throws</li>
           <li><code>rejects(fn, match?)</code> — async fn rejects</li>
           <li><code>almost(a, b, eps?)</code> — floats are close</li>
+          <li><code>pass(msg)</code> / <code>fail(msg)</code> — explicit</li>
         </ul>
       </div>
       <div class="cheat-section mod">
@@ -129,7 +131,7 @@
   </div>
 
   <p class="footer">
-    <a href="https://github.com/nicefold/license" title="Nicefold License">ॐ</a>
+    <a href="https://krishnized.github.io/license" title="Krishnized License">ॐ</a>
   </p>
 
   <script type="module" src="./demo.js"></script>

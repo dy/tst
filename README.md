@@ -96,7 +96,8 @@ await test.run({
   bail: true,        // stop on first failure
   mute: true,        // hide passing tests
   timeout: 10000,    // fail if takes >10s
-  format: 'tap'      // pretty (default), tap or custom object
+  format: 'tap',     // pretty (default), tap or custom object
+  parallel: true     // run tests concurrently (true = auto, or number for limit)
 })
 ```
 
@@ -108,6 +109,8 @@ TST_BAIL=1 node test.js        # stop on first failure
 TST_MUTE=1 node test.js        # hide passing tests
 TST_FORMAT=tap node test.js    # TAP output (pipeable)
 TST_MANUAL=1 node test.js     # disable auto-run
+TST_PARALLEL=1 node test.js   # run tests concurrently
+TST_PARALLEL=4 node test.js   # concurrency limit of 4
 ```
 
 Or URL params (browser):
@@ -117,6 +120,8 @@ test.html?bail
 test.html?mute
 test.html?format=tap
 test.html?manual
+test.html?parallel
+test.html?parallel=4
 ```
 
 > [!NOTE]

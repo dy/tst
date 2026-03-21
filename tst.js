@@ -141,6 +141,17 @@ export const formats = {
   }
 }
 
+// Race a promise against a timeout
+const withTimeout = (p, ms) =>
+  Promise.race([
+    p,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`timeout after ${ms}ms`)), ms))
+  ])
+
+// Parse parallel option: false|0|null → false, "1"|true → true, "4" → 4
+const parseParallel = v =>
+  v == null || v === '' || v === false ? false : +v > 1 ? +v : +v === 0 ? false : true
+
 // Config from env (node) or URL params (browser)
 function getConfig() {
   if (isNode) {
@@ -148,7 +159,8 @@ function getConfig() {
       grep: process.env.TST_GREP,
       bail: process.env.TST_BAIL === '1',
       mute: process.env.TST_MUTE === '1',
-      format: process.env.TST_FORMAT || 'pretty'
+      format: process.env.TST_FORMAT || 'pretty',
+      parallel: parseParallel(process.env.TST_PARALLEL)
     }
   }
   if (typeof location !== 'undefined') {
@@ -157,7 +169,8 @@ function getConfig() {
       grep: params.get('grep'),
       bail: params.has('bail'),
       mute: params.has('mute'),
-      format: params.get('format') || 'pretty'
+      format: params.get('format') || 'pretty',
+      parallel: params.has('parallel') ? parseParallel(params.get('parallel') || '1') : false
     }
   }
   return {}
@@ -371,6 +384,54 @@ async function runForked(t, testTimeout, onAssertion) {
   }
 }
 
+// Buffered formatter — captures calls for ordered replay in parallel mode
+function bufFmt(fmt) {
+  const buf = []
+  const p = {}
+  for (const k of ['testStart', 'testSkip', 'assertion', 'testPass', 'testFail'])
+    p[k] = (...a) => buf.push(() => fmt[k](...a))
+  p.log = (...a) => buf.push(() => console.log(...a))
+  p.flush = () => buf.forEach(fn => fn())
+  return p
+}
+
+// Per-test assert wrapper — tracks assertions without global onPass (parallel-safe)
+function wrapAssert(onAssertion) {
+  let n = 0
+  const w = {}
+  for (const [k, v] of Object.entries(assert)) {
+    if (typeof v !== 'function' || k === 'onPass') {
+      w[k] = v
+      continue
+    }
+    if (k === 'rejects') {
+      w[k] = async (...a) => {
+        const r = await v(...a)
+        onAssertion(
+          ++n,
+          'rejects',
+          typeof a[2] === 'string' ? a[2] : typeof a[1] === 'string' ? a[1] : 'should reject'
+        )
+        return r
+      }
+    } else {
+      w[k] = (...a) => {
+        let info
+        onPass(i => {
+          info = i
+        })
+        try {
+          return v(...a)
+        } finally {
+          onPass(null)
+          if (info) onAssertion(++n, info.operator, info.message)
+        }
+      }
+    }
+  }
+  return w
+}
+
 export async function run(opts = {}) {
   const config = getConfig()
   const {
@@ -378,7 +439,8 @@ export async function run(opts = {}) {
     grep = config.grep ? new RegExp(config.grep, 'i') : null,
     bail = config.bail,
     mute = config.mute,
-    format = config.format
+    format = config.format,
+    parallel = config.parallel
   } = opts
 
   // Resolve format: string name or format object
@@ -388,104 +450,147 @@ export async function run(opts = {}) {
   state = { assertCount: 0, passed: 0, failed: [], skipped: 0 }
   const only = tests.filter(t => t.opts?.only).length
 
+  // Filter skips/todos (shared by both paths)
+  const runnable = []
   for (const t of tests) {
     const o = t.opts || {}
-
-    // Skip: .only filter, grep filter, skip/todo
     const skipReason =
       only && !o.only && !o.skip && !o.todo
-        ? null // silent skip for .only
+        ? null
         : grep && !grep.test(t.name)
-          ? null // silent skip for grep
+          ? null
           : o.skip
             ? 'skip'
             : o.todo
               ? 'todo'
               : false
-
     if (skipReason !== false) {
       state.skipped++
       if (skipReason && !mute) fmt.testSkip(t.name, skipReason)
-      continue
+    } else {
+      runnable.push(t)
     }
+  }
 
-    // Mute mode: suppress assertion output
+  // Run a single test, returns result object
+  // useWrapper: true for parallel mode (per-test assert wrapper, buffered output)
+  const runOne = async (t, f, useWrapper) => {
+    const o = t.opts || {}
     const muted = mute || o.mute
-    let testAssertCount = 0
-
-    // Build type label for display
     const typeLabel =
       [o.fork && 'fork', o.demo && 'demo', o.only && 'only', o.mute && 'mute']
         .filter(Boolean)
         .join('+') || 'test'
-    if (!mute) fmt.testStart(t.name, typeLabel, muted)
-
-    // Hook assertion passes
-    if (!o.fork) {
-      onPass(({ operator, message }) => {
-        state.assertCount++
-        testAssertCount++
-        if (!muted) fmt.assertion(testAssertCount, operator, message)
-      })
-    }
+    if (!mute) f.testStart(t.name, typeLabel, muted)
 
     const testTimeout = o.timeout ?? globalTimeout
     const maxRetries = o.retry ?? 0
-    let lastError = null
+    let testAssertCount = 0,
+      lastError = null
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       testAssertCount = 0
       lastError = null
-
       try {
         if (o.fork) {
-          // Fork streams assertions live via callback
-          const onAssertion = muted
+          const onA = muted
             ? null
-            : (n, operator, message) => {
+            : (n, op, msg) => {
                 testAssertCount = n
-                fmt.assertion(n, operator, message)
+                f.assertion(n, op, msg)
               }
-          const result = await runForked(t, testTimeout, onAssertion)
-          state.assertCount += result.assertCount
+          const result = await runForked(t, testTimeout, onA)
           testAssertCount = result.assertCount
+        } else if (useWrapper) {
+          // Parallel: per-test wrapper tracks assertions (requires t.ok() not bare ok())
+          const ta = wrapAssert((n, op, msg) => {
+            testAssertCount = n
+            if (!muted) f.assertion(n, op, msg)
+          })
+          await withTimeout(t.fn(ta, t.opts?.data), testTimeout)
         } else {
-          await Promise.race([
-            t.fn(assert, t.opts?.data),
-            new Promise((_, reject) =>
-              setTimeout(() => reject(new Error(`timeout after ${testTimeout}ms`)), testTimeout)
-            )
-          ])
+          // Sequential: global onPass tracks all assertions (including bare ok() calls)
+          onPass(({ operator, message }) => {
+            testAssertCount++
+            if (!muted) f.assertion(testAssertCount, operator, message)
+          })
+          await withTimeout(t.fn(assert, t.opts?.data), testTimeout)
         }
-        break // Success, exit retry loop
+        break
       } catch (e) {
         lastError = e
-        // Fork tests: count assertions from worker
         if (o.fork && typeof e.assertCount === 'number') {
-          state.assertCount += e.assertCount + 1
           testAssertCount = e.assertCount + 1
         } else {
-          state.assertCount++
           testAssertCount++
         }
         if (attempt < maxRetries) {
-          if (isNode) console.log(`${YELLOW}↻ retry ${attempt + 1}/${maxRetries}${RESET}`)
+          const msg = `${YELLOW}↻ retry ${attempt + 1}/${maxRetries}${RESET}`
+          if (f.log) f.log(msg)
+          else if (isNode) console.log(msg)
           else console.log(`%c↻ retry ${attempt + 1}/${maxRetries}`, 'color: orange')
         }
       }
     }
 
-    if (lastError) {
-      if (!o.demo) state.failed.push([lastError.message, t])
-      fmt.testFail(t.name, lastError, testAssertCount, muted)
-      if (bail && !o.demo) break
-    } else {
-      state.passed++
-      fmt.testPass(t.name, typeLabel, testAssertCount, muted)
-    }
+    if (!useWrapper && !o.fork) onPass(null)
 
-    await new Promise(r => setTimeout(r))
+    if (lastError) {
+      f.testFail(t.name, lastError, testAssertCount, muted)
+      return { error: lastError, test: t, demo: !!o.demo, assertCount: testAssertCount }
+    }
+    f.testPass(t.name, typeLabel, testAssertCount, muted)
+    return { assertCount: testAssertCount }
+  }
+
+  if (parallel) {
     onPass(null)
+    const concurrency = parallel === true ? runnable.length : Math.min(parallel, runnable.length)
+    let bailed = false
+
+    const tasks = runnable.map(t => async () => {
+      const bf = bufFmt(fmt)
+      const r = await runOne(t, bf, true)
+      r.bf = bf
+      return r
+    })
+
+    // Concurrency pool with bail support
+    let i = 0
+    const results = new Array(tasks.length)
+    await Promise.all(
+      Array.from({ length: Math.min(concurrency, tasks.length) }, async () => {
+        while (i < tasks.length && !bailed) {
+          const j = i++
+          results[j] = await tasks[j]()
+          if (bail && results[j]?.error && !results[j]?.demo) bailed = true
+        }
+      })
+    )
+
+    // Replay buffered output in registration order
+    for (const r of results) {
+      if (!r) continue
+      state.assertCount += r.assertCount
+      r.bf.flush()
+      if (r.error) {
+        if (!r.demo) state.failed.push([r.error.message, r.test])
+      } else {
+        state.passed++
+      }
+    }
+  } else {
+    for (const t of runnable) {
+      const r = await runOne(t, fmt, false)
+      state.assertCount += r.assertCount
+      if (r.error) {
+        if (!r.demo) state.failed.push([r.error.message, r.test])
+        if (bail && !r.demo) break
+      } else {
+        state.passed++
+      }
+      await new Promise(r => setTimeout(r))
+    }
   }
 
   fmt.summary(state, { grep, only })

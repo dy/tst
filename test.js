@@ -1078,6 +1078,132 @@ await run(
 )
 
 // =============================================================================
+// PARALLEL: tests run concurrently
+// =============================================================================
+
+await run(
+  'parallel: true runs all tests concurrently',
+  `
+  import test from './tst.js'
+  test.manual = true
+  const order = []
+  test('a', async (t) => { await new Promise(r => setTimeout(r, 60)); order.push('a'); t.ok(true) })
+  test('b', async (t) => { await new Promise(r => setTimeout(r, 20)); order.push('b'); t.ok(true) })
+  test('c', async (t) => { order.push('c'); t.ok(true) })
+  const r = await test.run({ parallel: true })
+  // b and c finish before a if truly parallel
+  console.log('order:' + order.join(','))
+  console.log('passed:' + r.passed)
+`,
+  {
+    exitCode: 0,
+    stdout: ['order:c,b,a', 'passed:3']
+  }
+)
+
+await run(
+  'parallel output is in registration order',
+  `
+  import test, { ok } from './tst.js'
+  test('first', async () => { await new Promise(r => setTimeout(r, 40)); ok(true) })
+  test('second', async () => { ok(true) })
+  await test.run({ parallel: true })
+`,
+  {
+    exitCode: 0,
+    // Output should show "first" before "second" despite second finishing first
+    stdout: ['first', 'second', '# pass 2']
+  }
+)
+
+await run(
+  'parallel: number limits concurrency',
+  `
+  import test from './tst.js'
+  test.manual = true
+  let concurrent = 0, maxConcurrent = 0
+  for (let i = 0; i < 6; i++) {
+    test('t' + i, async (t) => {
+      concurrent++
+      maxConcurrent = Math.max(maxConcurrent, concurrent)
+      await new Promise(r => setTimeout(r, 30))
+      concurrent--
+      t.ok(true)
+    })
+  }
+  await test.run({ parallel: 2 })
+  console.log('max:' + maxConcurrent)
+`,
+  {
+    exitCode: 0,
+    stdout: ['max:2', '# pass 6']
+  }
+)
+
+await run(
+  'parallel with bail stops launching new tests',
+  `
+  import test from './tst.js'
+  test('a', (t) => t.ok(true))
+  test('b', (t) => t.fail('boom'))
+  test('c', async (t) => { await new Promise(r => setTimeout(r, 100)); t.ok(true) })
+  test('d', (t) => t.ok(true))
+  await test.run({ parallel: 1, bail: true })
+`,
+  {
+    exitCode: 1,
+    stdout: ['# fail 1']
+  }
+)
+
+await run(
+  'parallel handles mixed pass/fail correctly',
+  `
+  import test from './tst.js'
+  test('pass1', (t) => t.ok(true))
+  test('fail1', (t) => t.fail('nope'))
+  test('pass2', (t) => t.ok(true))
+  await test.run({ parallel: true })
+`,
+  {
+    exitCode: 1,
+    stdout: ['# pass 2', '# fail 1']
+  }
+)
+
+await run(
+  'parallel preserves assertion counts',
+  `
+  import test from './tst.js'
+  test.manual = true
+  test('a', (t) => { t.ok(true); t.ok(true) })
+  test('b', (t) => { t.is(1, 1); t.is(2, 2); t.is(3, 3) })
+  const r = await test.run({ parallel: true })
+  console.log('asserts:' + r.assertCount)
+`,
+  {
+    exitCode: 0,
+    stdout: ['asserts:5', '# pass 2']
+  }
+)
+
+await run(
+  'parallel with rejects assertion',
+  `
+  import test from './tst.js'
+  test.manual = true
+  test('a', async (t) => { await t.rejects(() => Promise.reject(new Error('x'))); t.ok(true) })
+  test('b', (t) => t.ok(true))
+  const r = await test.run({ parallel: true })
+  console.log('asserts:' + r.assertCount)
+`,
+  {
+    exitCode: 0,
+    stdout: ['asserts:3', '# pass 2']
+  }
+)
+
+// =============================================================================
 // SUMMARY
 // =============================================================================
 
