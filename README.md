@@ -10,7 +10,7 @@ Test without <em>e</em>fforts.
 ## usage
 
 ```js
-import test from 'tst.js'
+import test from 'tst'
 
 test('math', ({ ok, is }) => {
   ok(true)
