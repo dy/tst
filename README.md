@@ -106,7 +106,8 @@ Or env vars:
 ```bash
 TST_GREP=pattern node test.js  # filter by name
 TST_BAIL=1 node test.js        # stop on first failure
-TST_MUTE=1 node test.js        # hide passing tests
+TST_MUTE=1 node test.js        # hide passing tests (default when stdout isn't a terminal)
+TST_MUTE=0 node test.js        # show passing tests in a log too
 TST_FORMAT=tap node test.js    # TAP output (pipeable)
 TST_MANUAL=1 node test.js     # disable auto-run
 TST_PARALLEL=1 node test.js   # run tests concurrently

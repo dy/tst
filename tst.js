@@ -16,6 +16,8 @@ const GREEN = '\x1b[32m',
   RESET = '\x1b[0m',
   GRAY = '\x1b[90m'
 const isNode = typeof process !== 'undefined' && process.versions?.node
+const ownFiles = [import.meta.url, new URL('./assert.js', import.meta.url).href]
+const own = line => ownFiles.some(f => line.includes(f + ':'))
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Output formats
@@ -71,8 +73,10 @@ export const formats = {
               typeof expected === 'string' ? JSON.stringify(expected) : expected,
               RED
             )
-            console.error(new Error(), RESET)
           }
+          // Where the test asserted, not where the reporter runs
+          const at = error.stack?.split('\n').find(l => /^\s+at /.test(l) && !own(l))
+          console.log(`${RESET}${at ? at.trim() : ''}`)
         } else {
           console.assert(false, `${assertCount} — ${message}`, { actual, expected })
         }
@@ -158,7 +162,8 @@ function getConfig() {
     return {
       grep: process.env.TST_GREP,
       bail: process.env.TST_BAIL === '1',
-      mute: process.env.TST_MUTE === '1',
+      // Off a terminal (CI, a log file, an agent) passing tests print nothing
+      mute: process.env.TST_MUTE ? process.env.TST_MUTE === '1' : !process.stdout.isTTY,
       format: process.env.TST_FORMAT || 'pretty',
       parallel: parseParallel(process.env.TST_PARALLEL)
     }

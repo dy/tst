@@ -19,7 +19,7 @@ let passed = 0,
   failed = 0
 
 async function run(name, code, expect, nodeFlags = []) {
-  const result = await execute(code, nodeFlags)
+  const result = await execute(code, nodeFlags, expect.env)
 
   const checks = []
   if (expect.exitCode !== undefined) {
@@ -56,13 +56,13 @@ async function run(name, code, expect, nodeFlags = []) {
   }
 }
 
-function execute(code, nodeFlags = []) {
+function execute(code, nodeFlags = [], env = {}) {
   return new Promise(resolve => {
-    // Clean env: remove TST_* vars to not affect child processes
-    const cleanEnv = { ...process.env, FORCE_COLOR: '0' }
+    // Clean env: remove TST_* vars to not affect child processes; show passes as a terminal would
+    const cleanEnv = { ...process.env, FORCE_COLOR: '0', TST_MUTE: '0', ...env }
     delete cleanEnv.TST_GREP
     delete cleanEnv.TST_BAIL
-    delete cleanEnv.TST_MUTE
+    for (const k in env) if (env[k] === undefined) delete cleanEnv[k]
 
     const child = spawn('node', [...nodeFlags, '--input-type=module', '-e', code], {
       cwd: __dirname,
@@ -724,6 +724,36 @@ await run(
     exitCode: 1,
     stdout: ['fails', '# fail 1'],
     notStdout: ['passes']
+  }
+)
+
+await run(
+  'off a terminal, passing tests print nothing by default',
+  `
+  import test, { ok } from './tst.js'
+  test('passes', () => ok(true, 'pass detail'))
+  test('fails', () => { ok(true, 'before'); ok(false, 'fail detail') })
+`,
+  {
+    env: { TST_MUTE: undefined },
+    exitCode: 1,
+    stdout: ['► fails', 'fail detail', '# pass 1', '# fail 1'],
+    notStdout: ['passes', 'pass detail', 'before', '√']
+  }
+)
+
+await run(
+  'a failed assertion points at the test line, not the reporter',
+  `
+  import test, { is } from './tst.js'
+  test('fails', () => {
+    is(1, 2, 'one is two')
+  })
+`,
+  {
+    exitCode: 1,
+    stdout: [/at .*\[eval1\]:4:5/],
+    notStdout: ['tst.js:', 'assert.js:']
   }
 )
 
